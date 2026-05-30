@@ -1,0 +1,4319 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบบริหารคลังอะไหล่ศูนย์เครื่องมือแพทย์ | โรงพยาบาลนครพิงค์ (SMM 07-1:2024)</title>
+  
+  <!-- Chart.js and Lucide Icons CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Embed CSS Styles for 100% loading guarantee -->
+  <style>
+    /* Design System and Stylesheet for Nakhonping Hospital Spare Parts CMMS */
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      /* Color Palette - Light Mode Default */
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f1f5f9;
+      
+      --border-color: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      
+      --primary: #0f766e;        /* Dark Teal */
+      --primary-hover: #115e59;
+      --primary-light: #ccfbf1;
+      --primary-glow: rgba(15, 118, 110, 0.15);
+      
+      --secondary: #1d4ed8;      /* Royal Blue */
+      --secondary-light: #dbeafe;
+      
+      --success: #16a34a;        /* Green */
+      --success-light: #dcfce7;
+      
+      --warning: #ea580c;        /* Orange */
+      --warning-light: #ffedd5;
+      
+      --danger: #dc2626;         /* Red */
+      --danger-light: #fee2e2;
+      
+      --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      --glass-bg: rgba(255, 255, 255, 0.8);
+      --glass-border: rgba(226, 232, 240, 0.8);
+      --glass-blur: blur(12px);
+      
+      --font-family: 'Outfit', 'Sarabun', sans-serif;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --sidebar-width: 260px;
+    }
+
+    [data-theme="dark"] {
+      /* Color Palette - Dark Mode */
+      --bg-primary: #0b0f19;
+      --bg-secondary: #111827;
+      --bg-tertiary: #1f2937;
+      
+      --border-color: #374151;
+      --text-primary: #f9fafb;
+      --text-secondary: #d1d5db;
+      --text-muted: #6b7280;
+      
+      --primary: #14b8a6;        /* Bright Teal */
+      --primary-hover: #2dd4bf;
+      --primary-light: #115e59;
+      --primary-glow: rgba(20, 184, 166, 0.25);
+      
+      --secondary: #3b82f6;      /* Bright Blue */
+      --secondary-light: #1e3a8a;
+      
+      --success: #22c55e;
+      --success-light: #14532d;
+      
+      --warning: #f97316;
+      --warning-light: #7c2d12;
+      
+      --danger: #ef4444;
+      --danger-light: #7f1d1d;
+      
+      --card-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.3);
+      --glass-bg: rgba(17, 24, 39, 0.7);
+      --glass-border: rgba(55, 65, 81, 0.5);
+      --glass-blur: blur(16px);
+    }
+
+    /* Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    button, input, select, textarea {
+      font-family: var(--font-family);
+    }
+
+    /* Authentication Gate */
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: radial-gradient(circle at top right, var(--primary-glow), transparent 60%), 
+                  radial-gradient(circle at bottom left, rgba(29, 78, 216, 0.1), transparent 60%), 
+                  var(--bg-primary);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    .login-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .login-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: var(--glass-blur);
+      padding: 40px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: var(--card-shadow);
+      text-align: center;
+      animation: slideUp 0.6s ease;
+    }
+
+    .login-logo {
+      font-size: 2.5rem;
+      color: var(--primary);
+      margin-bottom: 10px;
+      display: inline-block;
+      animation: pulse 2s infinite;
+    }
+
+    .login-card h2 {
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 1.6rem;
+    }
+
+    .login-card p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 25px;
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      margin-bottom: 15px;
+      font-size: 1rem;
+      transition: var(--transition);
+      text-align: center;
+    }
+
+    .login-form input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .login-form button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background-color: var(--primary);
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .login-form button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .login-error {
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-top: 10px;
+      min-height: 20px;
+    }
+
+    /* App Shell Layout */
+    .app-container {
+      display: flex;
+      width: 100vw;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: fixed;
+      z-index: 100;
+      transition: var(--transition);
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      background: var(--primary-light);
+      color: var(--primary);
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .logo-text h1 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .logo-text span {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .sidebar-link:hover {
+      background-color: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .sidebar-link.active {
+      background-color: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
+    }
+
+    .sidebar-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .theme-toggle-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: var(--border-color);
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .username {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .logout-btn {
+      font-size: 0.75rem;
+      color: var(--danger);
+      cursor: pointer;
+      border: none;
+      background: none;
+      text-align: left;
+      font-weight: 500;
+    }
+
+    .logout-btn:hover {
+      text-decoration: underline;
+    }
+
+    /* Main Content Area */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      flex-grow: 1;
+      padding: 40px;
+      max-width: calc(100vw - var(--sidebar-width));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
+    }
+
+    .page-title h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    .page-title p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
+    /* Dashboard Metrics */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .metric-card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: var(--card-shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background-color: var(--primary);
+    }
+
+    .metric-card.warning::before { background-color: var(--warning); }
+    .metric-card.danger::before { background-color: var(--danger); }
+    .metric-card.secondary::before { background-color: var(--secondary); }
+
+    .metric-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .metric-card.primary .metric-icon { background: var(--primary-light); color: var(--primary); }
+    .metric-card.warning .metric-icon { background: var(--warning-light); color: var(--warning); }
+    .metric-card.danger .metric-icon { background: var(--danger-light); color: var(--danger); }
+    .metric-card.secondary .metric-icon { background: var(--secondary-light); color: var(--secondary); }
+
+    .metric-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .metric-val {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .metric-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    /* Charts Grid */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: var(--card-shadow);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      min-height: 280px;
+      max-height: 320px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Tabs Panel Content */
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 24px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    /* Stock Lists & Table Controls */
+    .filter-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex-grow: 1;
+      max-width: 400px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .filter-select {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--border-color);
+    }
+
+    .btn-success {
+      background-color: var(--success);
+      color: white;
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    /* Styled Table */
+    .table-wrapper {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+    }
+
+    .custom-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    .custom-table th {
+      background-color: var(--bg-tertiary);
+      padding: 16px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .custom-table td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    .custom-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .custom-table tbody tr:hover {
+      background-color: rgba(15, 118, 110, 0.03);
+    }
+
+    /* Stock Status Badges */
+    .badge {
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge-a { background: linear-gradient(135deg, #7f1d1d, #ef4444); color: white; }
+    .badge-b { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; }
+    .badge-c { background: linear-gradient(135deg, #115e59, #14b8a6); color: white; }
+
+    .badge-in-stock { background-color: var(--success-light); color: var(--success); }
+    .badge-low-stock { background-color: var(--warning-light); color: var(--warning); }
+    .badge-out-of-stock { background-color: var(--danger-light); color: var(--danger); }
+
+    .badge-near-expiry { background-color: var(--warning-light); color: var(--warning); }
+    .badge-expired { background-color: var(--danger-light); color: var(--danger); }
+    .badge-safe { background-color: var(--success-light); color: var(--success); }
+
+    /* Form Container Layout */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      transition: var(--transition);
+      outline: none;
+    }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    /* Modal Drawer Details styling */
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+      padding: 20px;
+    }
+
+    .modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUp 0.3s ease;
+    }
+
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--bg-tertiary);
+    }
+
+    .modal-header h3 {
+      font-weight: 700;
+    }
+
+    .close-btn {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      max-height: 70vh;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .modal-footer {
+      padding: 20px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* Parts info specs card */
+    .part-spec-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      font-size: 0.9rem;
+    }
+
+    .spec-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .spec-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .spec-val {
+      font-weight: 600;
+    }
+
+    /* Helper settings page card and pre elements */
+    .code-block-container {
+      position: relative;
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      border: 1px solid #1e293b;
+    }
+
+    .code-block-container pre {
+      color: #38bdf8;
+      font-family: Consolas, Monaco, 'Andale Mono', monospace;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+
+    .code-copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .code-copy-btn:hover {
+      background: #334155;
+      color: white;
+    }
+
+    /* Keyframes animations */
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    /* Notification banner */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--primary);
+      box-shadow: var(--card-shadow);
+      padding: 16px 24px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 10000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.success { border-left-color: var(--success); }
+    .toast.danger { border-left-color: var(--danger); }
+    .toast.warning { border-left-color: var(--warning); }
+
+    /* Grid Layout Classes for Responsiveness */
+    .grid-layout-split {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    
+    .grid-layout-half {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    
+    .grid-layout-split > *, .grid-layout-half > * {
+      min-width: 0;
+    }
+
+    /* Sub-Tabs Segmented Controls UI */
+    .tx-sub-tabs {
+      background-color: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 6px;
+      display: inline-flex;
+      gap: 6px;
+      margin-bottom: 24px;
+      width: fit-content;
+    }
+    
+    .tx-sub-tab-btn {
+      background: transparent;
+      color: var(--text-secondary);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .tx-sub-tab-btn:hover {
+      color: var(--text-primary);
+    }
+    
+    .tx-sub-tab-btn.active {
+      background-color: var(--primary);
+      color: white;
+      box-shadow: 0 4px 10px var(--primary-glow);
+    }
+
+    /* Grid Column Override on Single Tab Display to stretch 100% full screen width */
+    .grid-layout-split.show-form-only, 
+    .grid-layout-split.show-ledger-only {
+      grid-template-columns: 1fr !important;
+    }
+
+    /* Responsive Toggle behaviors */
+    .show-form-only #tx-ledger-card {
+      display: none !important;
+    }
+    .show-form-only #tx-form-card {
+      width: 100% !important;
+    }
+    
+    .show-ledger-only #tx-form-card {
+      display: none !important;
+    }
+    .show-ledger-only #tx-ledger-card {
+      width: 100% !important;
+    }
+
+    /* Collapsed Sidebar Layout Variables and rules */
+    .sidebar {
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .main-content {
+      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebar-collapsed {
+      --sidebar-width: 80px;
+    }
+
+    .sidebar-collapsed .logo-text,
+    .sidebar-collapsed .sidebar-link span,
+    .sidebar-collapsed .theme-toggle-container span,
+    .sidebar-collapsed .user-info {
+      display: none !important;
+    }
+
+    .sidebar-collapsed .sidebar-header {
+      flex-direction: column;
+      gap: 12px;
+      padding: 24px 12px;
+      justify-content: center;
+    }
+
+    .sidebar-collapsed .sidebar-toggle-btn {
+      margin-left: 0;
+      margin-top: 8px;
+    }
+
+    .sidebar-collapsed .sidebar-link {
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .sidebar-collapsed .theme-toggle-container {
+      justify-content: center;
+    }
+
+    .sidebar-collapsed .user-profile {
+      justify-content: center;
+    }
+    
+    .sidebar-toggle-btn {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-left: auto;
+    }
+    
+    .sidebar-toggle-btn:hover {
+      background-color: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    @media (min-width: 1024px) {
+      .grid-layout-half {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .grid-layout-split {
+        grid-template-columns: 1fr 2fr;
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1200px) {
+      :root {
+        --sidebar-width: 220px;
+      }
+      .main-content {
+        padding: 24px;
+        gap: 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .sidebar-header {
+        padding: 16px;
+      }
+      .sidebar-menu {
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 8px;
+        height: auto;
+      }
+      .sidebar-link {
+        white-space: nowrap;
+        padding: 8px 12px;
+      }
+      .sidebar-footer {
+        display: none; /* Hide toggle and user profiles to save mobile space */
+      }
+      .main-content {
+        margin-left: 0;
+        max-width: 100%;
+        padding: 16px;
+      }
+      
+      .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+    }
+
+    /* Print Stylesheet for Memorandum A4 */
+    /* Print Stylesheet for Memorandum A4 */
+    @media print {
+      /* Hide all non-printable elements */
+      .sidebar, 
+      .top-bar, 
+      .toast-container,
+      #login-overlay,
+      #tab-procurement > .card:first-child,
+      #memo-editor-card,
+      #memo-preview-card > .card-header,
+      .sidebar-toggle-btn {
+        display: none !important;
+      }
+      
+      /* Reset layout wrappers to prevent overflow and margins */
+      body, .app-container, .main-content, #tab-procurement, #procurement-workspace, #memo-preview-card {
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+      }
+
+      /* Adjust printable paper container */
+      #pr-print-area {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        max-width: 100% !important;
+        background: white !important;
+        color: black !important;
+        font-size: 15px;
+        position: relative;
+      }
+    }
+
+    @media (min-width: 1400px) {
+      .procurement-workspace-grid {
+        grid-template-columns: 1.2fr 2fr !important;
+      }
+    }
+  </style>
+</head>
+<body data-theme="dark">
+
+  <!-- Authentication Login Gate -->
+  <div id="login-overlay" class="login-overlay">
+    <div class="login-card">
+      <div class="login-logo">
+        <i data-lucide="shield-alert" style="width: 48px; height: 48px;"></i>
+      </div>
+      <h2>ระบบควบคุมคลังอะไหล่แพทย์</h2>
+      <p>ศูนย์เครื่องมือแพทย์ โรงพยาบาลนครพิงค์</p>
+      <div class="login-form">
+        <input type="password" id="login-password" placeholder="ระบุรหัสผ่านเข้าใช้งาน" autofocus>
+        <button id="login-submit-btn">เข้าสู่ระบบ (Sign In)</button>
+        <div id="login-error" class="login-error"></div>
+      </div>
+      <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 15px;">
+        *รหัสผ่านเริ่มต้นคือ: <code style="background: var(--bg-tertiary); padding: 2px 4px; border-radius: 4px;">NKP-medparts-2026</code>
+      </p>
+    </div>
+  </div>
+
+  <!-- Main System App Shell -->
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">NKP</div>
+        <div class="logo-text">
+          <h1>รพ.นครพิงค์</h1>
+          <span>ศูนย์เครื่องมือแพทย์</span>
+        </div>
+        <button id="btn-toggle-sidebar" class="sidebar-toggle-btn" title="ย่อ/ขยายเมนู">
+          <i data-lucide="chevron-left"></i>
+        </button>
+      </div>
+      
+      <nav style="flex-grow: 1; display: flex; flex-direction: column;">
+        <ul class="sidebar-menu">
+          <li>
+            <a class="sidebar-link active" data-tab="dashboard">
+              <i data-lucide="layout-dashboard"></i>
+              <span>แดชบอร์ดภาพรวม</span>
+            </a>
+          </li>
+          <li>
+            <a class="sidebar-link" data-tab="catalog">
+              <i data-lucide="package"></i>
+              <span>คลังอะไหล่และอุปกรณ์</span>
+            </a>
+          </li>
+          <li>
+            <a class="sidebar-link" data-tab="transactions">
+              <i data-lucide="clipboard-list"></i>
+              <span>เบิกจ่ายและรับเข้าคลัง</span>
+            </a>
+          </li>
+          <li>
+            <a class="sidebar-link" data-tab="ledger">
+              <i data-lucide="history"></i>
+              <span>ประวัติคลัง (Ledger Logs)</span>
+            </a>
+          </li>
+          <li>
+            <a class="sidebar-link" data-tab="planning">
+              <i data-lucide="calendar-range"></i>
+              <span>แผนบำรุงรักษาเชิงรุก</span>
+            </a>
+          </li>
+          <li>
+            <a class="sidebar-link" data-tab="procurement">
+              <i data-lucide="shopping-cart"></i>
+              <span>ใบขอจัดซื้ออะไหล่</span>
+            </a>
+          </li>
+          <li>
+            <a class="sidebar-link" data-tab="settings">
+              <i data-lucide="settings"></i>
+              <span>คลาวด์ & LINE Settings</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="theme-toggle-container">
+          <span>โหมดกลางคืน (Dark Theme)</span>
+          <label class="switch">
+            <input type="checkbox" id="theme-toggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="user-profile">
+          <div class="avatar">NKP</div>
+          <div class="user-info">
+            <span class="username" id="display-user">ช่างเทคนิคโรงพยาบาล</span>
+            <button class="logout-btn" id="logout-btn">ออกจากระบบ</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Header Bar -->
+      <header class="top-bar">
+        <div class="page-title">
+          <h2 id="current-tab-title">แดชบอร์ดภาพรวม</h2>
+          <p id="current-tab-desc">วิเคราะห์สถิติคลังสินค้า ความปลอดภัย และอัตราค่าบำรุงรักษา</p>
+        </div>
+        <div class="date-display" style="font-weight: 500; font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+          <span id="live-time-display">2026-05-29</span>
+        </div>
+      </header>
+
+      <!-- TAB 1: DASHBOARD -->
+      <section id="tab-dashboard" class="tab-content active">
+        <!-- Metrics Grid -->
+        <div class="metrics-grid">
+          <div class="metric-card primary">
+            <div class="metric-icon"><i data-lucide="boxes"></i></div>
+            <div class="metric-details">
+              <span class="metric-val" id="metric-total-items">0</span>
+              <span class="metric-label">จำนวนรายการอะไหล่ทั้งหมด</span>
+            </div>
+          </div>
+          <div class="metric-card warning" id="metric-low-stock-card">
+            <div class="metric-icon"><i data-lucide="alert-triangle"></i></div>
+            <div class="metric-details">
+              <span class="metric-val" id="metric-low-stock-count">0</span>
+              <span class="metric-label">อะไหล่ต่ำกว่าจุดสั่งซื้อ</span>
+            </div>
+          </div>
+          <div class="metric-card danger" id="metric-expired-card">
+            <div class="metric-icon"><i data-lucide="hourglass"></i></div>
+            <div class="metric-details">
+              <span class="metric-val" id="metric-expired-count">0</span>
+              <span class="metric-label">อะไหล่ใกล้หมดอายุ / หมดอายุ</span>
+            </div>
+          </div>
+          <div class="metric-card secondary">
+            <div class="metric-icon"><i data-lucide="coins"></i></div>
+            <div class="metric-details">
+              <span class="metric-val" id="metric-total-value">฿0</span>
+              <span class="metric-label">มูลค่าอะไหล่คงคลังรวม</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-grid">
+          <!-- TSC / EV Analyzer -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="line-chart" style="color: var(--secondary);"></i>
+                สัดส่วนวิเคราะห์ค่าบริการทางเทคนิคต่อมูลค่าเครื่อง (TSC/EV Ratio - 5.1.5 ข)
+              </span>
+            </div>
+            <div class="chart-container">
+              <canvas id="tscEvChart"></canvas>
+            </div>
+          </div>
+          <!-- ABC Distribution -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="pie-chart" style="color: var(--primary);"></i>
+                การกระจายกลุ่มอะไหล่แบบ ABC
+              </span>
+            </div>
+            <div class="chart-container">
+              <canvas id="abcChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Critical Alerts List Table -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title" style="color: var(--danger);">
+              <i data-lucide="bell-ring"></i>
+              อะไหล่ที่ต้องดำเนินการอย่างเร่งด่วน (ต่ำกว่าเกณฑ์ / หมดอายุ)
+            </span>
+          </div>
+          <div class="table-wrapper">
+            <table class="custom-table" id="dashboard-alerts-table">
+              <thead>
+                <tr>
+                  <th>รหัสอะไหล่</th>
+                  <th>ชื่ออะไหล่</th>
+                  <th>ตำแหน่งจัดเก็บ</th>
+                  <th>คงเหลือ (ชิ้น)</th>
+                  <th>จุดต่ำสุด/สั่งซื้อ</th>
+                  <th>สถานะปัญหา</th>
+                  <th>ผู้จัดจำหน่าย</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Populated dynamically by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: SPARE PARTS CATALOG -->
+      <section id="tab-catalog" class="tab-content">
+        <div class="filter-row">
+          <input type="text" id="catalog-search" class="search-input" placeholder="ค้นหาอะไหล่ (รหัส, ชื่อ, ผู้ผลิต)...">
+          
+          <div class="filter-group">
+            <select id="catalog-filter-abc" class="filter-select">
+              <option value="ALL">กลุ่ม ABC ทั้งหมด</option>
+              <option value="A">Class A (มูลค่าสูงมาก)</option>
+              <option value="B">Class B (มูลค่าปานกลาง)</option>
+              <option value="C">Class C (มูลค่าต่ำ)</option>
+            </select>
+            <select id="catalog-filter-status" class="filter-select">
+              <option value="ALL">สถานะคลังทั้งหมด</option>
+              <option value="LOW">ต่ำกว่าจุดสั่งซื้อ (Reorder)</option>
+              <option value="EXPIRED">ใกล้หมดอายุ/หมดอายุ</option>
+              <option value="NORMAL">สต๊อกปกติ</option>
+            </select>
+            <button class="btn btn-primary" id="btn-add-part">
+              <i data-lucide="plus-circle"></i>
+              เพิ่มรายการอะไหล่ใหม่
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="custom-table" id="catalog-table">
+            <thead>
+              <tr>
+                <th>รหัสอะไหล่</th>
+                <th>ชื่อ / คำอธิบาย</th>
+                <th>แบรนด์/ผู้ผลิต</th>
+                <th>ระดับ ABC</th>
+                <th>ตำแหน่งที่เก็บ</th>
+                <th>คงคลัง (ชิ้น)</th>
+                <th>ราคาต่อหน่วย</th>
+                <th>วันหมดอายุ</th>
+                <th>การจัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="catalog-table-body">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 3: WAREHOUSE TRANSACTIONS (เบิกจ่าย/รับเข้า/ยืม) -->
+      <section id="tab-transactions" class="tab-content">
+        <div style="max-width: 800px; margin: 0 auto; width: 100%;">
+          <!-- Transaction Entry Form -->
+          <div class="card" id="tx-form-card" style="height: fit-content;">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="arrow-left-right" style="color: var(--primary);"></i>
+                ทำรายการสินค้าคงคลัง (Stock Transaction)
+              </span>
+            </div>
+            
+            <form id="tx-form" class="form-grid" style="grid-template-columns: 1fr;">
+              <div class="form-group">
+                <label for="tx-type">ประเภทรายการ (Transaction Type) *</label>
+                <select id="tx-type" required>
+                  <option value="Issue">เบิกจ่ายไปซ่อมบำรุง (Issue)</option>
+                  <option value="Receive">รับสินค้าเข้าคลัง (Receive)</option>
+                  <option value="Borrow">ยืมเพื่อทดสอบ (Borrow)</option>
+                  <option value="Return">คืนของที่ยืม (Return)</option>
+                  <option value="Audit">ตรวจสอบสต๊อกจริง (Audit)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="tx-part-code">เลือกอะไหล่ทางการแพทย์ *</label>
+                <select id="tx-part-code" required>
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="tx-qty">จำนวนชิ้นที่ดำเนินกิจกรรม *</label>
+                <input type="number" id="tx-qty" min="1" required placeholder="เช่น 1, 2">
+              </div>
+
+              <!-- Issue/Borrow Specific Fields -->
+              <div id="tx-conditional-issue" class="form-grid" style="grid-template-columns: 1fr; gap: 15px; margin-top: 5px;">
+                <div class="form-group">
+                  <label for="tx-eq-serial">ซีเรียลเครื่องมือแพทย์ที่ใช้อะไหล่ *</label>
+                  <select id="tx-eq-serial">
+                    <!-- Populated dynamically -->
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="tx-maint-type">ประเภทงานซ่อมบำรุง *</label>
+                  <select id="tx-maint-type">
+                    <option value="Corrective Maintenance (CM)">ซ่อมเมื่อชำรุด (CM)</option>
+                    <option value="Preventive Maintenance (PM)">บำรุงรักษาเชิงป้องกัน (PM)</option>
+                    <option value="Overhaul">ซ่อมแซมใหญ่ (Overhaul)</option>
+                    <option value="Emergency (ซ่อมฉุกเฉิน)">ซ่อมฉุกเฉิน / เร่งด่วน</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Borrow Specific Field -->
+              <div id="tx-conditional-borrow" class="form-group" style="display: none;">
+                <label for="tx-due-date">วันที่กำหนดส่งคืนคลัง *</label>
+                <input type="date" id="tx-due-date">
+              </div>
+
+              <div class="form-group">
+                <label for="tx-ref-doc">เอกสารอ้างอิง / รหัสใบงาน (Ref Document)</label>
+                <input type="text" id="tx-ref-doc" placeholder="เช่น PO-xx, CM-xxxx, สัญญาเลขที่">
+              </div>
+
+              <div class="form-group">
+                <label for="tx-operator">ผู้ชำนาญการ/ช่างผู้รับผิดชอบ *</label>
+                <input type="text" id="tx-operator" placeholder="ระบุชื่อช่างผู้ดำเนินการ" required>
+              </div>
+
+              <div class="form-group">
+                <label for="tx-details">รายละเอียดเพิ่มเติม / หมายเหตุ</label>
+                <textarea id="tx-details" rows="2" placeholder="เหตุผลการเบิกจ่าย ตำแหน่งการติดตั้ง..."></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="margin-top: 10px;">
+                <i data-lucide="check-circle2"></i>
+                บันทึกรายการ & ส่งแจ้งเตือน LINE OA
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3.5: LEDGER LOGS (ประวัติคลังอะไหล่) -->
+      <section id="tab-ledger" class="tab-content">
+        <div class="metrics-grid" style="margin-bottom: 24px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+          <div class="metric-card" style="padding: 15px 20px;">
+            <div class="metric-icon" style="background: rgba(59, 130, 246, 0.1); color: var(--secondary); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;"><i data-lucide="history" style="width: 20px; height: 20px;"></i></div>
+            <div class="metric-details">
+              <span class="metric-value" id="ledger-stats-total" style="font-size: 1.5rem; font-weight: 700;">0</span>
+              <span class="metric-label" style="font-size: 0.75rem; color: var(--text-secondary);">ทำรายการทั้งหมด (ครั้ง)</span>
+            </div>
+          </div>
+          <div class="metric-card" style="padding: 15px 20px;">
+            <div class="metric-icon" style="background: rgba(220, 38, 38, 0.1); color: var(--danger); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;"><i data-lucide="minus-circle" style="width: 20px; height: 20px;"></i></div>
+            <div class="metric-details">
+              <span class="metric-value" id="ledger-stats-issues" style="font-size: 1.5rem; font-weight: 700;">0</span>
+              <span class="metric-label" style="font-size: 0.75rem; color: var(--text-secondary);">เบิกอะไหล่ทั้งหมด (ชิ้น)</span>
+            </div>
+          </div>
+          <div class="metric-card" style="padding: 15px 20px;">
+            <div class="metric-icon" style="background: rgba(22, 163, 74, 0.1); color: var(--success); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;"><i data-lucide="plus-circle" style="width: 20px; height: 20px;"></i></div>
+            <div class="metric-details">
+              <span class="metric-value" id="ledger-stats-receives" style="font-size: 1.5rem; font-weight: 700;">0</span>
+              <span class="metric-label" style="font-size: 0.75rem; color: var(--text-secondary);">รับเข้าคลังทั้งหมด (ชิ้น)</span>
+            </div>
+          </div>
+          <div class="metric-card" style="padding: 15px 20px;">
+            <div class="metric-icon" style="background: rgba(234, 88, 12, 0.1); color: var(--warning); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;"><i data-lucide="clock" style="width: 20px; height: 20px;"></i></div>
+            <div class="metric-details">
+              <span class="metric-value" id="ledger-stats-borrows" style="font-size: 1.5rem; font-weight: 700;">0</span>
+              <span class="metric-label" style="font-size: 0.75rem; color: var(--text-secondary);">อยู่ระหว่างการยืม (รายการ)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="tx-ledger-card" style="width: 100%;">
+          <div class="card-header">
+            <span class="card-title">
+              <i data-lucide="history" style="color: var(--secondary);"></i>
+              ประวัติรายการรับจ่ายคลังอะไหล่ (Ledger Logs)
+            </span>
+            <button class="btn btn-secondary btn-sm" id="btn-export-logs">
+              <i data-lucide="download"></i> Export CSV
+            </button>
+          </div>
+
+          <!-- Professional Filters -->
+          <div class="ledger-filters" style="display: flex; gap: 15px; padding: 15px 20px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px; position: relative;">
+              <input type="text" id="ledger-search" placeholder="🔍 ค้นหารหัสอะไหล่, ชื่ออะไหล่, ผู้ปฏิบัติงาน, หรือเลขงาน..." style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); outline: none; font-family: inherit; font-size: 0.9rem;">
+            </div>
+            <div style="width: 180px;">
+              <select id="ledger-filter-type" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; outline: none; font-family: inherit; font-size: 0.9rem;">
+                <option value="All">ทุกประเภทรายการ</option>
+                <option value="Issue">เบิกจ่าย (Issue)</option>
+                <option value="Receive">รับเข้า (Receive)</option>
+                <option value="Borrow">ยืมทดสอบ (Borrow)</option>
+                <option value="Return">คืนของยืม (Return)</option>
+                <option value="Audit">ตรวจสอบสต๊อก (Audit)</option>
+              </select>
+            </div>
+            <div style="width: 180px;">
+              <select id="ledger-filter-time" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; outline: none; font-family: inherit; font-size: 0.9rem;">
+                <option value="All">เวลาทั้งหมด</option>
+                <option value="Today">วันนี้ (Today)</option>
+                <option value="7days">ย้อนหลัง 7 วัน</option>
+                <option value="30days">ย้อนหลัง 30 วัน</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-wrapper" style="max-height: 600px;">
+            <table class="custom-table" id="transactions-table">
+              <thead>
+                <tr>
+                  <th>วัน-เวลา</th>
+                  <th>ประเภท</th>
+                  <th>อะไหล่</th>
+                  <th>จำนวน</th>
+                  <th>เลขเครื่องแพทย์/งาน</th>
+                  <th>ผู้ปฏิบัติงาน</th>
+                  <th>สถานะการยืม</th>
+                </tr>
+              </thead>
+              <tbody id="transactions-table-body">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: PM PLANNING & FORECASTING (บำรุงรักษาเชิงรุก) -->
+      <section id="tab-planning" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">
+              <i data-lucide="calendar" style="color: var(--primary);"></i>
+              ตารางกำหนดการบำรุงรักษาเชิงป้องกัน (PM Schedule & Parts Plan)
+            </span>
+          </div>
+          <div class="table-wrapper">
+            <table class="custom-table" id="planning-pm-table">
+              <thead>
+                <tr>
+                  <th>รหัสแผน</th>
+                  <th>ชื่องาน / แผนบำรุงรักษา</th>
+                  <th>รุ่นเครื่องมือที่เกี่ยวข้อง</th>
+                  <th>ความถี่กำหนด</th>
+                  <th>วันที่กำหนดทำ</th>
+                  <th>อะไหล่ที่ระบุในแผน (จำนวน)</th>
+                  <th>ช่างผู้รับผิดชอบ</th>
+                </tr>
+              </thead>
+              <tbody id="planning-pm-body">
+                <!-- PM template plans -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid-layout-half">
+          <!-- Predictor Widget -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="cpu" style="color: var(--secondary);"></i>
+                ระบบคำนวณคาดการณ์ความต้องการอะไหล่ล่วงหน้า (Predictive Replenishment)
+              </span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+              <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                ระบบวิเคราะห์ประวัติความถี่การเปลี่ยนของเครื่องแต่ละประเภทและระยะเวลาส่งมอบ (Lead Time) เพื่อให้มั่นใจว่าอะไหล่พร้อมใช้งานและเพียงพอกับแผนการซ่อมบำรุงที่จะเกิดขึ้น
+              </p>
+              
+              <div class="form-group">
+                <label for="predict-lookahead">ช่วงเวลาที่คาดการณ์ล่วงหน้า (Forecast Horizon)</label>
+                <select id="predict-lookahead">
+                  <option value="30">30 วันข้างหน้า</option>
+                  <option value="60">60 วันข้างหน้า</option>
+                  <option value="90" selected>90 วันข้างหน้า</option>
+                </select>
+              </div>
+              
+              <button class="btn btn-primary" id="btn-run-forecast" style="width: fit-content;">
+                <i data-lucide="calculator"></i> คำนวณความต้องการอะไหล่
+              </button>
+            </div>
+          </div>
+
+          <!-- Forecast Result display -->
+          <div class="card" id="forecast-results-card">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="activity" style="color: var(--success);"></i>
+                รายงานอะไหล่ขาดแคลนตามแผน PM (Shortage Report)
+              </span>
+            </div>
+            <div class="table-wrapper" style="border: none;">
+              <table class="custom-table" id="forecast-table">
+                <thead>
+                  <tr>
+                    <th>รหัสอะไหล่</th>
+                    <th>ความต้องการใช้</th>
+                    <th>ยอดคงเหลือคลัง</th>
+                    <th>สถานะการจัดหา</th>
+                  </tr>
+                </thead>
+                <tbody id="forecast-table-body">
+                  <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted);">กรุณากดปุ่มคำนวณเพื่อดึงข้อมูล</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: PROCUREMENT & REQUISITION (ใบขอซื้ออะไหล่) -->
+      <section id="tab-procurement" class="tab-content">
+        <!-- Reorder Monitor Card -->
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-header">
+            <span class="card-title">
+              <i data-lucide="package-search" style="color: var(--warning);"></i>
+              ระบบแจ้งเตือนและวิเคราะห์จุดสั่งซื้ออะไหล่คลังพัสดุ (Reorder Point Monitor)
+            </span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0 24px 12px;">
+            รายการอะไหล่ด้านล่างนี้มีจำนวนคงคลังลดลงมาถึงหรือต่ำกว่า **จุดสั่งซื้อ (Reorder Point)** ระบบแจ้งเตือนให้ออกใบจัดซื้อเพิ่มเติมเพื่อความปลอดภัยตามมาตรฐาน
+          </p>
+          <div class="table-wrapper" style="margin: 0 24px 24px;">
+            <table class="custom-table" id="procurement-alerts-table">
+              <thead>
+                <tr>
+                  <th>รหัสอะไหล่</th>
+                  <th>ชื่ออะไหล่</th>
+                  <th>ยอดปัจจุบัน</th>
+                  <th>จุดสั่งซื้อ</th>
+                  <th>จำนวนที่ต้องสั่งซื้อ</th>
+                  <th>ผู้ขาย/ติดต่อ</th>
+                  <th>ประมาณการมูลค่า</th>
+                  <th>การจัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="procurement-alerts-body">
+                <!-- JS populated items below ROP -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Interactive Memorandum Workspace (Dual Workspace) -->
+        <div class="procurement-workspace-grid" style="display: grid; grid-template-columns: 1fr; gap: 24px;">
+          
+          <!-- Editor Panel Card -->
+          <div class="card" id="memo-editor-card" style="height: fit-content;">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="edit-3" style="color: var(--primary);"></i>
+                ตัวปรับแต่งบันทึกข้อความขอจัดซื้อ (Memorandum Form Editor)
+              </span>
+              <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary btn-sm" id="btn-load-rop" style="padding: 6px 12px; font-size: 0.8rem;">
+                  <i data-lucide="refresh-cw"></i> ดึงอะไหล่ ROP ต่ำ
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btn-clear-memo" style="padding: 6px 12px; font-size: 0.8rem; background-color: var(--danger-light); color: var(--danger);">
+                  <i data-lucide="trash-2"></i> ล้างฟอร์มเปล่า
+                </button>
+              </div>
+            </div>
+
+            <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; padding: 24px;">
+              <!-- Header info editor -->
+              <div class="form-group" style="grid-column: span 2;">
+                <label>ส่วนราชการ *</label>
+                <input type="text" id="memo-edit-dept" value="ศูนย์เครื่องมือแพทย์ กลุ่มงานโครงสร้างพื้นฐานและวิศวกรรมทางการแพทย์ โทร.2889">
+              </div>
+              <div class="form-group">
+                <label>เลขที่หนังสือ (ที่) *</label>
+                <input type="text" id="memo-edit-doc-no" value="ชม 0033.101/3/ 12 - 69">
+              </div>
+              <div class="form-group">
+                <label>วันที่ *</label>
+                <input type="text" id="memo-edit-date" value="20 มกราคม 2569">
+              </div>
+              <div class="form-group" style="grid-column: span 2;">
+                <label>เรื่อง *</label>
+                <input type="text" id="memo-edit-subject" value="ขอจัดซื้อ">
+              </div>
+              
+              <!-- Checkboxes selector -->
+              <div class="form-group" style="grid-column: span 2; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; background: var(--bg-tertiary);">
+                <label style="margin-bottom: 8px; display: block; font-weight: 600;">ประเภทสิ่งของจัดซื้อ (ติ๊กเครื่องหมาย):</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
+                  <label><input type="checkbox" id="memo-chk-1" checked> วัสดุการแพทย์</label>
+                  <label><input type="checkbox" id="memo-chk-2"> ครุภัณฑ์การแพทย์</label>
+                  <label><input type="checkbox" id="memo-chk-3"> เวชภัณฑ์มิใช่ยา</label>
+                  <label><input type="checkbox" id="memo-chk-4"> ทดแทน ซื้อใหม่</label>
+                  <label><input type="checkbox" id="memo-chk-5"> วิทยาศาสตร์การแพทย์</label>
+                  <label><input type="checkbox" id="memo-chk-6"> อื่น ๆ ระบุ</label>
+                  <input type="text" id="memo-chk-other-text" placeholder="ระบุประเภทอื่นๆ..." style="padding: 6px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); grid-column: span 2; display: none; width: 100%; box-sizing: border-box;">
+                </div>
+              </div>
+
+              <div class="form-group" style="grid-column: span 2;">
+                <label>เรียน *</label>
+                <input type="text" id="memo-edit-to" value="ผู้อำนวยการโรงพยาบาลนครพิงค์ (ผ่าน หัวหน้าเจ้าหน้าที่พัสดุ)">
+              </div>
+
+              <div class="form-group" style="grid-column: span 2;">
+                <label>ข้อความเปิดหัวเรื่อง (Body Description) *</label>
+                <textarea id="memo-edit-body" rows="2" style="font-family: inherit; font-size: 0.9rem;">ด้วยศูนย์เครื่องมือแพทย์ กลุ่มงานโครงสร้างพื้นฐานและวิศวกรรมทางการแพทย์ มีความประสงค์ขออนุมัติจัดซื้อวัสดุการแพทย์ เพื่อใช้ในงานราชการของโรงพยาบาลนครพิงค์ โดยให้งานพัสดุดำเนินการจัดซื้อ ตามรายละเอียดดังนี้</textarea>
+              </div>
+
+              <!-- Item additions interface -->
+              <div class="form-group" style="grid-column: span 2; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <label style="font-weight: 600; margin-bottom: 8px; display: block;">เพิ่ม/แก้ไขรายการอะไหล่และอุปกรณ์สะสมในตารางขออนุมัติ:</label>
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1.2fr 1.2fr 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                  <input type="text" id="memo-item-desc" placeholder="รายการอะไหล่ / รายละเอียด" style="font-size: 0.85rem; padding: 6px;">
+                  <input type="number" id="memo-item-qty" placeholder="จำนวน" min="1" style="font-size: 0.85rem; padding: 6px;">
+                  <input type="text" id="memo-item-unit" placeholder="หน่วยนับ" style="font-size: 0.85rem; padding: 6px;">
+                  <input type="number" id="memo-item-price" placeholder="ราคา/หน่วย" min="0" style="font-size: 0.85rem; padding: 6px;">
+                  <input type="text" id="memo-item-stock" placeholder="คงเหลือ" style="font-size: 0.85rem; padding: 6px;">
+                  <input type="text" id="memo-item-monthly" placeholder="อัตราใช้/ด." style="font-size: 0.85rem; padding: 6px;">
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-add-item-to-memo" style="padding: 6px 12px; font-size: 0.8rem;">
+                  <i data-lucide="plus-circle"></i> เพิ่มลงในเอกสาร
+                </button>
+              </div>
+
+              <!-- List of current items in editor -->
+              <div class="form-group" style="grid-column: span 2;">
+                <label>รายการที่เลือกอยู่ในเอกสารขณะนี้:</label>
+                <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary);">
+                  <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;" id="editor-items-list-table">
+                    <thead>
+                      <tr style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color);">
+                        <th style="padding: 8px;">รายการ</th>
+                        <th style="padding: 8px; text-align: center;">จำนวน</th>
+                        <th style="padding: 8px; text-align: right;">ราคา/หน่วย</th>
+                        <th style="padding: 8px; text-align: right;">ลบ</th>
+                      </tr>
+                    </thead>
+                    <tbody id="editor-items-tbody">
+                      <!-- Rendered by JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Dynamic configurations -->
+              <div class="form-group" style="grid-column: span 2;">
+                <label>เหตุผลในการจัดซื้อ *</label>
+                <input type="text" id="memo-edit-reason" value="ใช้สำรองศูนย์เครื่องมือแพทย์ เพื่อเปลี่ยนให้หน่วยงานต่างๆ">
+              </div>
+
+              <div class="form-group" style="grid-column: span 2;">
+                <label>รายชื่อกรรมการตรวจรับ (ขึ้นบรรทัดใหม่ได้) *</label>
+                <textarea id="memo-edit-committee" rows="2" style="font-family: inherit; font-size: 0.9rem;">1.นายยุทธนา หยุมปัญญา ตำแหน่ง นายช่างเทคนิค</textarea>
+              </div>
+
+              <!-- Signatures configurator -->
+              <div class="form-group">
+                <label>ลงชื่อ (ซ้ายบน) - ผู้ขอซื้อ/หัวหน้างาน *</label>
+                <input type="text" id="memo-edit-sig-left1" value="นายสุรศักดิ์ พึ่งเล่ห์">
+                <input type="text" id="memo-edit-title-left1" value="หัวหน้างาน" style="margin-top: 5px; font-size: 0.8rem;">
+              </div>
+
+              <div class="form-group">
+                <label>ลงชื่อ (ขวาบน) - หัวหน้ากลุ่มงาน / ฝ่าย *</label>
+                <input type="text" id="memo-edit-sig-right1" value="นายทนงศักดิ์ ปัญญาอินทร์">
+                <input type="text" id="memo-edit-title-right1" value="หัวหน้ากลุ่มงาน / ฝ่าย" style="margin-top: 5px; font-size: 0.8rem;">
+              </div>
+
+              <div class="form-group">
+                <label>ลงชื่อ (ซ้ายล่าง) - ผู้ช่วยผู้อำนวยการด้านพัสดุ *</label>
+                <input type="text" id="memo-edit-sig-left2" value="นายรัฐศาสตร์ มหนวเทพ">
+                <input type="text" id="memo-edit-title-left2" value="ผู้ช่วยผู้อำนวยการด้านพัสดุ" style="margin-top: 5px; font-size: 0.8rem;">
+              </div>
+
+              <div class="form-group">
+                <label>ลงชื่อ (ขวาล่าง) - ผู้อำนวยการโรงพยาบาล *</label>
+                <input type="text" id="memo-edit-sig-right2" value="นายบรรเจิด นนทสูติ">
+                <input type="text" id="memo-edit-title-right2" value="ผู้อำนวยการโรงพยาบาลนครพิงค์" style="margin-top: 5px; font-size: 0.8rem;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Document Print Preview Card -->
+          <div class="card" id="memo-preview-card" style="width: 100%;">
+            <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+              <span class="card-title">
+                <i data-lucide="eye" style="color: var(--success);"></i>
+                ตัวอย่างบันทึกข้อความ A4 สำหรับจัดพิมพ์ (A4 Print Preview)
+              </span>
+              <button class="btn btn-primary btn-sm" id="btn-print-memo">
+                <i data-lucide="printer"></i> พิมพ์เอกสาร (Print A4)
+              </button>
+            </div>
+
+            <!-- Authentic Document Print Sheet -->
+            <div style="background: var(--bg-tertiary); padding: 24px; display: flex; justify-content: center; overflow-x: auto;">
+              <div id="pr-print-area" style="background: white; color: black; padding: 40px 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); width: 210mm; min-height: 297mm; box-sizing: border-box; font-family: 'Sarabun', sans-serif; position: relative; font-size: 15px; line-height: 1.6;">
+                
+                <!-- Receipt Stamp box in top right corner -->
+                <div style="position: absolute; right: 40px; top: 15px; border: 1px solid black; padding: 8px 12px; font-size: 11px; font-family: 'Sarabun', sans-serif; line-height: 1.5; width: 180px; text-align: left;">
+                  <div style="display: flex; justify-content: space-between;">
+                    <span>พัสดุ โรงพยาบาลนครพิงค์</span>
+                  </div>
+                  <div>รับที่.......................................................</div>
+                  <div>วันที่.......................................................</div>
+                  <div>เวลา.......................................................</div>
+                </div>
+
+                <!-- Garuda emblem and title -->
+                <div style="display: flex; align-items: flex-end; margin-bottom: 45px; margin-top: 20px;">
+                  <div style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Garuda_Emblem_of_Thailand_%28Monochrome_2%29.svg/120px-Garuda_Emblem_of_Thailand_%28Monochrome_2%29.svg.png" 
+                         alt="ตราครุฑ" 
+                         style="width: 55px; height: auto;"
+                         onerror="this.style.display='none'; document.getElementById('garuda-svg-fallback').style.display='block';">
+                    <svg id="garuda-svg-fallback" viewBox="0 0 100 100" style="display: none; width: 55px; height: 55px; fill: black;">
+                      <path d="M50 15c-1.5 4.5-5 8.5-8.5 12-3.5 3.5-7.5 5.5-12.5 6 1.5 2 4 4.5 7.5 6.5 3.5 2 6 2.5 8.5.5s4-5 5-10c1 5 2.5 8 5 10s5 1.5 8.5-.5c3.5-2 6-4.5 7.5-6.5-5-.5-9-2.5-12.5-6-3.5-3.5-7-7.5-8.5-12zm0 18c-3 6-7 11-12 15-5 4-11 7-18 9 4 1 8 1 12-1 4-2 7-5 10-9 2 4 5 7 9 9 4 2 8 2 12 1-7-2-13-5-18-9-5-4-9-9-12-15zm-28 26c-1 3-3 6-6 8 4-1 7-3 9-6-2-1-3-2-3-2zm56 0c0 0-1 1-3 2 2 3 5 5 9 6-3-2-5-5-6-8zM50 36c-2 4-5 8-8 11s-7 5-11 6c3.5 1 7.5.5 11-1.5 1.5 1 3 2.5 4.5 4.5 1.5-2 3-3.5 4.5-4.5 3.5 2 7.5 2.5 11 1.5-4-1-8-3-11-6s-6-7-8-11z" />
+                    </svg>
+                  </div>
+                  <div style="font-size: 24px; font-weight: bold; letter-spacing: 1px; font-family: 'Sarabun', sans-serif;">บันทึกข้อความ</div>
+                </div>
+
+                <!-- Document info inputs in document view -->
+                <div style="margin-bottom: 12px; font-size: 15px;">
+                  <div style="display: flex; margin-bottom: 6px;">
+                    <span style="font-weight: bold; min-width: 90px; font-size: 16px;">ส่วนราชการ</span>
+                    <span id="memo-view-dept" style="border-bottom: 1px dotted black; flex-grow: 1; padding-left: 5px;">ศูนย์เครื่องมือแพทย์ กลุ่มงานโครงสร้างพื้นฐานและวิศวกรรมทางการแพทย์ โทร.2889</span>
+                  </div>
+                  
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <div style="display: flex; flex-grow: 1; margin-right: 20px;">
+                      <span style="font-weight: bold; min-width: 25px; font-size: 16px;">ที่</span>
+                      <span id="memo-view-doc-no" style="border-bottom: 1px dotted black; flex-grow: 1; padding-left: 5px;">ชม 0033.101/3/ 12 - 69</span>
+                    </div>
+                    <div style="display: flex; width: 250px;">
+                      <span style="font-weight: bold; min-width: 45px; font-size: 16px;">วันที่</span>
+                      <span id="memo-view-date" style="border-bottom: 1px dotted black; flex-grow: 1; padding-left: 5px;">20 มกราคม 2569</span>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; margin-bottom: 6px;">
+                    <span style="font-weight: bold; min-width: 45px; font-size: 16px;">เรื่อง</span>
+                    <span id="memo-view-subject" style="border-bottom: 1px dotted black; flex-grow: 1; padding-left: 5px; font-weight: bold;">ขอจัดซื้อ</span>
+                  </div>
+
+                  <!-- Checkbox layouts in preview -->
+                  <div style="display: flex; flex-wrap: wrap; margin-left: 45px; margin-bottom: 12px; gap: 8px 20px; font-size: 14px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <span id="memo-view-chk-1" style="font-size: 16px; font-family: monospace;">[✓]</span> วัสดุการแพทย์
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <span id="memo-view-chk-2" style="font-size: 16px; font-family: monospace;">[ ]</span> ครุภัณฑ์การแพทย์
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <span id="memo-view-chk-3" style="font-size: 16px; font-family: monospace;">[ ]</span> เวชภัณฑ์มิใช่ยา
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <span id="memo-view-chk-4" style="font-size: 16px; font-family: monospace;">[ ]</span> ทดแทน ซื้อใหม่
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <span id="memo-view-chk-5" style="font-size: 16px; font-family: monospace;">[ ]</span> วิทยาศาสตร์การแพทย์
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <span id="memo-view-chk-6" style="font-size: 16px; font-family: monospace;">[ ]</span> อื่นๆ <span id="memo-view-chk-other-val" style="border-bottom: 1px dotted black; min-width: 100px; display: inline-block;">........................</span>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; margin-bottom: 16px;">
+                    <span style="font-weight: bold; min-width: 45px; font-size: 16px;">เรียน</span>
+                    <span id="memo-view-to" style="border-bottom: 1px dotted black; flex-grow: 1; padding-left: 5px;">ผู้อำนวยการโรงพยาบาลนครพิงค์ (ผ่าน หัวหน้าเจ้าหน้าที่พัสดุ)</span>
+                  </div>
+                </div>
+
+                <!-- Body text of document -->
+                <p id="memo-view-body" style="text-indent: 70px; text-align: justify; margin-bottom: 15px; font-size: 15px;">
+                  ด้วยศูนย์เครื่องมือแพทย์ กลุ่มงานโครงสร้างพื้นฐานและวิศวกรรมทางการแพทย์ มีความประสงค์ขออนุมัติจัดซื้อวัสดุการแพทย์ เพื่อใช้ในงานราชการของโรงพยาบาลนครพิงค์ โดยให้งานพัสดุดำเนินการจัดซื้อ ตามรายละเอียดดังนี้
+                </p>
+
+                <!-- Official Item Table -->
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 14px;">
+                  <thead>
+                    <tr>
+                      <th style="border: 1px solid black; padding: 6px 4px; text-align: center; width: 6%; font-weight: bold;">ลำดับ</th>
+                      <th style="border: 1px solid black; padding: 6px 6px; text-align: center; font-weight: bold;">รายการ</th>
+                      <th style="border: 1px solid black; padding: 6px 4px; text-align: center; width: 10%; font-weight: bold;">จำนวน<br>ที่ต้องการ</th>
+                      <th style="border: 1px solid black; padding: 6px 4px; text-align: center; width: 10%; font-weight: bold;">หน่วย<br>นับ</th>
+                      <th style="border: 1px solid black; padding: 6px 4px; text-align: center; width: 12%; font-weight: bold;">ราคา<br>ต่อหน่วย</th>
+                      <th style="border: 1px solid black; padding: 6px 4px; text-align: center; width: 10%; font-weight: bold;">คงเหลือ</th>
+                      <th style="border: 1px solid black; padding: 6px 4px; text-align: center; width: 12%; font-weight: bold;">อัตราการ<br>ใช้ต่อเดือน</th>
+                      <th style="border: 1px solid black; padding: 6px 4px; text-align: center; width: 14%; font-weight: bold;">วงเงิน<br>ที่จะซื้อ</th>
+                    </tr>
+                  </thead>
+                  <tbody id="memo-view-table-body">
+                    <!-- Loaded dynamically -->
+                  </tbody>
+                </table>
+
+                <!-- Summary pricing footer of table -->
+                <p style="border: 1px solid black; border-top: none; padding: 8px 12px; margin-top: -12px; margin-bottom: 15px; font-size: 14.5px;">
+                  รวม <span id="memo-view-total-items" style="font-weight: bold;">0</span> รายการ เป็นเงินทั้งสิ้น (โดยประมาณ) <span id="memo-view-total-val" style="font-weight: bold; border-bottom: 1px dotted black; padding: 0 10px;">0.00</span> บาท (<span id="memo-view-total-thai" style="font-weight: bold;">ศูนย์บาทถ้วน</span>)
+                </p>
+
+                <!-- Reason text -->
+                <div style="margin-bottom: 8px;">
+                  <span style="font-weight: bold;">เหตุผลในการจัดซื้อ</span>
+                  <span id="memo-view-reason" style="border-bottom: 1px dotted black; display: inline; padding-left: 5px;">ใช้สำรองศูนย์เครื่องมือแพทย์ เพื่อเปลี่ยนให้หน่วยงานต่างๆ</span>
+                </div>
+
+                <!-- Committee text -->
+                <div style="margin-bottom: 24px; line-height: 1.5;">
+                  <div>และส่งรายชื่อกรรมการตรวจรับ ดังมีรายชื่อ ดังนี้</div>
+                  <div id="memo-view-committee" style="white-space: pre-line; padding-left: 20px;">1.นายยุทธนา หยุมปัญญา ตำแหน่ง นายช่างเทคนิค</div>
+                </div>
+
+                <div style="text-align: center; margin-bottom: 24px; font-weight: 500;">จึงเรียนมาเพื่อโปรดพิจารณาอนุมัติเบื้องต้นให้ดำเนินการจัดซื้อ</div>
+
+                <!-- Official Signature Matrix (2 columns) -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 20px; font-size: 14.5px; line-height: 1.4;">
+                  
+                  <!-- Row 1: Left column -->
+                  <div style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 80px;">
+                    <div>ลงชื่อ......................................................</div>
+                    <div style="margin-top: 5px;">(<span id="memo-view-sig-left1">นายสุรศักดิ์ พึ่งเล่ห์</span>)</div>
+                    <div style="font-size: 13px; color: #333;" id="memo-view-title-left1">หัวหน้างาน</div>
+                  </div>
+
+                  <!-- Row 1: Right column -->
+                  <div style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 80px;">
+                    <div>ลงชื่อ......................................................</div>
+                    <div style="margin-top: 5px;">(<span id="memo-view-sig-right1">นายทนงศักดิ์ ปัญญาอินทร์</span>)</div>
+                    <div style="font-size: 13px; color: #333;" id="memo-view-title-right1">หัวหน้ากลุ่มงาน / ฝ่าย</div>
+                  </div>
+
+                  <!-- Row 2: Left column -->
+                  <div style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100px; padding-top: 15px;">
+                    <div style="align-self: flex-start; margin-left: 20px; margin-bottom: 10px; font-weight: bold;">เห็นควรอนุมัติให้พัสดุดำเนินการ</div>
+                    <div>ลงชื่อ......................................................</div>
+                    <div style="margin-top: 5px;">(<span id="memo-view-sig-left2">นายรัฐศาสตร์ มหนวเทพ</span>)</div>
+                    <div style="font-size: 13px; color: #333;" id="memo-view-title-left2">ผู้ช่วยผู้อำนวยการด้านพัสดุ</div>
+                  </div>
+
+                  <!-- Row 2: Right column -->
+                  <div style="text-align: left; display: flex; flex-direction: column; justify-content: flex-end; padding-left: 40px; height: 100px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-weight: bold;">
+                      <span style="font-family: monospace; font-size: 18px;">[✓]</span> อนุมัติในหลักการ
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                      <span style="font-family: monospace; font-size: 18px;">[ ]</span> ....................................................
+                    </div>
+                    <div style="text-align: center; width: 100%; max-width: 250px;">
+                      <div>ลงชื่อ......................................................</div>
+                      <div style="margin-top: 5px;">(<span id="memo-view-sig-right2">นายบรรเจิด นนทสูติ</span>)</div>
+                      <div style="font-size: 13px; color: #333;" id="memo-view-title-right2">ผู้อำนวยการโรงพยาบาลนครพิงค์</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Official Legal Policy Footer -->
+                <div style="border-top: 1px solid black; padding-top: 6px; font-size: 11px; margin-top: 30px; font-family: 'Sarabun', sans-serif;">
+                  <strong>หมายเหตุ</strong> วงเงินเกิน ๕๐,๐๐๐ บาท ขึ้นไปคณะกรรมการ ๓ คน, วงเงินน้อยกว่า ๕๐,๐๐๐ บาท คณะกรรมการ ๑ คน
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: SETTINGS & CLOUD CONNECTIONS (คลาวด์ & LINE) -->
+      <section id="tab-settings" class="tab-content">
+        <div class="grid-layout-half">
+          
+          <!-- Control configuration variables form -->
+          <div class="card" style="height: fit-content;">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="sliders" style="color: var(--primary);"></i>
+                การตั้งค่าการเชื่อมต่อคลาวด์และแจ้งเตือน
+              </span>
+            </div>
+            
+            <div class="form-grid" style="grid-template-columns: 1fr; gap: 18px;">
+              
+              <!-- Password change -->
+              <div class="form-group">
+                <label for="settings-password">รหัสผ่านล็อกอินเข้าใช้ระบบ (Security Password)</label>
+                <input type="password" id="settings-password" value="NKP-medparts-2026" placeholder="กำหนดรหัสผ่าน">
+              </div>
+
+              <!-- Google Sheets Apps Script URL -->
+              <div class="form-group">
+                <label for="settings-gas-url">Google Apps Script Web App URL (ฐานข้อมูลคลาวด์ซิงก์)</label>
+                <input type="url" id="settings-gas-url" placeholder="https://script.google.com/macros/s/.../exec">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">
+                  *วาง URL จากการ Deploy Google Apps Script เพื่อเปิดการใช้ฐานข้อมูลและรายงานจากทุกเครื่องพร้อมกัน
+                </span>
+              </div>
+
+              <!-- LINE Integration details -->
+              <div class="form-group">
+                <label style="display: flex; align-items: center; justify-content: space-between;">
+                  <span>เปิดระบบส่งแจ้งเตือน LINE OA เมื่อเบิกอะไหล่</span>
+                  <label class="switch" style="transform: scale(0.85);">
+                    <input type="checkbox" id="settings-line-toggle" checked>
+                    <span class="slider"></span>
+                  </label>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label for="settings-line-token">LINE Channel Access Token (หรือ Webhook URL)</label>
+                <input type="password" id="settings-line-token" placeholder="ใส่ LINE Bot API token ของเพจกลุ่มงาน">
+              </div>
+
+              <div class="form-group">
+                <label for="settings-line-groupid">LINE Group ID / User ID (สำหรับยิงข้อความโดยตรง)</label>
+                <input type="text" id="settings-line-groupid" placeholder="U123456789... หรือ Group ID">
+              </div>
+
+              <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" id="btn-save-settings">
+                  <i data-lucide="save"></i> บันทึกการตั้งค่า
+                </button>
+                <button class="btn btn-secondary" id="btn-test-line">
+                  <i data-lucide="bell"></i> ทดสอบส่งข้อความ LINE
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Apps Script Instructions and Code block -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="help-circle" style="color: var(--secondary);"></i>
+                ขั้นตอนการเปิดระบบฐานข้อมูลคลาวด์ & LINE OA ฟรี
+              </span>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem; line-height: 1.6;">
+              <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px;">
+                <li>สร้าง Google Sheet ขึ้นมาหนึ่งตารางบนบัญชี Google ของท่าน</li>
+                <li>ไปที่แถบเมนู <strong>ส่วนขยาย (Extensions)</strong> &gt; เลือก <strong>Apps Script</strong></li>
+                <li>ก๊อปปี้รหัสซอร์สโค้ดด้านล่างนี้ ไปลบโค้ดเดิมทั้งหมดในไฟล์ออกแล้ววางใหม่</li>
+                <li>คลิกปุ่ม <strong>การทำให้ใช้งานได้ (Deploy)</strong> &gt; เลือก <strong>การทำให้ใช้งานได้ใหม่ (New deployment)</strong></li>
+                <li>เลือกประเภทเป็น <strong>เว็บแอป (Web app)</strong>, ตั้งสิทธิ์เข้าถึงให้เป็น <strong>"ทุกคน (Anyone)"</strong></li>
+                <li>คลิก Deploy และก๊อปปี้ลิงก์เว็บแอปที่ได้มาใส่ในช่องการตั้งค่าซ้ายมือ</li>
+              </ol>
+              
+              <div class="form-group">
+                <label>รหัส Google Apps Script (ก๊อปปี้เพื่อไปวางใน Google Sheet):</label>
+                <div class="code-block-container">
+                  <button class="code-copy-btn" id="btn-copy-code">Copy Code</button>
+                  <pre id="code-content">
+// Google Apps Script สำหรับเชื่อมคลังเครื่องมือแพทย์
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  
+  if (data.action === "sync") {
+    // ดึงข้อมูลพาร์ตอะไหล่จากหน้าเว็บมาเซฟหรือส่งออก
+    // และประมวลผลข้อความ LINE จากคลาวด์ชีต
+    return ContentService.createTextOutput(JSON.stringify({status: "success", count: data.parts.length}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  if (data.action === "notify") {
+    sendLineNotify(data.message, data.token, data.groupId);
+    return ContentService.createTextOutput(JSON.stringify({status: "sent"}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function sendLineNotify(message, token, toId) {
+  var url = "https://api.line.me/v2/bot/message/push";
+  var payload = {
+    "to": toId,
+    "messages": [
+      {
+        "type": "flex",
+        "altText": "มีการเบิกจ่ายอะไหล่ในคลัง รพ.นครพิงค์",
+        "contents": message
+      }
+    ]
+  };
+  
+  var options = {
+    "method": "post",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    "payload": JSON.stringify(payload),
+    "muteHttpExceptions": true
+  };
+  UrlFetchApp.fetch(url, options);
+}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL 1: STOCK CARD DETAILS DRAWER -->
+  <div id="modal-stock-card" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-sc-name">รายละเอียด Stock Card อะไหล่</h3>
+        <button class="close-btn" onclick="closeModal('modal-stock-card')">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="part-spec-grid">
+          <div class="spec-item"><span class="spec-label">รหัสอะไหล่</span><span class="spec-val" id="modal-sc-code">SR-SPO2-001</span></div>
+          <div class="spec-item"><span class="spec-label">กลุ่มการวิเคราะห์ ABC</span><span class="spec-val" id="modal-sc-abc">Class A</span></div>
+          <div class="spec-item" style="grid-column: span 2;"><span class="spec-label">รายละเอียดคำอธิบาย</span><span class="spec-val" id="modal-sc-desc">...</span></div>
+          <div class="spec-item"><span class="spec-label">ผู้ผลิต / แบรนด์</span><span class="spec-val" id="modal-sc-manufacturer">Masimo</span></div>
+          <div class="spec-item"><span class="spec-label">ตำแหน่งเก็บจริงในคลัง</span><span class="spec-val" id="modal-sc-location">Cabinet A</span></div>
+          <div class="spec-item"><span class="spec-label">จำนวนคงเหลือคงคลัง</span><span class="spec-val" id="modal-sc-stock" style="color: var(--success); font-size: 1.1rem;">30 ชิ้น</span></div>
+          <div class="spec-item"><span class="spec-label">ราคาประเมินต่อหน่วย</span><span class="spec-val" id="modal-sc-price">฿8,200.00</span></div>
+          <div class="spec-item"><span class="spec-label">วันสั่งซื้อล่าสุด</span><span class="spec-val" id="modal-sc-purchase">2024-12-04</span></div>
+          <div class="spec-item"><span class="spec-label">วันเสื่อมสภาพ/หมดอายุ</span><span class="spec-val" id="modal-sc-expiry">2027-12-04</span></div>
+          <div class="spec-item"><span class="spec-label">ระยะส่งมอบ (Lead Time)</span><span class="spec-val" id="modal-sc-leadtime">14 วัน</span></div>
+          <div class="spec-item"><span class="spec-label">อัตราเปลี่ยนของอุปกรณ์/ปี</span><span class="spec-val" id="modal-sc-freq">4 ครั้ง/ปี</span></div>
+          <div class="spec-item" style="grid-column: span 2;"><span class="spec-label">ผู้นำส่งสัญญา / ผู้ขาย</span><span class="spec-val" id="modal-sc-supplier">SR Science</span></div>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid var(--border-color);">
+        
+        <div>
+          <span class="spec-label">รุ่นเครื่องมือแพทย์ที่ใช้อะไหล่นี้ร่วมกันได้ (Compatibility Link - 5.1.5 ก)</span>
+          <ul id="modal-sc-compat-list" style="margin-top: 8px; padding-left: 20px; font-weight: 500; font-size: 0.9rem; line-height: 1.6;">
+            <!-- Rendered by JS -->
+          </ul>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-stock-card')">ปิดหน้านี้</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: ADD / EDIT PART DIALOG -->
+  <div id="modal-add-part" class="modal">
+    <div class="modal-content" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 id="modal-add-title">เพิ่มอะไหล่ทางการแพทย์ใหม่เข้าระบบ</h3>
+        <button class="close-btn" onclick="closeModal('modal-add-part')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="part-form" class="form-grid">
+          <input type="hidden" id="part-form-mode" value="add">
+          
+          <div class="form-group">
+            <label for="part-code">รหัสสินค้า/อะไหล่ (Part Code) *</label>
+            <input type="text" id="part-code" required placeholder="เช่น SR-SPO2-xxx หรือ 001CMxxxxx">
+          </div>
+          
+          <div class="form-group">
+            <label for="part-name">ชื่อรายการอะไหล่ *</label>
+            <input type="text" id="part-name" required placeholder="เช่น Adult Finger SpO2 sensor">
+          </div>
+          
+          <div class="form-group" style="grid-column: span 2;">
+            <label for="part-desc">คำอธิบายรายละเอียด</label>
+            <textarea id="part-desc" rows="2" placeholder="สเปกทางวิศวกรรมการแพทย์..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="part-manufacturer">ชื่อผู้ผลิต (Manufacturer) *</label>
+            <input type="text" id="part-manufacturer" required placeholder="เช่น Masimo, Philips, GE">
+          </div>
+
+          <div class="form-group">
+            <label for="part-location">สถานที่/ตู้เก็บคลัง *</label>
+            <input type="text" id="part-location" required placeholder="เช่น Cabinet A - Shelf 2">
+          </div>
+
+          <div class="form-group">
+            <label for="part-price">ราคาประเมินต่อชิ้น (บาท) *</label>
+            <input type="number" id="part-price" min="0" step="0.01" required placeholder="ระบุราคา">
+          </div>
+
+          <div class="form-group">
+            <label for="part-stock">จำนวนเริ่มต้นคงคลัง *</label>
+            <input type="number" id="part-stock" min="0" required placeholder="จำนวนชิ้นเริ่มต้น">
+          </div>
+
+          <div class="form-group">
+            <label for="part-min">จุดต่ำสุดคงคลัง (Min Stock) *</label>
+            <input type="number" id="part-min" min="0" required placeholder="เช่น 2">
+          </div>
+
+          <div class="form-group">
+            <label for="part-max">จุดสูงสุดคงคลัง (Max Stock) *</label>
+            <input type="number" id="part-max" min="0" required placeholder="เช่น 50">
+          </div>
+
+          <div class="form-group">
+            <label for="part-rop">จุดสั่งซื้อสะสม (Reorder Point) *</label>
+            <input type="number" id="part-rop" min="0" required placeholder="เช่น 5">
+          </div>
+
+          <div class="form-group">
+            <label for="part-roq">ปริมาณที่ควรสั่งต่อครั้ง (Reorder Qty) *</label>
+            <input type="number" id="part-roq" min="1" required placeholder="เช่น 10">
+          </div>
+
+          <div class="form-group">
+            <label for="part-purchase-date">วันที่จัดซื้อ (Purchase Date) *</label>
+            <input type="date" id="part-purchase-date" required>
+          </div>
+
+          <div class="form-group">
+            <label for="part-expiry-date">วันที่เสื่อมสภาพ/หมดอายุ *</label>
+            <input type="date" id="part-expiry-date" required>
+          </div>
+
+          <div class="form-group">
+            <label for="part-leadtime">ระยะเวลาส่งมอบ Lead Time (วัน) *</label>
+            <input type="number" id="part-leadtime" min="1" required placeholder="เช่น 14 วัน">
+          </div>
+
+          <div class="form-group">
+            <label for="part-freq">ความถี่การซ่อมบำรุง/ปี *</label>
+            <input type="number" id="part-freq" min="0" required placeholder="เช่น 4 ครั้ง/ปี">
+          </div>
+
+          <div class="form-group">
+            <label for="part-supplier">ผู้ขาย / ติดต่อผู้รับเหมา</label>
+            <input type="text" id="part-supplier" placeholder="บริษัทจัดหาและเบอร์โทรศัพท์">
+          </div>
+
+          <div class="form-group">
+            <label for="part-compat">เครื่องมือแพทย์ที่เข้ากันได้ (เชื่อมโยงหลายรุ่น คั่นด้วยเครื่องหมายจุลภาค , )</label>
+            <input type="text" id="part-compat" placeholder="เช่น Masimo Radical-7, GE Carescape">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-add-part')">ยกเลิก</button>
+        <button class="btn btn-primary" id="btn-save-part">บันทึกข้อมูลเข้าคลัง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-notification" class="toast">
+    <div class="toast-icon">
+      <i data-lucide="check-circle2" style="width: 20px; height: 20px; color: var(--success);"></i>
+    </div>
+    <div style="display: flex; flex-direction: column;">
+      <span style="font-weight: 700; font-size: 0.85rem;" id="toast-title">เสร็จสมบูรณ์</span>
+      <span style="font-size: 0.75rem; color: var(--text-secondary);" id="toast-message">บันทึกรายการซิงก์เรียบร้อยแล้ว</span>
+    </div>
+  </div>
+
+  <!-- Embed MockData for self-contained package -->
+  <script>
+    // Database of Medical Spare Parts & Equipment - Nakhonping Hospital
+    // Complies with SMM 07-1:2024 and CMMS Specifications
+
+    const INITIAL_PARTS = [
+      {
+        code: "SR-SPO2-001",
+        name: "Adult Finger SpO2 Sensor Original Masimo LNCS DC-I (#1863)",
+        description: "Masimo SpO2 sensor for patient monitors with LNCS connector.",
+        manufacturer: "Masimo",
+        equipmentModels: ["Masimo Radical-7", "Philips IntelliVue MX450"],
+        inStock: 30,
+        unitPrice: 8200.00,
+        minStock: 5,
+        maxStock: 50,
+        reorderPoint: 10,
+        reorderQty: 25,
+        location: "Cabinet A - Shelf 2 - Box 01",
+        supplierName: "SR Science & Service Co., Ltd. (ร้านเอสอาร์.ชายน์แอนด์เซอร์วิส)",
+        supplierContact: "081-589-4409",
+        purchaseDate: "2024-12-04",
+        expiryDate: "2027-12-04",
+        leadTime: 14, // days
+        repairFreq: 4, // average repairs/year
+      },
+      {
+        code: "SR-SPO2-002",
+        name: "TruSignal Integrated Sensor SpO2 Soft Adult, 13 ft (4m) (#TS-SA4-GE)",
+        description: "TruSignal technology integrated SpO2 soft reusable sensor.",
+        manufacturer: "Datex-Ohmeda/GE Healthcare",
+        equipmentModels: ["GE Carescape B650", "GE Carescape B450"],
+        inStock: 10,
+        unitPrice: 8000.00,
+        minStock: 2,
+        maxStock: 20,
+        reorderPoint: 4,
+        reorderQty: 10,
+        location: "Cabinet A - Shelf 2 - Box 02",
+        supplierName: "SR Science & Service Co., Ltd. (ร้านเอสอาร์.ชายน์แอนด์เซอร์วิส)",
+        supplierContact: "081-589-4409",
+        purchaseDate: "2024-12-04",
+        expiryDate: "2028-12-04",
+        leadTime: 30,
+        repairFreq: 2,
+      },
+      {
+        code: "SR-SPO2-003",
+        name: "Adult Finger SpO2 Sensor Original Covidien Nellcor (#DS100A)",
+        description: "Nellcor OxiMax reusable SpO2 finger sensor, clip style.",
+        manufacturer: "Covidien Nellcor",
+        equipmentModels: ["Nellcor PM10N", "Mindray BeneVision N12", "GE Carescape B450"],
+        inStock: 80,
+        unitPrice: 5100.00,
+        minStock: 15,
+        maxStock: 120,
+        reorderPoint: 25,
+        reorderQty: 60,
+        location: "Cabinet B - Shelf 1 - Box 01",
+        supplierName: "SR Science & Service Co., Ltd. (ร้านเอสอาร์.ชายน์แอนด์เซอร์วิส)",
+        supplierContact: "081-589-4409",
+        purchaseDate: "2024-12-04",
+        expiryDate: "2027-12-04",
+        leadTime: 10,
+        repairFreq: 12,
+      },
+      {
+        code: "SR-SPO2-004",
+        name: "Finger Probe BLUPRO Series Adult & Child Cable 1.6m (#P225F/TL-201T)",
+        description: "Nihon Kohden BLUPRO Series reusable finger probe.",
+        manufacturer: "BluPro / Nihon Kohden",
+        equipmentModels: ["Nihon Kohden BSM-3500", "Nihon Kohden BSM-6500"],
+        inStock: 10,
+        unitPrice: 12400.00,
+        minStock: 2,
+        maxStock: 25,
+        reorderPoint: 5,
+        reorderQty: 10,
+        location: "Cabinet B - Shelf 1 - Box 02",
+        supplierName: "SR Science & Service Co., Ltd. (ร้านเอสอาร์.ชายน์แอนด์เซอร์วิส)",
+        supplierContact: "081-589-4409",
+        purchaseDate: "2024-12-04",
+        expiryDate: "2027-06-04", // Near Expiry example
+        leadTime: 21,
+        repairFreq: 3,
+      },
+      {
+        code: "SR-SPO2-005",
+        name: "Adult Soft SpO2 Sensor Original Philips (#M1191 B/BL)",
+        description: "Philips reusable silicon soft SpO2 sensor.",
+        manufacturer: "Philips",
+        equipmentModels: ["Philips IntelliVue MX450", "Philips Goldway G40"],
+        inStock: 15,
+        unitPrice: 10000.00,
+        minStock: 3,
+        maxStock: 30,
+        reorderPoint: 6,
+        reorderQty: 15,
+        location: "Cabinet C - Shelf 1 - Box 01",
+        supplierName: "SR Science & Service Co., Ltd. (ร้านเอสอาร์.ชายน์แอนด์เซอร์วิส)",
+        supplierContact: "081-589-4409",
+        purchaseDate: "2024-12-04",
+        expiryDate: "2027-12-04",
+        leadTime: 14,
+        repairFreq: 5,
+      },
+      {
+        code: "SR-SPO2-006",
+        name: "Adult Finger SpO2 Sensor Original Philips (#M1196 A)",
+        description: "Philips reusable finger clip SpO2 sensor.",
+        manufacturer: "Philips",
+        equipmentModels: ["Philips IntelliVue MX450", "Philips Goldway G40"],
+        inStock: 10,
+        unitPrice: 7800.00,
+        minStock: 2,
+        maxStock: 20,
+        reorderPoint: 4,
+        reorderQty: 10,
+        location: "Cabinet C - Shelf 1 - Box 02",
+        supplierName: "SR Science & Service Co., Ltd. (ร้านเอสอาร์.ชายน์แอนด์เซอร์วิส)",
+        supplierContact: "081-589-4409",
+        purchaseDate: "2024-12-04",
+        expiryDate: "2027-12-04",
+        leadTime: 14,
+        repairFreq: 3,
+      },
+      {
+        code: "SR-SPO2-007",
+        name: "Adult Finger SpO2 Sensor for Mindray BD9 Standard (#512F)",
+        description: "Mindray compatible SpO2 sensor with BD9 pin configuration.",
+        manufacturer: "Mindray",
+        equipmentModels: ["Mindray BeneVision N12", "Mindray BeneView T8"],
+        inStock: 70,
+        unitPrice: 4750.00,
+        minStock: 10,
+        maxStock: 100,
+        reorderPoint: 20,
+        reorderQty: 50,
+        location: "Cabinet D - Shelf 2 - Box 01",
+        supplierName: "SR Science & Service Co., Ltd. (ร้านเอสอาร์.ชายน์แอนด์เซอร์วิส)",
+        supplierContact: "081-589-4409",
+        purchaseDate: "2024-12-04",
+        expiryDate: "2027-12-04",
+        leadTime: 10,
+        repairFreq: 10,
+      },
+      {
+        code: "001CM02002",
+        name: "Compatible Mindray Extension cable to Nellcor Oximax (SA-148-101)",
+        description: "Extension cable connecting Mindray monitors to Nellcor Oximax sensors.",
+        manufacturer: "Bangkok Medical Pro Co., Ltd. (บริษัท แบงค็อก เมดิคอล โปร จำกัด)",
+        equipmentModels: ["Mindray BeneVision N12", "Nellcor PM10N"],
+        inStock: 5,
+        unitPrice: 3000.00,
+        minStock: 1,
+        maxStock: 10,
+        reorderPoint: 3,
+        reorderQty: 5,
+        location: "Cabinet D - Shelf 3 - Box 01",
+        supplierName: "Bangkok Medical Pro Co., Ltd.",
+        supplierContact: "02-511-xxxx",
+        purchaseDate: "2025-10-06",
+        expiryDate: "2028-10-06",
+        leadTime: 7,
+        repairFreq: 2,
+      },
+      {
+        code: "001CM02003",
+        name: "Compatible SpO2 Extension cable, 7 Pin for Mindray (SA-048-001)",
+        description: "7-pin SpO2 extension cable for Mindray monitors.",
+        manufacturer: "Bangkok Medical Pro Co., Ltd. (บริษัท แบงค็อก เมดิคอล โปร จำกัด)",
+        equipmentModels: ["Mindray BeneVision N12", "Mindray BeneView T8"],
+        inStock: 1,
+        unitPrice: 3000.00,
+        minStock: 2,
+        maxStock: 20,
+        reorderPoint: 4,
+        reorderQty: 10,
+        location: "Cabinet D - Shelf 3 - Box 02",
+        supplierName: "Bangkok Medical Pro Co., Ltd.",
+        supplierContact: "02-511-xxxx",
+        purchaseDate: "2025-10-06",
+        expiryDate: "2028-10-06",
+        leadTime: 7,
+        repairFreq: 4,
+      },
+      {
+        code: "001CM02008",
+        name: "Compatible Extension cable for Nihon Kohden (SA-036-016)",
+        description: "Extension cable compatible with Nihon Kohden bedside monitors.",
+        manufacturer: "Bangkok Medical Pro Co., Ltd. (บริษัท แบงค็อก เมดิคอล โปร จำกัด)",
+        equipmentModels: ["Nihon Kohden BSM-3500", "Nihon Kohden BSM-6500"],
+        inStock: 10,
+        unitPrice: 3000.00,
+        minStock: 2,
+        maxStock: 20,
+        reorderPoint: 4,
+        reorderQty: 10,
+        location: "Cabinet B - Shelf 2 - Box 01",
+        supplierName: "Bangkok Medical Pro Co., Ltd.",
+        supplierContact: "02-511-xxxx",
+        purchaseDate: "2025-10-06",
+        expiryDate: "2026-05-01", // Simulated Expired item
+        leadTime: 7,
+        repairFreq: 3,
+      },
+      {
+        code: "001CM02004",
+        name: "Compatible GE SpO2 Extension cable to Masimo encrypted (SA-421-149)",
+        description: "GE interface extension cable to Masimo encrypted SpO2 sensors.",
+        manufacturer: "Bangkok Medical Pro Co., Ltd. (บริษัท แบงค็อก เมดิคอล โปร จำกัด)",
+        equipmentModels: ["GE Carescape B650", "Masimo Radical-7"],
+        inStock: 10,
+        unitPrice: 3000.00,
+        minStock: 2,
+        maxStock: 20,
+        reorderPoint: 4,
+        reorderQty: 10,
+        location: "Cabinet A - Shelf 3 - Box 01",
+        supplierName: "Bangkok Medical Pro Co., Ltd.",
+        supplierContact: "02-511-xxxx",
+        purchaseDate: "2025-10-06",
+        expiryDate: "2028-10-06",
+        leadTime: 7,
+        repairFreq: 3,
+      }
+    ];
+
+    const INITIAL_EQUIPMENT = [
+      { serial: "NKP-BSM-001", model: "Nihon Kohden BSM-3500", dept: "ICU 1", value: 350000.00 },
+      { serial: "NKP-BSM-002", model: "Nihon Kohden BSM-3500", dept: "ICU 1", value: 350000.00 },
+      { serial: "NKP-BSM-003", model: "Nihon Kohden BSM-6500", dept: "OR 2", value: 580000.00 },
+      { serial: "NKP-MX450-101", model: "Philips IntelliVue MX450", dept: "ER", value: 420000.00 },
+      { serial: "NKP-MX450-102", model: "Philips IntelliVue MX450", dept: "ER", value: 420000.00 },
+      { serial: "NKP-MX450-103", model: "Philips IntelliVue MX450", dept: "CCU", value: 420000.00 },
+      { serial: "NKP-N12-201", model: "Mindray BeneVision N12", dept: "IPD 5", value: 280000.00 },
+      { serial: "NKP-N12-202", model: "Mindray BeneVision N12", dept: "IPD 5", value: 280000.00 },
+      { serial: "NKP-B650-301", model: "GE Carescape B650", dept: "Pediatric ICU", value: 500000.00 },
+      { serial: "NKP-RAD7-401", model: "Masimo Radical-7", dept: "NICU", value: 250000.00 }
+    ];
+
+    const INITIAL_TRANSACTIONS = [
+      {
+        id: "TX-10001",
+        timestamp: "2026-05-15T09:30:00",
+        type: "Receive",
+        partCode: "SR-SPO2-001",
+        partName: "Adult Finger SpO2 sensor Original Masimo LNCS DC-I (#1863)",
+        qty: 30,
+        refDoc: "Contract 133/2568",
+        operator: "นายสมชาย ใจดี (หัวหน้าช่าง)",
+        details: "รับเข้าอะไหล่จากสัญญาจัดซื้อประจำปี ร้าน SR Science",
+        cost: 246000.00
+      },
+      {
+        id: "TX-10002",
+        timestamp: "2026-05-16T11:00:00",
+        type: "Receive",
+        partCode: "001CM02002",
+        partName: "Compatible Mindray Extension cable to Nellcor Oximax (SA-148-101)",
+        qty: 5,
+        refDoc: "PO-65-0352",
+        operator: "นายสุรศักดิ์ พึ่งเล่ห์ (ช่างเทคนิค)",
+        details: "รับเข้าอะไหล่จากบริษัท แบงค็อก เมดิคอล โปร",
+        cost: 150000.00
+      },
+      {
+        id: "TX-10003",
+        timestamp: "2026-05-20T14:15:00",
+        type: "Issue",
+        partCode: "SR-SPO2-003",
+        partName: "Adult Finger SpO2 Sensor Original Covidien Nellcor (#DS100A)",
+        qty: 2,
+        refDoc: "CM-2026-0589",
+        operator: "นายยุทธนา หยุดปัญญา (ช่างเทคนิค)",
+        details: "เปลี่ยนอะไหล่เนื่องจากสายเก่าชำรุดหักงอ",
+        eqSerial: "NKP-N12-201",
+        eqModel: "Mindray BeneVision N12",
+        maintenanceType: "Corrective Maintenance (CM)",
+        cost: 10200.00
+      },
+      {
+        id: "TX-10004",
+        timestamp: "2026-05-22T10:00:00",
+        type: "Borrow",
+        partCode: "SR-SPO2-005",
+        partName: "Adult Soft SpO2 Sensor Original Philips (#M1191 B/BL)",
+        qty: 1,
+        refDoc: "Troubleshooting Test",
+        operator: "นายสุรศักดิ์ พึ่งเล่ห์ (ช่างเทคนิค)",
+        details: "ยืมไปสลับทดสอบปัญหาของเครื่องบกพร่องที่ตึก CCU",
+        eqSerial: "NKP-MX450-103",
+        eqModel: "Philips IntelliVue MX450",
+        borrowStatus: "Borrowed",
+        borrowDueDate: "2026-05-29"
+      },
+      {
+        id: "TX-10005",
+        timestamp: "2026-05-24T16:30:00",
+        type: "Return",
+        partCode: "SR-SPO2-005",
+        partName: "Adult Soft SpO2 Sensor Original Philips (#M1191 B/BL)",
+        qty: 1,
+        refDoc: "TX-10004 Return",
+        operator: "นายสุรศักดิ์ พึ่งเล่ห์ (ช่างเทคนิค)",
+        details: "นำกลับมาคืนคลัง สภาพปกติหลังตรวจสอบบอร์ดแล้ว",
+        eqSerial: "NKP-MX450-103",
+        eqModel: "Philips IntelliVue MX450",
+        borrowStatus: "Returned"
+      },
+      {
+        id: "TX-10006",
+        timestamp: "2026-05-28T09:00:00",
+        type: "Audit",
+        partCode: "SR-SPO2-007",
+        partName: "Adult Finger SpO2 Sensor for Mindray BD9 Standard (#512F)",
+        qty: -1,
+        refDoc: "Stock Take Q2",
+        operator: "นายสมชาย ใจดี (หัวหน้าช่าง)",
+        details: "ปรับยอดคงคลัง: นับจริงได้ 70 ชิ้น (ยอดเดิมในบัญชี 71 ชิ้น)",
+        cost: -4750.00
+      }
+    ];
+
+    const INITIAL_PM_PLANS = [
+      {
+        id: "PM-PLN-001",
+        name: "แผนบำรุงรักษาประจำปีเครื่องตรวจวัด Bedside Monitor Nihon Kohden",
+        eqModel: "Nihon Kohden BSM-3500",
+        frequency: "Semi-Annual (ทุก 6 เดือน)",
+        scheduledDate: "2026-06-15",
+        assignedTech: "นายสุรศักดิ์ พึ่งเล่ห์ (ช่างเทคนิค)",
+        linkedParts: [
+          { code: "SR-SPO2-004", qty: 1 },
+          { code: "001CM02008", qty: 1 }
+        ]
+      },
+      {
+        id: "PM-PLN-002",
+        name: "แผนตรวจเช็คสภาพเครื่องเฝ้าไข้ Philips IntelliVue",
+        eqModel: "Philips IntelliVue MX450",
+        frequency: "Annual (ประจำปี)",
+        scheduledDate: "2026-07-02",
+        assignedTech: "นายยุทธนา หยุดปัญญา (ช่างเทคนิค)",
+        linkedParts: [
+          { code: "SR-SPO2-005", qty: 1 }
+        ]
+      },
+      {
+        id: "PM-PLN-003",
+        name: "แผนทดสอบประสิทธิภาพเครื่องวัดออกซิเจนปลายนิ้ว Mindray",
+        eqModel: "Mindray BeneVision N12",
+        frequency: "Annual (ประจำปี)",
+        scheduledDate: "2026-06-25",
+        assignedTech: "นายสมชาย ใจดี (หัวหน้าช่าง)",
+        linkedParts: [
+          { code: "SR-SPO2-007", qty: 1 },
+          { code: "001CM02003", qty: 1 }
+        ]
+      }
+    ];
+  </script>
+
+  <!-- Embed Main App Controller logic -->
+  <script>
+    // Global State
+    let parts = [];
+    let equipment = [];
+    let transactions = [];
+    let pmPlans = [];
+    let settings = {
+      password: "NKP-medparts-2026",
+      gasUrl: "",
+      lineToggle: true,
+      lineToken: "",
+      lineGroupId: ""
+    };
+
+    // Chart References
+    let tscEvChartRef = null;
+    let abcChartRef = null;
+
+    // Initialize App
+    document.addEventListener("DOMContentLoaded", () => {
+      initStorage();
+      checkAuth();
+      initializeUI();
+      updateDashboard();
+      renderCatalog();
+      populateTransactionSelects();
+      renderTransactionsTable();
+      renderPMPlans();
+      renderProcurementMonitor();
+      renderMemorandum();
+    });
+
+    // 1. LocalStorage and State Initialization
+    function initStorage() {
+      const storedSettings = localStorage.getItem("nkp_parts_settings");
+      if (storedSettings) {
+        settings = { ...settings, ...JSON.parse(storedSettings) };
+      } else {
+        localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
+      }
+
+      const storedParts = localStorage.getItem("nkp_parts");
+      if (storedParts) {
+        parts = JSON.parse(storedParts);
+      } else {
+        parts = [...INITIAL_PARTS];
+        localStorage.setItem("nkp_parts", JSON.stringify(parts));
+      }
+
+      const storedEquipment = localStorage.getItem("nkp_equipment");
+      if (storedEquipment) {
+        equipment = JSON.parse(storedEquipment);
+      } else {
+        equipment = [...INITIAL_EQUIPMENT];
+        localStorage.setItem("nkp_equipment", JSON.stringify(equipment));
+      }
+
+      const storedTx = localStorage.getItem("nkp_transactions");
+      if (storedTx) {
+        transactions = JSON.parse(storedTx);
+      } else {
+        transactions = [...INITIAL_TRANSACTIONS];
+        localStorage.setItem("nkp_transactions", JSON.stringify(transactions));
+      }
+
+      const storedPm = localStorage.getItem("nkp_pm_plans");
+      if (storedPm) {
+        pmPlans = JSON.parse(storedPm);
+      } else {
+        pmPlans = [...INITIAL_PM_PLANS];
+        localStorage.setItem("nkp_pm_plans", JSON.stringify(pmPlans));
+      }
+
+      recalculateABC();
+    }
+
+    function persistState() {
+      localStorage.setItem("nkp_parts", JSON.stringify(parts));
+      localStorage.setItem("nkp_transactions", JSON.stringify(transactions));
+      localStorage.setItem("nkp_pm_plans", JSON.stringify(pmPlans));
+      recalculateABC();
+      triggerCloudSync();
+    }
+
+    // 2. Authentication Password Gate (Default: NKP-medparts-2026)
+    function checkAuth() {
+      const loginOverlay = document.getElementById("login-overlay");
+      const isAuthenticated = sessionStorage.getItem("nkp_authenticated");
+
+      if (isAuthenticated === "true") {
+        loginOverlay.classList.add("hidden");
+      } else {
+        loginOverlay.classList.remove("hidden");
+      }
+
+      document.getElementById("login-submit-btn").addEventListener("click", processLogin);
+      document.getElementById("login-password").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") processLogin();
+      });
+
+      document.getElementById("logout-btn").addEventListener("click", () => {
+        sessionStorage.removeItem("nkp_authenticated");
+        location.reload();
+      });
+    }
+
+    function processLogin() {
+      const pwdInput = document.getElementById("login-password").value;
+      const errorDiv = document.getElementById("login-error");
+
+      if (pwdInput === settings.password) {
+        sessionStorage.setItem("nkp_authenticated", "true");
+        document.getElementById("login-overlay").classList.add("hidden");
+        showToast("เข้าสู่ระบบสำเร็จ", "ยินดีต้อนรับสู่ระบบคลังอะไหล่ รพ.นครพิงค์", "success");
+        setTimeout(() => {
+          drawDashboardCharts();
+        }, 200);
+      } else {
+        errorDiv.innerText = "รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
+        showToast("เข้าสู่ระบบล้มเหลว", "รหัสผ่านที่กรอกไม่ถูกต้อง", "danger");
+      }
+    }
+
+    // 3. Tab Navigation & Core Event Listeners
+    function initializeUI() {
+      // Sidebar Collapse Toggle Logic
+      const btnToggleSidebar = document.getElementById("btn-toggle-sidebar");
+      const appContainer = document.querySelector(".app-container");
+      
+      const isSidebarCollapsed = localStorage.getItem("nkp_sidebar_collapsed") === "true";
+      if (isSidebarCollapsed && appContainer && btnToggleSidebar) {
+        appContainer.classList.add("sidebar-collapsed");
+        const icon = btnToggleSidebar.querySelector("i");
+        if (icon) icon.setAttribute("data-lucide", "chevron-right");
+      }
+
+      if (btnToggleSidebar && appContainer) {
+        btnToggleSidebar.addEventListener("click", () => {
+          appContainer.classList.toggle("sidebar-collapsed");
+          const isCollapsed = appContainer.classList.contains("sidebar-collapsed");
+          localStorage.setItem("nkp_sidebar_collapsed", isCollapsed);
+          
+          const icon = btnToggleSidebar.querySelector("i");
+          if (icon) {
+            icon.setAttribute("data-lucide", isCollapsed ? "chevron-right" : "chevron-left");
+            lucide.createIcons();
+          }
+        });
+      }
+
+      const links = document.querySelectorAll(".sidebar-link");
+      links.forEach(link => {
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          const tabName = link.getAttribute("data-tab");
+          
+          links.forEach(l => l.classList.remove("active"));
+          link.classList.add("active");
+
+          const tabContents = document.querySelectorAll(".tab-content");
+          tabContents.forEach(content => content.classList.remove("active"));
+          document.getElementById(`tab-${tabName}`).classList.add("active");
+
+          updateTabHeader(tabName);
+        });
+      });
+
+      const themeToggle = document.getElementById("theme-toggle");
+      themeToggle.addEventListener("change", (e) => {
+        if (e.target.checked) {
+          document.body.setAttribute("data-theme", "dark");
+        } else {
+          document.body.removeAttribute("data-theme");
+        }
+        drawDashboardCharts();
+      });
+
+      setInterval(() => {
+        const now = new Date();
+        document.getElementById("live-time-display").innerText = now.toLocaleString("th-TH");
+      }, 1000);
+
+      document.getElementById("catalog-search").addEventListener("input", renderCatalog);
+      document.getElementById("catalog-filter-abc").addEventListener("change", renderCatalog);
+      document.getElementById("catalog-filter-status").addEventListener("change", renderCatalog);
+
+      const txTypeSelect = document.getElementById("tx-type");
+      txTypeSelect.addEventListener("change", handleTxTypeChange);
+      handleTxTypeChange();
+
+      document.getElementById("tx-form").addEventListener("submit", processTransaction);
+      document.getElementById("btn-run-forecast").addEventListener("click", calculateForecast);
+      document.getElementById("btn-export-logs").addEventListener("click", exportTransactionsToCSV);
+
+      document.getElementById("btn-save-settings").addEventListener("click", saveSettings);
+      document.getElementById("btn-test-line").addEventListener("click", testLineMessage);
+
+      document.getElementById("btn-add-part").addEventListener("click", () => {
+        document.getElementById("part-form").reset();
+        document.getElementById("part-form-mode").value = "add";
+        document.getElementById("modal-add-title").innerText = "เพิ่มอะไหล่ทางการแพทย์ใหม่เข้าระบบ";
+        document.getElementById("part-code").disabled = false;
+        openModal("modal-add-part");
+      });
+
+      document.getElementById("btn-save-part").addEventListener("click", savePartDetails);
+      document.getElementById("btn-copy-code").addEventListener("click", copyAppsScriptCode);
+
+      // Memorandum Form Event Bindings
+      document.getElementById("btn-add-item-to-memo").addEventListener("click", addMemoItem);
+      document.getElementById("btn-load-rop").addEventListener("click", loadROPItemsIntoMemo);
+      document.getElementById("btn-clear-memo").addEventListener("click", clearMemoForm);
+      document.getElementById("btn-print-memo").addEventListener("click", () => window.print());
+
+      const memoInputs = [
+        "memo-edit-dept", "memo-edit-doc-no", "memo-edit-date", "memo-edit-subject",
+        "memo-edit-to", "memo-edit-body", "memo-edit-reason", "memo-edit-committee",
+        "memo-edit-sig-left1", "memo-edit-title-left1",
+        "memo-edit-sig-right1", "memo-edit-title-right1",
+        "memo-edit-sig-left2", "memo-edit-title-left2",
+        "memo-edit-sig-right2", "memo-edit-title-right2"
+      ];
+      memoInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener("input", renderMemorandum);
+      });
+
+      for(let i=1; i<=6; i++) {
+        const el = document.getElementById(`memo-chk-${i}`);
+        if (el) {
+          el.addEventListener("change", (e) => {
+            if (i === 6) {
+              document.getElementById("memo-chk-other-text").style.display = e.target.checked ? "inline-block" : "none";
+            }
+            renderMemorandum();
+          });
+        }
+      }
+      const otherTxt = document.getElementById("memo-chk-other-text");
+      if (otherTxt) otherTxt.addEventListener("input", renderMemorandum);
+
+      // Ledger Logs Real-Time Filters
+      const ledgerSearch = document.getElementById("ledger-search");
+      const ledgerFilterType = document.getElementById("ledger-filter-type");
+      const ledgerFilterTime = document.getElementById("ledger-filter-time");
+
+      if (ledgerSearch) ledgerSearch.addEventListener("input", renderTransactionsTable);
+      if (ledgerFilterType) ledgerFilterType.addEventListener("change", renderTransactionsTable);
+      if (ledgerFilterTime) ledgerFilterTime.addEventListener("change", renderTransactionsTable);
+    }
+
+    function updateTabHeader(tabName) {
+      const titles = {
+        dashboard: ["แดชบอร์ดภาพรวม", "วิเคราะห์สถิติคลังสินค้า ความปลอดภัย และอัตราค่าบำรุงรักษา"],
+        catalog: ["คลังอะไหล่และอุปกรณ์", "จัดการรายชื่ออะไหล่ สเปกทางเทคนิค และจุดสั่งซื้อที่ได้รับการระบุ"],
+        transactions: ["เบิกจ่ายและรับเข้าคลัง", "ทำกิจกรรม เบิก จ่าย รับของ ยืม คืน และตรวจสอบความถูกต้องของระบบคลัง"],
+        ledger: ["ประวัติรายการคลังอะไหล่ (Ledger Logs)", "ตรวจสอบประวัติการเบิกจ่าย รับเข้า ยืมคืน อะไหล่สำรองคลังทั้งหมด"],
+        planning: ["แผนบำรุงรักษาเชิงรุก", "ตาราง PM ประจำปี และเครื่องมือคาดการณ์ความต้องการวัสดุอะไหล่ในอนาคต"],
+        procurement: ["ใบขอจัดซื้ออะไหล่", "ตรวจสอบชิ้นส่วนที่หมดเกณฑ์สำรอง และสร้างใบขอเสนอซื้อแบบอัตโนมัติ"],
+        settings: ["คลาวด์ & LINE Settings", "ตั้งค่าการเชื่อมต่อฐานข้อมูล Google Sheets และระบบ LINE OA Notifications"]
+      };
+      
+      if (titles[tabName]) {
+        document.getElementById("current-tab-title").innerText = titles[tabName][0];
+        document.getElementById("current-tab-desc").innerText = titles[tabName][1];
+      }
+
+      if (tabName === "dashboard") {
+        updateDashboard();
+      } else if (tabName === "catalog") {
+        renderCatalog();
+      } else if (tabName === "transactions") {
+        populateTransactionSelects();
+      } else if (tabName === "ledger") {
+        renderTransactionsTable();
+      } else if (tabName === "planning") {
+        renderPMPlans();
+      } else if (tabName === "procurement") {
+        renderProcurementMonitor();
+        renderMemorandum();
+      }
+    }
+
+    // 4. Calculations: ABC Recalculation & Expiry status
+    function recalculateABC() {
+      if (parts.length === 0) return;
+
+      parts.forEach(part => {
+        part.totalValue = part.unitPrice * part.inStock;
+      });
+
+      const sortedParts = [...parts].sort((a, b) => b.totalValue - a.totalValue);
+      const grandTotalValue = sortedParts.reduce((sum, p) => sum + p.totalValue, 0);
+
+      if (grandTotalValue === 0) {
+        parts.forEach(part => part.abcClass = "C");
+        return;
+      }
+
+      let cumulativeValue = 0;
+      sortedParts.forEach(sortedPart => {
+        cumulativeValue += sortedPart.totalValue;
+        const ratio = cumulativeValue / grandTotalValue;
+
+        let abcClass = "C";
+        if (ratio <= 0.80) {
+          abcClass = "A";
+        } else if (ratio <= 0.95) {
+          abcClass = "B";
+        }
+
+        const originalPart = parts.find(p => p.code === sortedPart.code);
+        if (originalPart) {
+          originalPart.abcClass = abcClass;
+        }
+      });
+    }
+
+    function getExpiryState(expiryStr) {
+      const today = new Date();
+      const expiryDate = new Date(expiryStr);
+      const diffTime = expiryDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) {
+        return { status: "Expired", label: "หมดอายุแล้ว", class: "badge-expired" };
+      } else if (diffDays <= 90) {
+        return { status: "Near Expiry", label: `ใกล้หมดอายุ (${diffDays} วัน)`, class: "badge-near-expiry" };
+      } else {
+        return { status: "Safe", label: "ปกติ", class: "badge-safe" };
+      }
+    }
+
+    function getStockState(part) {
+      if (part.inStock <= 0) {
+        return { status: "Out of Stock", label: "สินค้าหมด", class: "badge-out-of-stock" };
+      } else if (part.inStock <= part.reorderPoint) {
+        return { status: "Low Stock", label: "ต่ำกว่าจุดสั่งซื้อ", class: "badge-low-stock" };
+      } else {
+        return { status: "In Stock", label: "ปกติ", class: "badge-in-stock" };
+      }
+    }
+
+    // 5. Dashboard View Updates & Charts
+    function updateDashboard() {
+      recalculateABC();
+      
+      document.getElementById("metric-total-items").innerText = parts.length;
+      
+      const lowStockCount = parts.filter(p => p.inStock <= p.reorderPoint).length;
+      document.getElementById("metric-low-stock-count").innerText = lowStockCount;
+      
+      const expiredCount = parts.filter(p => {
+        const state = getExpiryState(p.expiryDate);
+        return state.status === "Expired" || state.status === "Near Expiry";
+      }).length;
+      document.getElementById("metric-expired-count").innerText = expiredCount;
+
+      const lowStockCard = document.getElementById("metric-low-stock-card");
+      if (lowStockCount > 0) lowStockCard.classList.add("danger");
+      else lowStockCard.classList.remove("danger");
+
+      const expiredCard = document.getElementById("metric-expired-card");
+      if (expiredCount > 0) expiredCard.style.borderLeftColor = "var(--danger)";
+
+      const totalValue = parts.reduce((sum, p) => sum + (p.unitPrice * p.inStock), 0);
+      document.getElementById("metric-total-value").innerText = "฿" + totalValue.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      renderDashboardAlertsTable();
+      drawDashboardCharts();
+    }
+
+    function renderDashboardAlertsTable() {
+      const tbody = document.querySelector("#dashboard-alerts-table tbody");
+      tbody.innerHTML = "";
+
+      const alertParts = parts.filter(p => {
+        const stockState = getStockState(p);
+        const expiryState = getExpiryState(p.expiryDate);
+        return stockState.status === "Low Stock" || stockState.status === "Out of Stock" || expiryState.status === "Expired" || expiryState.status === "Near Expiry";
+      });
+
+      if (alertParts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">🎉 ไม่มีรายการด่วน อะไหล่ทุกรายการมีความปลอดภัยและเพียงพอ</td></tr>`;
+        return;
+      }
+
+      alertParts.forEach(p => {
+        const stockState = getStockState(p);
+        const expiryState = getExpiryState(p.expiryDate);
+        
+        let issueLabel = "";
+        if (stockState.status === "Out of Stock") issueLabel += `<span class="badge badge-out-of-stock">คลังหมด</span> `;
+        else if (stockState.status === "Low Stock") issueLabel += `<span class="badge badge-low-stock">สต๊อกต่ำ</span> `;
+        
+        if (expiryState.status === "Expired") issueLabel += `<span class="badge badge-expired">หมดอายุ</span>`;
+        else if (expiryState.status === "Near Expiry") issueLabel += `<span class="badge badge-near-expiry">ใกล้หมดอายุ</span>`;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${p.code}</strong></td>
+          <td>${p.name}</td>
+          <td><span style="font-size: 0.8rem; background: var(--bg-tertiary); padding: 4px 8px; border-radius: 4px;">${p.location}</span></td>
+          <td><strong>${p.inStock}</strong></td>
+          <td>${p.minStock} / ${p.reorderPoint}</td>
+          <td>${issueLabel}</td>
+          <td><span style="font-size: 0.8rem; color: var(--text-secondary);">${p.supplierName}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function drawDashboardCharts() {
+      const isDark = document.body.getAttribute("data-theme") === "dark";
+      const labelColor = isDark ? "#d1d5db" : "#334155";
+      const gridColor = isDark ? "#374151" : "#e2e8f0";
+
+      const abcCounts = { A: 0, B: 0, C: 0 };
+      const abcValues = { A: 0, B: 0, C: 0 };
+
+      parts.forEach(p => {
+        abcCounts[p.abcClass]++;
+        abcValues[p.abcClass] += (p.unitPrice * p.inStock);
+      });
+
+      if (abcChartRef) abcChartRef.destroy();
+
+      const abcCtx = document.getElementById("abcChart").getContext("2d");
+      abcChartRef = new Chart(abcCtx, {
+        type: 'doughnut',
+        data: {
+          labels: [
+            `Class A (มูลค่าสูง) (${abcCounts.A} รายการ)`,
+            `Class B (มูลค่ากลาง) (${abcCounts.B} รายการ)`,
+            `Class C (มูลค่าต่ำ) (${abcCounts.C} รายการ)`
+          ],
+          datasets: [{
+            data: [abcValues.A, abcValues.B, abcValues.C],
+            backgroundColor: ['#ef4444', '#3b82f6', '#14b8a6'],
+            borderWidth: 1,
+            borderColor: isDark ? '#111827' : '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: labelColor, font: { family: 'Sarabun', size: 11 } }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const val = context.raw || 0;
+                  return " มูลค่า: ฿" + val.toLocaleString("th-TH", { maximumFractionDigits: 0 });
+                }
+              }
+            }
+          }
+        }
+      });
+
+      const serviceCosts = {};
+      transactions.filter(t => t.type === "Issue" && t.eqSerial).forEach(t => {
+        if (!serviceCosts[t.eqSerial]) {
+          serviceCosts[t.eqSerial] = 0;
+        }
+        const part = parts.find(p => p.code === t.partCode);
+        const unitPrice = part ? part.unitPrice : 0;
+        serviceCosts[t.eqSerial] += (t.qty * unitPrice);
+      });
+
+      const labels = [];
+      const ratios = [];
+      const backgroundColors = [];
+
+      equipment.forEach(eq => {
+        const cost = serviceCosts[eq.serial] || 0;
+        const ratio = (cost / eq.value) * 100;
+        
+        labels.push(`${eq.serial} (${eq.model.split(" ")[0]})`);
+        ratios.push(ratio.toFixed(1));
+
+        if (ratio >= 25.0) {
+          backgroundColors.push('#ef4444');
+        } else if (ratio >= 5.0) {
+          backgroundColors.push('#f97316');
+        } else {
+          backgroundColors.push('#14b8a6');
+        }
+      });
+
+      if (tscEvChartRef) tscEvChartRef.destroy();
+
+      const tscCtx = document.getElementById("tscEvChart").getContext("2d");
+      tscEvChartRef = new Chart(tscCtx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'สัดส่วน TSC / EV (%)',
+            data: ratios,
+            backgroundColor: backgroundColors,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: labelColor, font: { family: 'Sarabun', size: 10 } }
+            },
+            y: {
+              grid: { color: gridColor },
+              ticks: { color: labelColor },
+              title: { display: true, text: 'อัตราส่วน (%)', color: labelColor }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return ` อัตราส่วน: ${context.raw}% ของราคาซื้อเครื่อง`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // 6. Spare Parts Catalog tab rendering
+    function renderCatalog() {
+      const tbody = document.getElementById("catalog-table-body");
+      tbody.innerHTML = "";
+
+      const searchVal = document.getElementById("catalog-search").value.toLowerCase();
+      const filterAbc = document.getElementById("catalog-filter-abc").value;
+      const filterStatus = document.getElementById("catalog-filter-status").value;
+
+      const filteredParts = parts.filter(p => {
+        const matchesSearch = p.code.toLowerCase().includes(searchVal) || 
+                              p.name.toLowerCase().includes(searchVal) || 
+                              p.manufacturer.toLowerCase().includes(searchVal);
+        const matchesAbc = (filterAbc === "ALL" || p.abcClass === filterAbc);
+        const stockState = getStockState(p);
+        const expiryState = getExpiryState(p.expiryDate);
+        
+        let matchesStatus = true;
+        if (filterStatus === "LOW") {
+          matchesStatus = (stockState.status === "Low Stock" || stockState.status === "Out of Stock");
+        } else if (filterStatus === "EXPIRED") {
+          matchesStatus = (expiryState.status === "Expired" || expiryState.status === "Near Expiry");
+        } else if (filterStatus === "NORMAL") {
+          matchesStatus = (stockState.status === "In Stock" && expiryState.status === "Safe");
+        }
+
+        return matchesSearch && matchesAbc && matchesStatus;
+      });
+
+      if (filteredParts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 30px; color: var(--text-muted);">❌ ไม่พบรายการอะไหล่ตามเงื่อนไขการค้นหา</td></tr>`;
+        return;
+      }
+
+      filteredParts.forEach(p => {
+        const stockState = getStockState(p);
+        const expiryState = getExpiryState(p.expiryDate);
+        
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${p.code}</strong></td>
+          <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <span style="font-weight: 600;">${p.name}</span><br>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">${p.description}</span>
+          </td>
+          <td>${p.manufacturer}</td>
+          <td><span class="badge badge-${p.abcClass.toLowerCase()}">Class ${p.abcClass}</span></td>
+          <td><span style="font-size: 0.8rem; background: var(--bg-tertiary); padding: 4px 8px; border-radius: 4px;">${p.location}</span></td>
+          <td>
+            <span class="badge ${stockState.class}">${p.inStock} ชิ้น</span>
+          </td>
+          <td><strong>฿${p.unitPrice.toLocaleString("th-TH")}</strong></td>
+          <td>
+            <span class="badge ${expiryState.class}">${p.expiryDate}</span>
+          </td>
+          <td>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary btn-sm" onclick="showStockCard('${p.code}')" style="padding: 4px 8px; font-size: 0.75rem;">
+                <i data-lucide="eye" style="width: 14px; height: 14px;"></i> การใช้งาน
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="editPartDetails('${p.code}')" style="padding: 4px 8px; font-size: 0.75rem; color: var(--primary);">
+                <i data-lucide="edit" style="width: 14px; height: 14px;"></i> แก้ไข
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    window.showStockCard = function(partCode) {
+      const part = parts.find(p => p.code === partCode);
+      if (!part) return;
+
+      document.getElementById("modal-sc-name").innerText = part.name;
+      document.getElementById("modal-sc-code").innerText = part.code;
+      document.getElementById("modal-sc-abc").innerText = `Class ${part.abcClass} (ระดับความเข้มงวด)`;
+      document.getElementById("modal-sc-desc").innerText = part.description || "-";
+      document.getElementById("modal-sc-manufacturer").innerText = part.manufacturer;
+      document.getElementById("modal-sc-location").innerText = part.location;
+      document.getElementById("modal-sc-stock").innerText = `${part.inStock} ชิ้น`;
+      
+      const stockColor = part.inStock <= part.reorderPoint ? "var(--danger)" : "var(--success)";
+      document.getElementById("modal-sc-stock").style.color = stockColor;
+
+      document.getElementById("modal-sc-price").innerText = `฿${part.unitPrice.toLocaleString("th-TH")}`;
+      document.getElementById("modal-sc-purchase").innerText = part.purchaseDate;
+      document.getElementById("modal-sc-expiry").innerText = part.expiryDate;
+      document.getElementById("modal-sc-leadtime").innerText = `${part.leadTime} วัน`;
+      document.getElementById("modal-sc-freq").innerText = `${part.repairFreq} ครั้ง/ปี`;
+      document.getElementById("modal-sc-supplier").innerText = `${part.supplierName} (โทร: ${part.supplierContact})`;
+
+      const compatList = document.getElementById("modal-sc-compat-list");
+      compatList.innerHTML = "";
+      
+      if (part.equipmentModels && part.equipmentModels.length > 0) {
+        part.equipmentModels.forEach(model => {
+          const units = equipment.filter(e => e.model === model);
+          const serialsStr = units.map(u => u.serial).join(", ");
+          const li = document.createElement("li");
+          li.innerHTML = `<strong>${model}</strong> ${serialsStr ? `[ซีเรียลใน รพ.: ${serialsStr}]` : `(ไม่มีเครื่องติดตั้งในระบบ)`}`;
+          compatList.appendChild(li);
+        });
+      } else {
+        compatList.innerHTML = `<span style="color: var(--text-muted);">ไม่ได้ระบุเครื่องมือที่เชื่อมโยง</span>`;
+      }
+
+      openModal("modal-stock-card");
+    }
+
+    window.editPartDetails = function(partCode) {
+      const part = parts.find(p => p.code === partCode);
+      if (!part) return;
+
+      document.getElementById("part-form-mode").value = "edit";
+      document.getElementById("modal-add-title").innerText = `แก้ไขข้อมูลอะไหล่: ${part.code}`;
+      
+      document.getElementById("part-code").value = part.code;
+      document.getElementById("part-code").disabled = true;
+      
+      document.getElementById("part-name").value = part.name;
+      document.getElementById("part-desc").value = part.description || "";
+      document.getElementById("part-manufacturer").value = part.manufacturer;
+      document.getElementById("part-location").value = part.location;
+      document.getElementById("part-price").value = part.unitPrice;
+      document.getElementById("part-stock").value = part.inStock;
+      document.getElementById("part-min").value = part.minStock;
+      document.getElementById("part-max").value = part.maxStock;
+      document.getElementById("part-rop").value = part.reorderPoint;
+      document.getElementById("part-roq").value = part.reorderQty;
+      document.getElementById("part-purchase-date").value = part.purchaseDate;
+      document.getElementById("part-expiry-date").value = part.expiryDate;
+      document.getElementById("part-leadtime").value = part.leadTime;
+      document.getElementById("part-freq").value = part.repairFreq;
+      document.getElementById("part-supplier").value = `${part.supplierName} / Tel: ${part.supplierContact}`;
+      document.getElementById("part-compat").value = part.equipmentModels ? part.equipmentModels.join(", ") : "";
+
+      openModal("modal-add-part");
+    }
+
+    function savePartDetails() {
+      const form = document.getElementById("part-form");
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const mode = document.getElementById("part-form-mode").value;
+      const partCode = document.getElementById("part-code").value.trim();
+      
+      const supplierInput = document.getElementById("part-supplier").value.trim();
+      let supName = supplierInput;
+      let supContact = "-";
+      if (supplierInput.includes("/")) {
+        const parts = supplierInput.split("/");
+        supName = parts[0].trim();
+        supContact = parts[1].replace(/Tel:|ติดต่อ:/gi, "").trim();
+      }
+
+      const compatInput = document.getElementById("part-compat").value.trim();
+      const compatModels = compatInput ? compatInput.split(",").map(m => m.trim()) : [];
+
+      const partPayload = {
+        code: partCode,
+        name: document.getElementById("part-name").value.trim(),
+        description: document.getElementById("part-desc").value.trim(),
+        manufacturer: document.getElementById("part-manufacturer").value.trim(),
+        equipmentModels: compatModels,
+        inStock: parseInt(document.getElementById("part-stock").value),
+        unitPrice: parseFloat(document.getElementById("part-price").value),
+        minStock: parseInt(document.getElementById("part-min").value),
+        maxStock: parseInt(document.getElementById("part-max").value),
+        reorderPoint: parseInt(document.getElementById("part-rop").value),
+        reorderQty: parseInt(document.getElementById("part-roq").value),
+        purchaseDate: document.getElementById("part-purchase-date").value,
+        expiryDate: document.getElementById("part-expiry-date").value,
+        leadTime: parseInt(document.getElementById("part-leadtime").value),
+        repairFreq: parseInt(document.getElementById("part-freq").value),
+        supplierName: supName || "ทั่วไป",
+        supplierContact: supContact
+      };
+
+      if (mode === "add") {
+        if (parts.some(p => p.code === partCode)) {
+          alert("รหัสอะไหล่นี้มีอยู่แล้วในระบบ กรุณาใช้รหัสอื่น");
+          return;
+        }
+        parts.push(partPayload);
+        showToast("สำเร็จ", `เพิ่มอะไหล่ ${partCode} สำเร็จ`, "success");
+      } else {
+        const index = parts.findIndex(p => p.code === partCode);
+        if (index !== -1) {
+          parts[index] = { ...parts[index], ...partPayload };
+          showToast("สำเร็จ", `แก้ไขรายละเอียดอะไหล่ ${partCode} สำเร็จ`, "success");
+        }
+      }
+
+      closeModal("modal-add-part");
+      persistState();
+      renderCatalog();
+      updateDashboard();
+    }
+
+    // 8. Warehouse Transaction forms and handlers
+    function populateTransactionSelects() {
+      const partSelect = document.getElementById("tx-part-code");
+      partSelect.innerHTML = "";
+      parts.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.code;
+        opt.innerText = `[${p.code}] ${p.name} (คงเหลือ: ${p.inStock} ชิ้น)`;
+        partSelect.appendChild(opt);
+      });
+
+      const eqSelect = document.getElementById("tx-eq-serial");
+      eqSelect.innerHTML = '<option value="">-- ไม่เชื่อมต่อเครื่องมือ --</option>';
+      equipment.forEach(e => {
+        const opt = document.createElement("option");
+        opt.value = e.serial;
+        opt.innerText = `${e.serial} - [${e.model}] (แผนก: ${e.dept})`;
+        eqSelect.appendChild(opt);
+      });
+    }
+
+    function handleTxTypeChange() {
+      const type = document.getElementById("tx-type").value;
+      const issueDiv = document.getElementById("tx-conditional-issue");
+      const borrowDiv = document.getElementById("tx-conditional-borrow");
+
+      const serialSelect = document.getElementById("tx-eq-serial");
+      const dueDateInput = document.getElementById("tx-due-date");
+
+      if (type === "Issue") {
+        issueDiv.style.display = "grid";
+        borrowDiv.style.display = "none";
+        serialSelect.required = true;
+        dueDateInput.required = false;
+      } else if (type === "Borrow") {
+        issueDiv.style.display = "grid";
+        borrowDiv.style.display = "block";
+        serialSelect.required = true;
+        dueDateInput.required = true;
+      } else {
+        issueDiv.style.display = "none";
+        borrowDiv.style.display = "none";
+        serialSelect.required = false;
+        dueDateInput.required = false;
+      }
+    }
+
+    function processTransaction(e) {
+      e.preventDefault();
+      
+      const type = document.getElementById("tx-type").value;
+      const partCode = document.getElementById("tx-part-code").value;
+      const qty = parseInt(document.getElementById("tx-qty").value);
+      const refDoc = document.getElementById("tx-ref-doc").value.trim();
+      const operator = document.getElementById("tx-operator").value.trim();
+      const details = document.getElementById("tx-details").value.trim();
+      
+      const partIndex = parts.findIndex(p => p.code === partCode);
+      if (partIndex === -1) {
+        alert("ไม่พบรหัสชิ้นส่วนดังกล่าว");
+        return;
+      }
+      
+      const part = parts[partIndex];
+
+      if (type === "Issue" || type === "Borrow") {
+        if (part.inStock < qty) {
+          alert(`อะไหล่ในสต๊อกมีเพียง ${part.inStock} ชิ้น ไม่เพียงพอต่อการจัดกิจกรรมเบิก ${qty} ชิ้น`);
+          return;
+        }
+      }
+
+      let stockAdjustment = 0;
+      let borrowStatus = undefined;
+      let borrowDueDate = undefined;
+      let eqSerial = undefined;
+      let eqModel = undefined;
+      let maintType = undefined;
+
+      if (type === "Receive") {
+        stockAdjustment = qty;
+      } else if (type === "Issue") {
+        stockAdjustment = -qty;
+        eqSerial = document.getElementById("tx-eq-serial").value;
+        const eq = equipment.find(e => e.serial === eqSerial);
+        eqModel = eq ? eq.model : "-";
+        maintType = document.getElementById("tx-maint-type").value;
+      } else if (type === "Borrow") {
+        stockAdjustment = -qty;
+        eqSerial = document.getElementById("tx-eq-serial").value;
+        const eq = equipment.find(e => e.serial === eqSerial);
+        eqModel = eq ? eq.model : "-";
+        borrowStatus = "Borrowed";
+        borrowDueDate = document.getElementById("tx-due-date").value;
+      } else if (type === "Return") {
+        stockAdjustment = qty;
+        const openBorrow = transactions.find(t => t.partCode === partCode && t.type === "Borrow" && t.borrowStatus === "Borrowed");
+        if (openBorrow) {
+          openBorrow.borrowStatus = "Returned";
+        }
+        borrowStatus = "Returned";
+      } else if (type === "Audit") {
+        stockAdjustment = qty - part.inStock;
+      }
+
+      const txId = "TX-" + (10000 + transactions.length + 1);
+      const now = new Date();
+      
+      const txEntry = {
+        id: txId,
+        timestamp: now.toISOString().split(".")[0],
+        type: type,
+        partCode: partCode,
+        partName: part.name,
+        qty: qty,
+        refDoc: refDoc || "N/A",
+        operator: operator,
+        details: details,
+        cost: qty * part.unitPrice,
+        eqSerial,
+        eqModel,
+        maintenanceType: maintType,
+        borrowStatus,
+        borrowDueDate
+      };
+
+      if (type === "Audit") {
+        part.inStock = qty;
+      } else {
+        part.inStock += stockAdjustment;
+      }
+
+      transactions.unshift(txEntry);
+
+      persistState();
+      showToast("สำเร็จ", `ทำการบันทึกรายการ ${type} รหัสอะไหล่ ${partCode} สำเร็จ`, "success");
+
+      document.getElementById("tx-form").reset();
+      document.getElementById("tx-qty").value = "";
+      document.getElementById("tx-ref-doc").value = "";
+      document.getElementById("tx-details").value = "";
+
+      populateTransactionSelects();
+      renderTransactionsTable();
+      updateDashboard();
+
+      sendLineNotification(txEntry, part.inStock);
+    }
+
+    function renderTransactionsTable() {
+      const tbody = document.getElementById("transactions-table-body");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      const searchQuery = document.getElementById("ledger-search") ? document.getElementById("ledger-search").value.toLowerCase() : "";
+      const filterType = document.getElementById("ledger-filter-type") ? document.getElementById("ledger-filter-type").value : "All";
+      const filterTime = document.getElementById("ledger-filter-time") ? document.getElementById("ledger-filter-time").value : "All";
+
+      // Filter transactions
+      let filtered = transactions;
+
+      // 1. Filter by search query
+      if (searchQuery) {
+        filtered = filtered.filter(t => 
+          t.partCode.toLowerCase().includes(searchQuery) ||
+          t.partName.toLowerCase().includes(searchQuery) ||
+          t.operator.toLowerCase().includes(searchQuery) ||
+          (t.eqSerial && t.eqSerial.toLowerCase().includes(searchQuery)) ||
+          (t.refDoc && t.refDoc.toLowerCase().includes(searchQuery))
+        );
+      }
+
+      // 2. Filter by type
+      if (filterType !== "All") {
+        filtered = filtered.filter(t => t.type === filterType);
+      }
+
+      // 3. Filter by time
+      if (filterTime !== "All") {
+        const now = new Date();
+        filtered = filtered.filter(t => {
+          const tDate = new Date(t.timestamp);
+          const diffTime = Math.abs(now - tDate);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (filterTime === "Today") {
+            return tDate.toDateString() === now.toDateString();
+          } else if (filterTime === "7days") {
+            return diffDays <= 7;
+          } else if (filterTime === "30days") {
+            return diffDays <= 30;
+          }
+          return true;
+        });
+      }
+
+      // Update Stats Widgets in the Ledger Tab
+      updateLedgerStatsWidgets();
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">📭 ไม่พบรายการคลังตามเงื่อนไขค้นหา</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(t => {
+        const dateObj = new Date(t.timestamp);
+        const dateStr = dateObj.toLocaleDateString("th-TH") + " " + dateObj.toLocaleTimeString("th-TH", { hour: '2-digit', minute: '2-digit' });
+
+        let typeClass = "badge-in-stock";
+        let typeTh = t.type;
+        if (t.type === "Issue") { typeClass = "badge-low-stock"; typeTh = "เบิกซ่อม (Issue)"; }
+        else if (t.type === "Borrow") { typeClass = "badge-expired"; typeTh = "ยืมทดสอบ (Borrow)"; }
+        else if (t.type === "Return") { typeClass = "badge-safe"; typeTh = "คืนของยืม (Return)"; }
+        else if (t.type === "Receive") { typeClass = "badge-in-stock"; typeTh = "รับเข้า (Receive)"; }
+        else if (t.type === "Audit") { typeClass = "badge-class-b"; typeTh = "นับยอด (Audit)"; }
+
+        let borrowBadge = "";
+        if (t.type === "Borrow" && t.borrowStatus === "Borrowed") {
+          const isOverdue = new Date(t.borrowDueDate) < new Date();
+          borrowBadge = `<span class="badge ${isOverdue ? 'badge-expired' : 'badge-near-expiry'}">กำลังยืม (คืน ${t.borrowDueDate})</span>`;
+        } else if (t.type === "Return" || t.borrowStatus === "Returned") {
+          borrowBadge = `<span class="badge badge-safe">คืนเรียบร้อย</span>`;
+        }
+
+        const eqText = t.eqSerial ? `${t.eqSerial}<br><span style="font-size: 0.75rem; color: var(--text-muted);">${t.maintenanceType || ''}</span>` : "-";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><span style="font-size: 0.8rem; color: var(--text-secondary);">${dateStr}</span></td>
+          <td><span class="badge ${typeClass}">${typeTh}</span></td>
+          <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <strong>${t.partCode}</strong><br>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">${t.partName}</span>
+          </td>
+          <td><strong>${t.qty}</strong></td>
+          <td>${eqText}</td>
+          <td>${t.operator}</td>
+          <td>${borrowBadge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateLedgerStatsWidgets() {
+      const totalEl = document.getElementById("ledger-stats-total");
+      const issuesEl = document.getElementById("ledger-stats-issues");
+      const receivesEl = document.getElementById("ledger-stats-receives");
+      const borrowsEl = document.getElementById("ledger-stats-borrows");
+
+      if (!totalEl) return;
+
+      totalEl.innerText = transactions.length;
+
+      let totalIssued = 0;
+      let totalReceived = 0;
+      let activeBorrows = 0;
+
+      transactions.forEach(t => {
+        if (t.type === "Issue") totalIssued += Number(t.qty) || 0;
+        else if (t.type === "Receive") totalReceived += Number(t.qty) || 0;
+        else if (t.type === "Borrow" && t.borrowStatus === "Borrowed") activeBorrows++;
+      });
+
+      issuesEl.innerText = totalIssued;
+      receivesEl.innerText = totalReceived;
+      borrowsEl.innerText = activeBorrows;
+    }
+
+    function exportTransactionsToCSV() {
+      if (transactions.length === 0) return;
+      
+      let csvContent = "\ufeffID,Timestamp,Type,PartCode,PartName,Qty,RefDoc,Operator,EqSerial,EqModel,MaintType,Cost\n";
+      transactions.forEach(t => {
+        csvContent += `"${t.id}","${t.timestamp}","${t.type}","${t.partCode}","${t.partName}",${t.qty},"${t.refDoc}","${t.operator}","${t.eqSerial || ''}","${t.eqModel || ''}","${t.maintenanceType || ''}",${t.cost}\n`;
+      });
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `NKP_spareparts_ledger_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // 9. PM schedule planner & Forecast Engine
+    function renderPMPlans() {
+      const tbody = document.getElementById("planning-pm-body");
+      tbody.innerHTML = "";
+
+      pmPlans.forEach(pm => {
+        const partsString = pm.linkedParts.map(lp => {
+          const p = parts.find(part => part.code === lp.code);
+          const name = p ? p.name.split(" ")[0] : lp.code;
+          return `<code style="background: var(--bg-tertiary); padding: 2px 4px; border-radius: 4px;">[${lp.code}] x${lp.qty}</code>`;
+        }).join("<br>");
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${pm.id}</strong></td>
+          <td><span style="font-weight:600;">${pm.name}</span></td>
+          <td>${pm.eqModel}</td>
+          <td>${pm.frequency}</td>
+          <td><span style="font-weight: 500;">${pm.scheduledDate}</span></td>
+          <td>${partsString}</td>
+          <td>${pm.assignedTech}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function calculateForecast() {
+      const lookahead = parseInt(document.getElementById("predict-lookahead").value);
+      const tbody = document.getElementById("forecast-table-body");
+      tbody.innerHTML = "";
+
+      const today = new Date();
+      const horizonDate = new Date();
+      horizonDate.setDate(today.getDate() + lookahead);
+
+      const requiredCounts = {};
+
+      pmPlans.forEach(pm => {
+        const scheduled = new Date(pm.scheduledDate);
+        if (scheduled >= today && scheduled <= horizonDate) {
+          pm.linkedParts.forEach(lp => {
+            if (!requiredCounts[lp.code]) {
+              requiredCounts[lp.code] = 0;
+            }
+            requiredCounts[lp.code] += lp.qty;
+          });
+        }
+      });
+
+      const codes = Object.keys(requiredCounts);
+      if (codes.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">📅 ไม่มีแผนงานบำรุงรักษา PM ที่ต้องใช้อะไหล่ในช่วงเวลานี้</td></tr>`;
+        return;
+      }
+
+      codes.forEach(code => {
+        const part = parts.find(p => p.code === code);
+        const required = requiredCounts[code];
+        const inStock = part ? part.inStock : 0;
+        const diff = inStock - required;
+
+        let statusHtml = "";
+        if (diff >= 0) {
+          statusHtml = `<span class="badge badge-safe">เพียงพอ (เหลือสำรอง ${diff})</span>`;
+        } else {
+          statusHtml = `<span class="badge badge-expired" style="background-color: var(--danger-light); color: var(--danger);">⚠️ ขาดแคลน ${Math.abs(diff)} ชิ้น</span>`;
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${code}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">${part ? part.name : 'ไม่ระบุ'}</span></td>
+          <td><strong>${required} ชิ้น</strong></td>
+          <td>${inStock} ชิ้น</td>
+          <td>${statusHtml}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      showToast("คำนวณสำเร็จ", "คำนวณคาดการณ์อะไหล่สำหรับช่วงแผนงานซ่อมบำรุงเสร็จสมบูรณ์", "success");
+    }
+
+    // 10. Procurement Reorder tab & Memorandum PR builder
+    function renderProcurementMonitor() {
+      const tbody = document.getElementById("procurement-alerts-body");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      const reorderItems = parts.filter(p => p.inStock <= p.reorderPoint);
+
+      if (reorderItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">🎉 อะไหล่ทุกรายการมีระดับคงคลังปลอดภัย สูงกว่าจุดเตือนภัยสั่งซื้อ</td></tr>`;
+        return;
+      }
+
+      reorderItems.forEach(p => {
+        const val = p.reorderQty * p.unitPrice;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${p.code}</strong></td>
+          <td>${p.name}</td>
+          <td><span class="badge badge-low-stock">${p.inStock} ชิ้น</span></td>
+          <td>${p.reorderPoint} ชิ้น</td>
+          <td><strong>${p.reorderQty} ชิ้น</strong></td>
+          <td><span style="font-size: 0.8rem;">${p.supplierName}<br>${p.supplierContact}</span></td>
+          <td><strong>฿${val.toLocaleString("th-TH")}</strong></td>
+          <td>
+            <button class="btn btn-primary btn-sm" onclick="loadPartIntoMemorandum('${p.code}')" style="padding: 4px 8px; font-size: 0.75rem;">
+              <i data-lucide="file-plus"></i> เพิ่มลงในบันทึกข้อความ
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    // Thai Currency Written Text Converter
+    function thaiBahtText(num) {
+      if (isNaN(num) || num === null || num === undefined) return "";
+      num = Math.round(num * 100) / 100;
+      const parts = num.toString().split(".");
+      const baht = parts[0];
+      const satang = parts[1];
+
+      const numbers = ["ศูนย์", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า"];
+      const positions = ["", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน"];
+
+      function convertSection(section) {
+        let result = "";
+        const len = section.length;
+        for (let i = 0; i < len; i++) {
+          const digit = parseInt(section.charAt(i));
+          const pos = len - i - 1;
+          if (digit !== 0) {
+            if (pos === 1 && digit === 1) {
+              result += "สิบ";
+            } else if (pos === 1 && digit === 2) {
+              result += "ยี่สิบ";
+            } else if (pos === 0 && digit === 1 && len > 1) {
+              result += "เอ็ด";
+            } else {
+              result += numbers[digit] + positions[pos];
+            }
+          }
+        }
+        return result;
+      }
+
+      let text = "";
+      if (parseInt(baht) === 0) {
+        text = "ศูนย์บาท";
+      } else {
+        if (baht.length > 6) {
+          const millionPart = baht.slice(0, -6);
+          const restPart = baht.slice(-6);
+          text += convertSection(millionPart) + "ล้าน" + convertSection(restPart);
+        } else {
+          text += convertSection(baht);
+        }
+        text += "บาท";
+      }
+
+      if (!satang || parseInt(satang) === 0) {
+        text += "ถ้วน";
+      } else {
+        text += convertSection(satang) + "สตางค์";
+      }
+      return text;
+    }
+
+    // Memorandum State
+    let memoItems = [
+      { desc: "NIBP Connector A1-1", qty: 10, unit: "ชิ้น", price: 100, stock: "-", monthly: "-" },
+      { desc: "NIBP Connector A4", qty: 20, unit: "ชิ้น", price: 100, stock: "-", monthly: "-" },
+      { desc: "NIBP Connector A6", qty: 5, unit: "ชิ้น", price: 250, stock: "-", monthly: "-" },
+      { desc: "NIBP Connector A10", qty: 20, unit: "ชิ้น", price: 50, stock: "-", monthly: "-" }
+    ];
+
+    window.loadPartIntoMemorandum = function(partCode) {
+      const part = parts.find(p => p.code === partCode);
+      if (!part) return;
+
+      // Avoid duplicate adds
+      const isDuplicate = memoItems.some(item => item.desc.includes(part.code));
+      if (isDuplicate) {
+        showToast("มีรายการนี้แล้ว", "รายการอะไหล่นี้ถูกเลือกในบันทึกข้อความแล้ว", "warning");
+        return;
+      }
+
+      memoItems.push({
+        desc: `รหัส ${part.code} - ${part.name}`,
+        qty: part.reorderQty || 1,
+        unit: "ชิ้น",
+        price: part.unitPrice || 0,
+        stock: part.inStock || 0,
+        monthly: "-"
+      });
+
+      renderMemorandum();
+      showToast("เพิ่มลงในบันทึกข้อความแล้ว", `เพิ่มรหัสอะไหล่ ${part.code} ลงในใบจัดซื้อสำเร็จ`, "success");
+    }
+
+    function addMemoItem() {
+      const desc = document.getElementById("memo-item-desc").value.trim();
+      const qty = Number(document.getElementById("memo-item-qty").value) || 1;
+      const unit = document.getElementById("memo-item-unit").value.trim() || "ชิ้น";
+      const price = Number(document.getElementById("memo-item-price").value) || 0;
+      const stock = document.getElementById("memo-item-stock").value.trim() || "-";
+      const monthly = document.getElementById("memo-item-monthly").value.trim() || "-";
+
+      if (!desc) {
+        showToast("ระบุรายละเอียด", "กรุณาระบุรายละเอียดหรือชื่อรายการอะไหล่", "warning");
+        return;
+      }
+
+      memoItems.push({ desc, qty, unit, price, stock, monthly });
+
+      // Clear input fields
+      document.getElementById("memo-item-desc").value = "";
+      document.getElementById("memo-item-qty").value = "";
+      document.getElementById("memo-item-unit").value = "";
+      document.getElementById("memo-item-price").value = "";
+      document.getElementById("memo-item-stock").value = "";
+      document.getElementById("memo-item-monthly").value = "";
+
+      renderMemorandum();
+      showToast("เพิ่มรายการแล้ว", "เพิ่มรายการลงในบันทึกข้อความสำเร็จ", "success");
+    }
+
+    window.removeMemoItem = function(index) {
+      memoItems.splice(index, 1);
+      renderMemorandum();
+      showToast("ลบรายการแล้ว", "นำรายการออกจากใบอนุมัติจัดซื้อเรียบร้อย", "success");
+    }
+
+    function loadROPItemsIntoMemo() {
+      const reorderItems = parts.filter(p => p.inStock <= p.reorderPoint);
+      if (reorderItems.length === 0) {
+        showToast("ไม่มีรายการ ROP ต่ำ", "อะไหล่ทุกรายการในสต๊อกอยู่ในระดับปลอดภัย", "warning");
+        return;
+      }
+
+      let addedCount = 0;
+      reorderItems.forEach(p => {
+        const isDuplicate = memoItems.some(item => item.desc.includes(p.code));
+        if (!isDuplicate) {
+          memoItems.push({
+            desc: `รหัส ${p.code} - ${p.name}`,
+            qty: p.reorderQty || 1,
+            unit: "ชิ้น",
+            price: p.unitPrice || 0,
+            stock: p.inStock || 0,
+            monthly: "-"
+          });
+          addedCount++;
+        }
+      });
+
+      renderMemorandum();
+      showToast("ดึงข้อมูล ROP แล้ว", `ดึงรายการอะไหล่ ROP ต่ำเพิ่มเข้ามา ${addedCount} รายการ`, "success");
+    }
+
+    function clearMemoForm() {
+      memoItems = [];
+      document.getElementById("memo-item-desc").value = "";
+      document.getElementById("memo-item-qty").value = "";
+      document.getElementById("memo-item-unit").value = "";
+      document.getElementById("memo-item-price").value = "";
+      document.getElementById("memo-item-stock").value = "";
+      document.getElementById("memo-item-monthly").value = "";
+      
+      // Reset checkboxes
+      for(let i=1; i<=6; i++) {
+        document.getElementById(`memo-chk-${i}`).checked = (i === 1);
+      }
+      document.getElementById("memo-chk-other-text").value = "";
+      document.getElementById("memo-chk-other-text").style.display = "none";
+      
+      renderMemorandum();
+      showToast("ล้างฟอร์มสำเร็จ", "ระบบเปลี่ยนเป็นฟอร์มขออนุมัติแบบว่างเรียบร้อยแล้ว", "success");
+    }
+
+    function renderMemorandum() {
+      // 1. Sync Text Fields from Editor to View
+      const textFields = [
+        ["memo-edit-dept", "memo-view-dept"],
+        ["memo-edit-doc-no", "memo-view-doc-no"],
+        ["memo-edit-date", "memo-view-date"],
+        ["memo-edit-subject", "memo-view-subject"],
+        ["memo-edit-to", "memo-view-to"],
+        ["memo-edit-body", "memo-view-body"],
+        ["memo-edit-reason", "memo-view-reason"],
+        ["memo-edit-sig-left1", "memo-view-sig-left1"],
+        ["memo-edit-title-left1", "memo-view-title-left1"],
+        ["memo-edit-sig-right1", "memo-view-sig-right1"],
+        ["memo-edit-title-right1", "memo-view-title-right1"],
+        ["memo-edit-sig-left2", "memo-view-sig-left2"],
+        ["memo-edit-title-left2", "memo-view-title-left2"],
+        ["memo-edit-sig-right2", "memo-view-sig-right2"],
+        ["memo-edit-title-right2", "memo-view-title-right2"]
+      ];
+
+      textFields.forEach(([editId, viewId]) => {
+        const editEl = document.getElementById(editId);
+        const viewEl = document.getElementById(viewId);
+        if (editEl && viewEl) {
+          viewEl.innerText = editEl.value;
+        }
+      });
+
+      // Special handling for pre-formatted committee textarea
+      const commEdit = document.getElementById("memo-edit-committee");
+      const commView = document.getElementById("memo-view-committee");
+      if (commEdit && commView) {
+        commView.innerText = commEdit.value;
+      }
+
+      // 2. Sync Checkboxes
+      for (let i = 1; i <= 6; i++) {
+        const editChk = document.getElementById(`memo-chk-${i}`);
+        const viewChk = document.getElementById(`memo-view-chk-${i}`);
+        if (editChk && viewChk) {
+          viewChk.innerText = editChk.checked ? "[✓]" : "[ ]";
+        }
+      }
+
+      // Checkbox other text field
+      const chk6 = document.getElementById("memo-chk-6");
+      const otherTxt = document.getElementById("memo-chk-other-text");
+      const otherValView = document.getElementById("memo-view-chk-other-val");
+      if (chk6 && otherValView) {
+        if (chk6.checked && otherTxt && otherTxt.value.trim()) {
+          otherValView.innerText = otherTxt.value;
+        } else {
+          otherValView.innerText = "........................";
+        }
+      }
+
+      // 3. Render Table rows inside Memorandum View
+      const memoTbody = document.getElementById("memo-view-table-body");
+      if (!memoTbody) return;
+      memoTbody.innerHTML = "";
+
+      let grandTotal = 0;
+
+      memoItems.forEach((item, index) => {
+        const lineTotal = item.qty * item.price;
+        grandTotal += lineTotal;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="border: 1px solid black; padding: 6px 4px; text-align: center;">${index + 1}</td>
+          <td style="border: 1px solid black; padding: 6px 6px;">${item.desc}</td>
+          <td style="border: 1px solid black; padding: 6px 4px; text-align: center;">${item.qty}</td>
+          <td style="border: 1px solid black; padding: 6px 4px; text-align: center;">${item.unit}</td>
+          <td style="border: 1px solid black; padding: 6px 4px; text-align: right;">${item.price.toLocaleString("th-TH")}</td>
+          <td style="border: 1px solid black; padding: 6px 4px; text-align: center;">${item.stock}</td>
+          <td style="border: 1px solid black; padding: 6px 4px; text-align: center;">${item.monthly}</td>
+          <td style="border: 1px solid black; padding: 6px 4px; text-align: right; font-weight: bold;">${lineTotal.toLocaleString("th-TH")}</td>
+        `;
+        memoTbody.appendChild(tr);
+      });
+
+      // Update totals
+      document.getElementById("memo-view-total-items").innerText = memoItems.length;
+      document.getElementById("memo-view-total-val").innerText = grandTotal.toLocaleString("th-TH", { minimumFractionDigits: 2 });
+      document.getElementById("memo-view-total-thai").innerText = thaiBahtText(grandTotal);
+
+      // 4. Render Table rows inside Editor Workspace
+      const editorTbody = document.getElementById("editor-items-tbody");
+      if (editorTbody) {
+        editorTbody.innerHTML = "";
+        if (memoItems.length === 0) {
+          editorTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 12px;">ไม่มีรายการในเอกสาร (ฟอร์มเปล่า)</td></tr>`;
+        } else {
+          memoItems.forEach((item, index) => {
+            const tr = document.createElement("tr");
+            tr.style.borderBottom = "1px solid var(--border-color)";
+            tr.innerHTML = `
+              <td style="padding: 8px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.desc}</td>
+              <td style="padding: 8px; text-align: center;">${item.qty} ${item.unit}</td>
+              <td style="padding: 8px; text-align: right;">฿${item.price.toLocaleString("th-TH")}</td>
+              <td style="padding: 8px; text-align: right;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="removeMemoItem(${index})" style="padding: 2px 6px; background: rgba(220,38,38,0.1); color: var(--danger); border: none;">
+                  <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
+                </button>
+              </td>
+            `;
+            editorTbody.appendChild(tr);
+          });
+          lucide.createIcons();
+        }
+      }
+    }
+
+    // 11. Cloud & LINE Integration Core
+    function saveSettings() {
+      const newPwd = document.getElementById("settings-password").value.trim();
+      const gasUrl = document.getElementById("settings-gas-url").value.trim();
+      const lineToggle = document.getElementById("settings-line-toggle").checked;
+      const lineToken = document.getElementById("settings-line-token").value.trim();
+      const lineGroupId = document.getElementById("settings-line-groupid").value.trim();
+
+      if (newPwd) settings.password = newPwd;
+      settings.gasUrl = gasUrl;
+      settings.lineToggle = lineToggle;
+      settings.lineToken = lineToken;
+      settings.lineGroupId = lineGroupId;
+
+      localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
+      showToast("บันทึกข้อมูลแล้ว", "อัปเดตระบบการตั้งค่าความปลอดภัยและเครือข่ายเรียบร้อย", "success");
+    }
+
+    function sendLineNotification(tx, remainingStock) {
+      if (!settings.lineToggle || !settings.lineToken || !settings.lineGroupId) {
+        console.log("LINE Notification omitted: Credentials/Toggle are disabled.", tx);
+        return;
+      }
+
+      const typeLabel = tx.type === "Issue" ? "เบิกจ่ายอะไหล่ 📤" : 
+                        tx.type === "Borrow" ? "ยืมอะไหล่ทดสอบ 🔍" :
+                        tx.type === "Return" ? "คืนอะไหล่คลัง 📥" :
+                        tx.type === "Receive" ? "รับอะไหล่เข้าคลัง ➕" : "ปรับปรุงสต๊อก ⚙️";
+
+      const colorTheme = tx.type === "Issue" ? "#ef4444" : 
+                         tx.type === "Borrow" ? "#f97316" :
+                         tx.type === "Receive" ? "#22c55e" : "#14b8a6";
+
+      const flexMessage = {
+        "type": "bubble",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            { "type": "text", "text": "คลังเครื่องมือแพทย์ รพ.นครพิงค์", "color": "#ffffff", "weight": "bold", "size": "sm" },
+            { "type": "text", "text": typeLabel, "color": "#ffffff", "weight": "bold", "size": "xl", "margin": "sm" }
+          ],
+          "backgroundColor": colorTheme
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            { "type": "text", "text": tx.partName, "weight": "bold", "size": "md", "wrap": true },
+            { "type": "text", "text": "รหัสอะไหล่: " + tx.partCode, "size": "xs", "color": "#888888", "margin": "xs" },
+            { "type": "separator", "margin": "md" },
+            {
+              "type": "box",
+              "layout": "vertical",
+              "margin": "md",
+              "spacing": "sm",
+              "contents": [
+                {
+                  "type": "box",
+                  "layout": "horizontal",
+                  "contents": [
+                    { "type": "text", "text": "จำนวน:", "size": "sm", "color": "#555555" },
+                    { "type": "text", "text": tx.qty + " ชิ้น", "size": "sm", "weight": "bold", "align": "right" }
+                  ]
+                },
+                {
+                  "type": "box",
+                  "layout": "horizontal",
+                  "contents": [
+                    { "type": "text", "text": "คงคลังล่าสุด:", "size": "sm", "color": "#555555" },
+                    { "type": "text", "text": remainingStock + " ชิ้น", "size": "sm", "weight": "bold", "color": remainingStock <= 5 ? "#ef4444" : "#22c55e", "align": "right" }
+                  ]
+                },
+                tx.eqSerial ? {
+                  "type": "box",
+                  "layout": "horizontal",
+                  "contents": [
+                    { "type": "text", "text": "ซีเรียลเครื่องซ่อม:", "size": "sm", "color": "#555555" },
+                    { "type": "text", "text": tx.eqSerial, "size": "sm", "align": "right" }
+                  ]
+                } : { "type": "filler" },
+                {
+                  "type": "box",
+                  "layout": "horizontal",
+                  "contents": [
+                    { "type": "text", "text": "ช่างเทคนิค:", "size": "sm", "color": "#555555" },
+                    { "type": "text", "text": tx.operator, "size": "sm", "align": "right" }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      };
+
+      if (settings.gasUrl) {
+        fetch(settings.gasUrl, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "notify",
+            token: settings.lineToken,
+            groupId: settings.lineGroupId,
+            message: flexMessage
+          })
+        })
+        .then(() => console.log("LINE Alert sent successfully."))
+        .catch(err => console.error("LINE Notify failed", err));
+      }
+    }
+
+    function testLineMessage() {
+      if (!settings.lineToken || !settings.lineGroupId) {
+        alert("กรุณากรอก LINE Token และ Group ID ให้ครบก่อนการกดทดสอบ");
+        return;
+      }
+      const mockTx = {
+        type: "Issue",
+        partCode: "SR-SPO2-001",
+        partName: "ทดสอบการเบิกจ่าย (สายวัด SpO2 Masimo LNCS)",
+        qty: 1,
+        operator: "นายสมชาย ใจดี (ทดสอบระบบ)",
+        eqSerial: "NKP-BSM-001"
+      };
+      sendLineNotification(mockTx, 29);
+      showToast("ทดสอบส่งข้อความ", "กำลังส่งคำขอยิงแจ้งเตือนไปยังไลน์ของกลุ่มงาน...", "warning");
+    }
+
+    function triggerCloudSync() {
+      if (!settings.gasUrl) return;
+      fetch(settings.gasUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "sync",
+          parts: parts,
+          transactions: transactions
+        })
+      })
+      .then(() => console.log("Cloud sync successful."))
+      .catch(err => console.error("Cloud database sync failure", err));
+    }
+
+    function copyAppsScriptCode() {
+      const preText = document.getElementById("code-content").innerText;
+      navigator.clipboard.writeText(preText).then(() => {
+        showToast("คัดลอกโค้ดสำเร็จ", "นำโค้ดไปวางใน Google Apps Script ใน Google Sheets ได้ทันที", "success");
+      });
+    }
+
+    // 12. Modal Utility Triggers
+    window.openModal = function(modalId) {
+      document.getElementById(modalId).classList.add("active");
+    }
+    window.closeModal = function(modalId) {
+      document.getElementById(modalId).classList.remove("active");
+    }
+
+    window.showToast = function(title, msg, type = "success") {
+      const toast = document.getElementById("toast-notification");
+      document.getElementById("toast-title").innerText = title;
+      document.getElementById("toast-message").innerText = msg;
+
+      toast.classList.remove("success", "danger", "warning");
+      toast.classList.add(type);
+
+      const icon = toast.querySelector(".toast-icon i");
+      if (type === "success") icon.setAttribute("data-lucide", "check-circle2");
+      else if (type === "danger") icon.setAttribute("data-lucide", "x-circle");
+      else icon.setAttribute("data-lucide", "alert-circle");
+      
+      lucide.createIcons();
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
