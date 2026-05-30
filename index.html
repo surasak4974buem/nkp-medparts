@@ -1113,6 +1113,69 @@
         grid-template-columns: 1.2fr 2fr !important;
       }
     }
+
+    /* Required Input Glowing States (Red/Green Neon) */
+    .input-required-empty {
+      border-color: #ff4d4d !important;
+      box-shadow: 0 0 10px rgba(255, 77, 77, 0.4) !important;
+      background-color: rgba(255, 77, 77, 0.04) !important;
+    }
+    .input-required-valid {
+      border-color: #22c55e !important;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.4) !important;
+      background-color: rgba(34, 197, 94, 0.04) !important;
+    }
+
+    /* Custom Toast Modal Overlay Styles */
+    .toast-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 99999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .toast-modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .toast-modal-content {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 35px 30px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: var(--card-shadow);
+      text-align: center;
+      transform: scale(0.9);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .toast-modal-overlay.show .toast-modal-content {
+      transform: scale(1);
+    }
+    
+    /* Neon Glowing styles based on alert status */
+    .toast-modal-content.success {
+      border: 2px solid #22c55e !important;
+      box-shadow: 0 0 25px rgba(34, 197, 94, 0.3), var(--card-shadow) !important;
+      background: linear-gradient(180deg, rgba(34, 197, 94, 0.06), rgba(34, 197, 94, 0.02)) !important;
+    }
+    .toast-modal-content.warning {
+      border: 2px solid #eab308 !important;
+      box-shadow: 0 0 25px rgba(234, 179, 8, 0.3), var(--card-shadow) !important;
+      background: linear-gradient(180deg, rgba(234, 179, 8, 0.06), rgba(234, 179, 8, 0.02)) !important;
+    }
+    .toast-modal-content.danger {
+      border: 2px solid #ef4444 !important;
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.3), var(--card-shadow) !important;
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.06), rgba(239, 68, 68, 0.02)) !important;
+    }
   </style>
 </head>
 <body data-theme="dark">
@@ -1424,10 +1487,8 @@
               <!-- Issue/Borrow Specific Fields -->
               <div id="tx-conditional-issue" class="form-grid" style="grid-template-columns: 1fr; gap: 15px; margin-top: 5px;">
                 <div class="form-group">
-                  <label for="tx-eq-serial">ซีเรียลเครื่องมือแพทย์ที่ใช้อะไหล่ *</label>
-                  <select id="tx-eq-serial">
-                    <!-- Populated dynamically -->
-                  </select>
+                  <label for="tx-eq-serial">ซีเรียลเครื่องมือแพทย์ที่ใช้อะไหล่ <span style="color: #ff4d4d; text-shadow: 0 0 5px rgba(255, 77, 77, 0.8);">*</span></label>
+                  <input type="text" id="tx-eq-serial" placeholder="เช่น เลขครุภัณฑ์ 6515-003-2101/00038-64 หรือ IDNUMBER เช่น MEC-MON-001">
                 </div>
                 <div class="form-group">
                   <label for="tx-maint-type">ประเภทงานซ่อมบำรุง *</label>
@@ -1452,13 +1513,13 @@
               </div>
 
               <div class="form-group" id="tx-repair-group">
-                <label for="tx-repair-no">เลขซ่อม / เลขที่ใบแจ้งซ่อม</label>
-                <input type="text" id="tx-repair-no" placeholder="ระบุเลขที่ใบแจ้งซ่อม (CM-xxxxx)">
+                <label for="tx-repair-no">เลขซ่อม / เลขที่ใบแจ้งซ่อม <span style="color: #ff4d4d; text-shadow: 0 0 5px rgba(255, 77, 77, 0.8);">*</span></label>
+                <input type="text" id="tx-repair-no" placeholder="ระบุเลขซ่อม 6 หลัก (เช่น 295666)">
               </div>
 
               <div class="form-group" id="tx-dept-group">
-                <label for="tx-dept">หน่วยงานที่เบิก / แผนกที่ใช้</label>
-                <input type="text" id="tx-dept" placeholder="ระบุชื่อหน่วยงาน/ตึก (เช่น OPD, ICU)">
+                <label for="tx-dept">หน่วยงานที่เบิก / แผนกที่ใช้ <span style="color: #ff4d4d; text-shadow: 0 0 5px rgba(255, 77, 77, 0.8);">*</span></label>
+                <input type="text" id="tx-dept" placeholder="ระบุชื่อหน่วยงาน/แผนก (เช่น OPD, ICU, MEC)">
               </div>
 
               <div class="form-group">
@@ -2501,13 +2562,12 @@ function sendLineNotify(message, token, toId) {
   </div>
 
   <!-- TOAST NOTIFICATION CONTAINER -->
-  <div id="toast-notification" class="toast">
-    <div class="toast-icon">
-      <i data-lucide="check-circle2" style="width: 20px; height: 20px; color: var(--success);"></i>
-    </div>
-    <div style="display: flex; flex-direction: column;">
-      <span style="font-weight: 700; font-size: 0.85rem;" id="toast-title">เสร็จสมบูรณ์</span>
-      <span style="font-size: 0.75rem; color: var(--text-secondary);" id="toast-message">บันทึกรายการซิงก์เรียบร้อยแล้ว</span>
+  <div id="toast-notification" class="toast-modal-overlay">
+    <div id="toast-content-card" class="toast-modal-content">
+      <div id="toast-icon-container" style="margin-bottom: 15px;"></div>
+      <h3 id="toast-title" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 10px; color: var(--text-primary);">เสร็จสมบูรณ์</h3>
+      <p id="toast-message" style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">บันทึกรายการซิงก์เรียบร้อยแล้ว</p>
+      <button class="btn btn-primary" onclick="dismissToast()" style="width: 100%; justify-content: center; font-weight: 600;">รับทราบ (Acknowledge)</button>
     </div>
   </div>
 
@@ -3237,6 +3297,10 @@ function sendLineNotify(message, token, toId) {
       txTypeSelect.addEventListener("change", handleTxTypeChange);
       handleTxTypeChange();
 
+      document.getElementById("tx-eq-serial").addEventListener("input", validateInputs);
+      document.getElementById("tx-repair-no").addEventListener("input", validateInputs);
+      document.getElementById("tx-dept").addEventListener("input", validateInputs);
+
       document.getElementById("tx-form").addEventListener("submit", processTransaction);
       document.getElementById("btn-run-forecast").addEventListener("click", calculateForecast);
       document.getElementById("btn-export-logs").addEventListener("click", exportTransactionsToCSV);
@@ -3827,15 +3891,6 @@ function sendLineNotify(message, token, toId) {
         opt.innerText = `[${p.code}] ${p.name} (คงเหลือ: ${p.inStock} ชิ้น)`;
         partSelect.appendChild(opt);
       });
-
-      const eqSelect = document.getElementById("tx-eq-serial");
-      eqSelect.innerHTML = '<option value="">-- ไม่เชื่อมต่อเครื่องมือ --</option>';
-      equipment.forEach(e => {
-        const opt = document.createElement("option");
-        opt.value = e.serial;
-        opt.innerText = `${e.serial} - [${e.model}] (แผนก: ${e.dept})`;
-        eqSelect.appendChild(opt);
-      });
     }
 
     function handleTxTypeChange() {
@@ -3843,28 +3898,89 @@ function sendLineNotify(message, token, toId) {
       const issueDiv = document.getElementById("tx-conditional-issue");
       const borrowDiv = document.getElementById("tx-conditional-borrow");
 
-      const serialSelect = document.getElementById("tx-eq-serial");
+      const serialInput = document.getElementById("tx-eq-serial");
       const dueDateInput = document.getElementById("tx-due-date");
+      
+      const repairGroup = document.getElementById("tx-repair-group");
+      const deptGroup = document.getElementById("tx-dept-group");
 
       if (type === "Issue") {
         issueDiv.style.display = "grid";
         borrowDiv.style.display = "none";
-        serialSelect.required = true;
+        serialInput.required = true;
         dueDateInput.required = false;
+        if (repairGroup) repairGroup.style.display = "block";
+        if (deptGroup) deptGroup.style.display = "block";
       } else if (type === "Borrow") {
         issueDiv.style.display = "grid";
         borrowDiv.style.display = "block";
-        serialSelect.required = true;
+        serialInput.required = true;
         dueDateInput.required = true;
+        if (repairGroup) repairGroup.style.display = "block";
+        if (deptGroup) deptGroup.style.display = "block";
       } else {
         issueDiv.style.display = "none";
         borrowDiv.style.display = "none";
-        serialSelect.required = false;
+        serialInput.required = false;
         dueDateInput.required = false;
+        if (repairGroup) repairGroup.style.display = "none";
+        if (deptGroup) deptGroup.style.display = "none";
+      }
+
+      validateInputs();
+    }
+
+    function validateInputs() {
+      const type = document.getElementById("tx-type").value;
+      const serialInput = document.getElementById("tx-eq-serial");
+      const repairInput = document.getElementById("tx-repair-no");
+      const deptInput = document.getElementById("tx-dept");
+
+      const isRequired = (type === "Issue" || type === "Borrow");
+
+      // Validate Serial
+      if (isRequired) {
+        if (serialInput.value.trim() === "") {
+          serialInput.classList.add("input-required-empty");
+          serialInput.classList.remove("input-required-valid");
+        } else {
+          serialInput.classList.remove("input-required-empty");
+          serialInput.classList.add("input-required-valid");
+        }
+      } else {
+        serialInput.classList.remove("input-required-empty", "input-required-valid");
+      }
+
+      // Validate Repair Number (Must be exactly 6 digits)
+      if (isRequired) {
+        const repairVal = repairInput.value.trim();
+        const isValidRepair = /^\d{6}$/.test(repairVal);
+        if (!isValidRepair) {
+          repairInput.classList.add("input-required-empty");
+          repairInput.classList.remove("input-required-valid");
+        } else {
+          repairInput.classList.remove("input-required-empty");
+          repairInput.classList.add("input-required-valid");
+        }
+      } else {
+        repairInput.classList.remove("input-required-empty", "input-required-valid");
+      }
+
+      // Validate Department
+      if (isRequired) {
+        if (deptInput.value.trim() === "") {
+          deptInput.classList.add("input-required-empty");
+          deptInput.classList.remove("input-required-valid");
+        } else {
+          deptInput.classList.remove("input-required-empty");
+          deptInput.classList.add("input-required-valid");
+        }
+      } else {
+        deptInput.classList.remove("input-required-empty", "input-required-valid");
       }
     }
 
-    function processTransaction(e) {
+    async function processTransaction(e) {
       e.preventDefault();
       
       const type = document.getElementById("tx-type").value;
@@ -3877,25 +3993,28 @@ function sendLineNotify(message, token, toId) {
       const repairNoVal = document.getElementById("tx-repair-no").value.trim();
       const deptVal = document.getElementById("tx-dept").value.trim();
 
+      const isRequired = (type === "Issue" || type === "Borrow");
+
       // Validation check
-      const validationErrorDiv = document.getElementById("tx-validation-error");
-      if (type === "Issue" && refDoc !== "") {
-        if (repairNoVal === "" || deptVal === "") {
-          if (validationErrorDiv) {
-            validationErrorDiv.innerText = "⚠️ บังคับระบุเลขซ่อม และ หน่วยงานที่เบิก เมื่อมีการใส่เอกสารอ้างอิง / รหัสใบงาน";
-            validationErrorDiv.style.display = "block";
-          }
-          showToast("ตรวจสอบข้อมูลล้มเหลว", "กรุณากรอกเลขซ่อมและหน่วยงานที่เบิกให้ครบถ้วน", "danger");
+      if (isRequired) {
+        const serialVal = document.getElementById("tx-eq-serial").value.trim();
+        if (serialVal === "") {
+          showToast("ตรวจสอบข้อมูลล้มเหลว", "กรุณาระบุซีเรียลเครื่องมือแพทย์ที่ใช้อะไหล่", "danger");
+          return;
+        }
+        if (!/^\d{6}$/.test(repairNoVal)) {
+          showToast("ตรวจสอบข้อมูลล้มเหลว", "กรุณาระบุเลขซ่อมให้ถูกต้อง (ต้องเป็นตัวเลข 6 หลัก)", "danger");
+          return;
+        }
+        if (deptVal === "") {
+          showToast("ตรวจสอบข้อมูลล้มเหลว", "กรุณาระบุหน่วยงานที่เบิก / แผนกที่ใช้", "danger");
           return;
         }
       }
-      if (validationErrorDiv) {
-        validationErrorDiv.style.display = "none";
-      }
-      
+
       const partIndex = parts.findIndex(p => p.code === partCode);
       if (partIndex === -1) {
-        alert("ไม่พบรหัสชิ้นส่วนดังกล่าว");
+        showToast("ไม่พบรหัสชิ้นส่วน", "ไม่พบรหัสอะไหล่ดังกล่าวในระบบ", "danger");
         return;
       }
       
@@ -3903,95 +4022,122 @@ function sendLineNotify(message, token, toId) {
 
       if (type === "Issue" || type === "Borrow") {
         if (part.inStock < qty) {
-          alert(`อะไหล่ในสต๊อกมีเพียง ${part.inStock} ชิ้น ไม่เพียงพอต่อการจัดกิจกรรมเบิก ${qty} ชิ้น`);
+          showToast("จำนวนอะไหล่ไม่พอ", `อะไหล่ในสต๊อกมีเพียง ${part.inStock} ชิ้น ไม่เพียงพอต่อการจัดกิจกรรมเบิก/ยืมจำนวน ${qty} ชิ้น`, "danger");
           return;
         }
       }
 
-      let stockAdjustment = 0;
-      let borrowStatus = undefined;
-      let borrowDueDate = undefined;
-      let eqSerial = undefined;
-      let eqModel = undefined;
-      let maintType = undefined;
+      // Disable submit button during processing
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalBtnHtml = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 5px;"></span> กำลังบันทึกรายการ...';
 
-      if (type === "Receive") {
-        stockAdjustment = qty;
-      } else if (type === "Issue") {
-        stockAdjustment = -qty;
-        eqSerial = document.getElementById("tx-eq-serial").value;
-        const eq = equipment.find(e => e.serial === eqSerial);
-        eqModel = eq ? eq.model : "-";
-        maintType = document.getElementById("tx-maint-type").value;
-      } else if (type === "Borrow") {
-        stockAdjustment = -qty;
-        eqSerial = document.getElementById("tx-eq-serial").value;
-        const eq = equipment.find(e => e.serial === eqSerial);
-        eqModel = eq ? eq.model : "-";
-        borrowStatus = "Borrowed";
-        borrowDueDate = document.getElementById("tx-due-date").value;
-      } else if (type === "Return") {
-        stockAdjustment = qty;
-        const openBorrow = transactions.find(t => t.partCode === partCode && t.type === "Borrow" && t.borrowStatus === "Borrowed");
-        if (openBorrow) {
-          openBorrow.borrowStatus = "Returned";
+      try {
+        let stockAdjustment = 0;
+        let borrowStatus = undefined;
+        let borrowDueDate = undefined;
+        let eqSerial = undefined;
+        let eqModel = undefined;
+        let maintType = undefined;
+
+        if (type === "Receive") {
+          stockAdjustment = qty;
+        } else if (type === "Issue") {
+          stockAdjustment = -qty;
+          eqSerial = document.getElementById("tx-eq-serial").value.trim();
+          const eq = equipment.find(e => e.serial === eqSerial);
+          eqModel = eq ? eq.model : "-";
+          maintType = document.getElementById("tx-maint-type").value;
+        } else if (type === "Borrow") {
+          stockAdjustment = -qty;
+          eqSerial = document.getElementById("tx-eq-serial").value.trim();
+          const eq = equipment.find(e => e.serial === eqSerial);
+          eqModel = eq ? eq.model : "-";
+          borrowStatus = "Borrowed";
+          borrowDueDate = document.getElementById("tx-due-date").value;
+        } else if (type === "Return") {
+          stockAdjustment = qty;
+          const openBorrow = transactions.find(t => t.partCode === partCode && t.type === "Borrow" && t.borrowStatus === "Borrowed");
+          if (openBorrow) {
+            openBorrow.borrowStatus = "Returned";
+          }
+          borrowStatus = "Returned";
+        } else if (type === "Audit") {
+          stockAdjustment = qty - part.inStock;
         }
-        borrowStatus = "Returned";
-      } else if (type === "Audit") {
-        stockAdjustment = qty - part.inStock;
+
+        const txId = "TX-" + (10000 + transactions.length + 1);
+        const now = new Date();
+        
+        const txEntry = {
+          id: txId,
+          timestamp: now.toISOString().split(".")[0],
+          type: type,
+          partCode: partCode,
+          partName: part.name,
+          qty: qty,
+          refDoc: refDoc || "N/A",
+          repairNo: repairNoVal,
+          dept: deptVal,
+          operator: currentUser ? currentUser.realName : operator,
+          operatorRole: currentUser ? currentUser.role : "Unknown",
+          details: details,
+          cost: qty * part.unitPrice,
+          eqSerial,
+          eqModel,
+          maintenanceType: maintType,
+          borrowStatus,
+          borrowDueDate
+        };
+
+        if (type === "Audit") {
+          part.inStock = qty;
+        } else {
+          part.inStock += stockAdjustment;
+        }
+
+        transactions.unshift(txEntry);
+        persistState();
+
+        // Send LINE Alert and wait for response
+        const lineResult = await sendLineNotification(txEntry, part.inStock);
+
+        // Reset form & inputs
+        document.getElementById("tx-form").reset();
+        if (currentUser) {
+          document.getElementById("tx-operator").value = currentUser.realName;
+          document.getElementById("tx-operator").disabled = true;
+        }
+        document.getElementById("tx-qty").value = "";
+        document.getElementById("tx-ref-doc").value = "";
+        document.getElementById("tx-repair-no").value = "";
+        document.getElementById("tx-dept").value = "";
+        document.getElementById("tx-details").value = "";
+
+        populateTransactionSelects();
+        renderTransactionsTable();
+        updateDashboard();
+
+        // Check LINE result to determine popup modal notification style
+        if (lineResult.success) {
+          if (lineResult.omitted) {
+            showToast("บันทึกสำเร็จ", `บันทึกรายการทำธุรกรรม ${type} (รหัสอะไหล่ ${partCode}) ลงในฐานข้อมูลคลังสำเร็จเรียบร้อยแล้ว`, "success");
+          } else {
+            showToast("บันทึก & แจ้งเตือนสำเร็จ", `บันทึกรายการธุรกรรมคลังสำเร็จ และได้จัดส่งข้อความแจ้งเตือน LINE เรียบร้อยสมบูรณ์`, "success");
+          }
+        } else {
+          // Local save succeeded, but LINE failed (Partial Success)
+          showToast("สมบูรณ์บางส่วน (บันทึกสำเร็จ แต่ LINE ล้มเหลว)", `ระบบบันทึกรายการในคลังสำเร็จแล้ว แต่ไม่สามารถส่งแจ้งเตือน LINE ได้เนื่องจาก: ${lineResult.error}`, "warning");
+        }
+
+      } catch (err) {
+        console.error(err);
+        showToast("บันทึกข้อมูลล้มเหลว", `ไม่สามารถทำการบันทึกหรือส่ง LINE ได้เลย: ${err.message}`, "danger");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
       }
-
-      const txId = "TX-" + (10000 + transactions.length + 1);
-      const now = new Date();
-      
-      const txEntry = {
-        id: txId,
-        timestamp: now.toISOString().split(".")[0],
-        type: type,
-        partCode: partCode,
-        partName: part.name,
-        qty: qty,
-        refDoc: refDoc || "N/A",
-        repairNo: repairNoVal,
-        dept: deptVal,
-        operator: currentUser ? currentUser.realName : operator,
-        operatorRole: currentUser ? currentUser.role : "Unknown",
-        details: details,
-        cost: qty * part.unitPrice,
-        eqSerial,
-        eqModel,
-        maintenanceType: maintType,
-        borrowStatus,
-        borrowDueDate
-      };
-
-      if (type === "Audit") {
-        part.inStock = qty;
-      } else {
-        part.inStock += stockAdjustment;
-      }
-
-      transactions.unshift(txEntry);
-
-      persistState();
-      showToast("สำเร็จ", `ทำการบันทึกรายการ ${type} รหัสอะไหล่ ${partCode} สำเร็จ`, "success");
-
-      document.getElementById("tx-form").reset();
-      if (currentUser) {
-        document.getElementById("tx-operator").value = currentUser.realName;
-        document.getElementById("tx-operator").disabled = true;
-      }
-      document.getElementById("tx-qty").value = "";
-      document.getElementById("tx-ref-doc").value = "";
-      document.getElementById("tx-repair-no").value = "";
-      document.getElementById("tx-dept").value = "";
-      document.getElementById("tx-details").value = "";
-
-      populateTransactionSelects();
-      renderTransactionsTable();
-      updateDashboard();
-
-      sendLineNotification(txEntry, part.inStock);
     }
 
     function renderTransactionsTable() {
@@ -4571,7 +4717,7 @@ function sendLineNotify(message, token, toId) {
     function sendLineNotification(tx, remainingStock) {
       if (!settings.lineToggle || !settings.lineToken || !settings.lineGroupId) {
         console.log("LINE Notification omitted: Credentials/Toggle are disabled.", tx);
-        return;
+        return Promise.resolve({ success: true, omitted: true });
       }
 
       const typeLabel = tx.type === "Issue" ? "เบิกจ่ายอะไหล่ 📤" : 
@@ -4646,7 +4792,7 @@ function sendLineNotify(message, token, toId) {
       };
 
       if (settings.gasUrl) {
-        fetch(settings.gasUrl, {
+        return fetch(settings.gasUrl, {
           method: "POST",
           mode: "no-cors",
           headers: { "Content-Type": "application/json" },
@@ -4657,14 +4803,21 @@ function sendLineNotify(message, token, toId) {
             message: flexMessage
           })
         })
-        .then(() => console.log("LINE Alert sent successfully."))
-        .catch(err => console.error("LINE Notify failed", err));
+        .then(() => {
+          console.log("LINE Alert sent successfully.");
+          return { success: true };
+        })
+        .catch(err => {
+          console.error("LINE Notify failed", err);
+          return { success: false, error: err.message || err };
+        });
       }
+      return Promise.resolve({ success: false, error: "ไม่ได้ระบุ URL ของ Web App" });
     }
 
-    function testLineMessage() {
+    async function testLineMessage() {
       if (!settings.lineToken || !settings.lineGroupId) {
-        alert("กรุณากรอก LINE Token และ Group ID ให้ครบก่อนการกดทดสอบ");
+        showToast("ไม่สามารถทดสอบได้", "กรุณากรอก LINE Token และ Group ID ให้ครบก่อนการกดทดสอบ", "danger");
         return;
       }
       const mockTx = {
@@ -4675,8 +4828,14 @@ function sendLineNotify(message, token, toId) {
         operator: "นายสมชาย ใจดี (ทดสอบระบบ)",
         eqSerial: "NKP-BSM-001"
       };
-      sendLineNotification(mockTx, 29);
-      showToast("ทดสอบส่งข้อความ", "กำลังส่งคำขอยิงแจ้งเตือนไปยังไลน์ของกลุ่มงาน...", "warning");
+      
+      showToast("กำลังส่งข้อความทดสอบ", "กำลังเชื่อมต่อระบบ LINE เพื่อส่งข้อความทดสอบ...", "warning");
+      const result = await sendLineNotification(mockTx, 29);
+      if (result.success) {
+        showToast("สำเร็จ", "ส่งข้อความแจ้งเตือน LINE ทดสอบสำเร็จแล้ว", "success");
+      } else {
+        showToast("ส่งข้อความล้มเหลว", `ไม่สามารถส่งแจ้งเตือน LINE ได้: ${result.error}`, "danger");
+      }
     }
 
     function triggerCloudSync() {
@@ -4919,22 +5078,31 @@ function sendLineNotify(message, token, toId) {
 
     window.showToast = function(title, msg, type = "success") {
       const toast = document.getElementById("toast-notification");
+      const card = document.getElementById("toast-content-card");
       document.getElementById("toast-title").innerText = title;
       document.getElementById("toast-message").innerText = msg;
 
-      toast.classList.remove("success", "danger", "warning");
-      toast.classList.add(type);
+      card.className = "toast-modal-content " + type;
 
-      const icon = toast.querySelector(".toast-icon i");
-      if (type === "success") icon.setAttribute("data-lucide", "check-circle2");
-      else if (type === "danger") icon.setAttribute("data-lucide", "x-circle");
-      else icon.setAttribute("data-lucide", "alert-circle");
-      
+      const iconContainer = document.getElementById("toast-icon-container");
+      let iconColor = "#22c55e";
+      let iconName = "check-circle2";
+      if (type === "danger") {
+        iconColor = "#ef4444";
+        iconName = "x-circle";
+      } else if (type === "warning") {
+        iconColor = "#eab308";
+        iconName = "alert-circle";
+      }
+
+      iconContainer.innerHTML = `<i data-lucide="${iconName}" style="width: 48px; height: 48px; color: ${iconColor}; filter: drop-shadow(0 0 8px ${iconColor});"></i>`;
       lucide.createIcons();
       toast.classList.add("show");
-      setTimeout(() => {
-        toast.classList.remove("show");
-      }, 4000);
+    }
+
+    window.dismissToast = function() {
+      const toast = document.getElementById("toast-notification");
+      toast.classList.remove("show");
     }
   </script>
 </body>
