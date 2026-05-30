@@ -2970,7 +2970,7 @@ function sendLineNotify(message, token, toId) {
     let pmPlans = [];
     let settings = {
       password: "NKP-medparts-2026",
-      gasUrl: "",
+      gasUrl: "https://script.google.com/macros/s/AKfycbyD6kMKrvj8O1JjYAj_Dk-tYY4iW63phFQIidNGPsqjymO2d_dZtmFL9B4ujgYNZps8/exec",
       lineToggle: true,
       lineToken: "",
       lineGroupId: ""
@@ -3000,7 +3000,12 @@ function sendLineNotify(message, token, toId) {
     function initStorage() {
       const storedSettings = localStorage.getItem("nkp_parts_settings");
       if (storedSettings) {
-        settings = { ...settings, ...JSON.parse(storedSettings) };
+        const parsed = JSON.parse(storedSettings);
+        settings = { ...settings, ...parsed };
+        if (!settings.gasUrl) {
+          settings.gasUrl = "https://script.google.com/macros/s/AKfycbyD6kMKrvj8O1JjYAj_Dk-tYY4iW63phFQIidNGPsqjymO2d_dZtmFL9B4ujgYNZps8/exec";
+          localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
+        }
       } else {
         localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
       }
