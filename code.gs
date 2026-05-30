@@ -35,18 +35,19 @@ function doPost(e) {
       // ตรวจสอบไม่ให้บันทึก ID ซ้ำซ้อนติดๆ กันในตาราง
       var lastRow = idSheet.getLastRow();
       var isDuplicate = false;
+      var formattedDate = Utilities.formatDate(new Date(), "Asia/Bangkok", "d/M/yyyy, HH:mm:ss");
       if (lastRow > 1) {
         var lastId = idSheet.getRange(lastRow, 3).getValue();
         if (lastId === sourceId) {
           isDuplicate = true;
           // อัปเดตวันเวลาและข้อความล่าสุดในแถวเดิม
-          idSheet.getRange(lastRow, 1).setValue(new Date());
+          idSheet.getRange(lastRow, 1).setValue(formattedDate);
           idSheet.getRange(lastRow, 4).setValue(messageText);
         }
       }
       
       if (!isDuplicate) {
-        idSheet.appendRow([new Date(), sourceType, sourceId, messageText]);
+        idSheet.appendRow([formattedDate, sourceType, sourceId, messageText]);
       }
       
       console.log("LINE Webhook logged successfully: Type=" + sourceType + ", ID=" + sourceId);
@@ -121,7 +122,9 @@ function doPost(e) {
         statusText = "ล้มเหลว: " + lineResult;
       }
       
-      logSheet.appendRow([new Date(), data.groupId, statusText, JSON.stringify(data.message)]);
+      var formattedDate = Utilities.formatDate(new Date(), "Asia/Bangkok", "d/M/yyyy, HH:mm:ss");
+      logSheet.insertRowBefore(2);
+      logSheet.getRange(2, 1, 1, 4).setValues([[formattedDate, data.groupId, statusText, JSON.stringify(data.message)]]);
     } catch(err) {
       console.log("Error logging LINE status to Sheet: " + err.toString());
     }

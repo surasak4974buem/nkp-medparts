@@ -1360,10 +1360,12 @@
 
         const txId = "TX-" + (10000 + transactions.length + 1);
         const now = new Date();
+        const tzOffset = now.getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(now.getTime() - tzOffset)).toISOString().slice(0, 19);
         
         const txEntry = {
           id: txId,
-          timestamp: now.toISOString().split(".")[0],
+          timestamp: localISOTime,
           type: type,
           partCode: partCode,
           partName: part.name,
