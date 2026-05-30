@@ -1223,7 +1223,7 @@
               <span>แดชบอร์ดภาพรวม</span>
             </a>
           </li>
-          <li>
+          <li id="menu-catalog">
             <a class="sidebar-link" data-tab="catalog">
               <i data-lucide="package"></i>
               <span>คลังอะไหล่และอุปกรณ์</span>
@@ -1241,7 +1241,7 @@
               <span>ประวัติคลัง (Ledger Logs)</span>
             </a>
           </li>
-          <li>
+          <li id="menu-planning">
             <a class="sidebar-link" data-tab="planning">
               <i data-lucide="calendar-range"></i>
               <span>แผนบำรุงรักษาเชิงรุก</span>
@@ -3162,6 +3162,24 @@ function sendLineNotify(message, token, toId) {
         }
       });
 
+      const menuCatalog = document.getElementById("menu-catalog");
+      if (menuCatalog) {
+        if (role === "General User") {
+          menuCatalog.style.display = "none";
+        } else {
+          menuCatalog.style.display = "block";
+        }
+      }
+
+      const menuPlanning = document.getElementById("menu-planning");
+      if (menuPlanning) {
+        if (role === "General User") {
+          menuPlanning.style.display = "none";
+        } else {
+          menuPlanning.style.display = "block";
+        }
+      }
+
       const menuProcurement = document.getElementById("menu-procurement");
       if (menuProcurement) {
         if (role === "General User") {
@@ -3189,7 +3207,7 @@ function sendLineNotify(message, token, toId) {
 
         if (role !== "Programmer" && (activeTab === "settings" || activeTab === "user-management")) {
           redirect = true;
-        } else if (role === "General User" && activeTab === "procurement") {
+        } else if (role === "General User" && (activeTab === "procurement" || activeTab === "catalog" || activeTab === "planning")) {
           redirect = true;
         }
 
