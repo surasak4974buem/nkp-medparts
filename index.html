@@ -1419,6 +1419,15 @@
               <option value="EXPIRED">ใกล้หมดอายุ/หมดอายุ</option>
               <option value="NORMAL">สต๊อกปกติ</option>
             </select>
+            <button class="btn btn-secondary" id="btn-export-catalog" type="button" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 10px 16px;">
+              <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+              Export CSV
+            </button>
+            <button class="btn btn-secondary" id="btn-import-catalog-trigger" type="button" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 10px 16px;">
+              <i data-lucide="upload" style="width: 16px; height: 16px;"></i>
+              Import CSV
+            </button>
+            <input type="file" id="btn-import-catalog" accept=".csv" style="display: none;">
             <button class="btn btn-primary" id="btn-add-part">
               <i data-lucide="plus-circle"></i>
               เพิ่มรายการอะไหล่ใหม่
@@ -2571,6 +2580,21 @@ function sendLineNotify(message, token, toId) {
     </div>
   </div>
 
+  <!-- CONFIRMATION DIALOG CONTAINER -->
+  <div id="confirm-modal" class="toast-modal-overlay">
+    <div class="toast-modal-content warning">
+      <div id="confirm-icon-container" style="margin-bottom: 15px;">
+        <i data-lucide="alert-triangle" style="width: 48px; height: 48px; color: #eab308; filter: drop-shadow(0 0 8px #eab308);"></i>
+      </div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 10px; color: var(--text-primary);">คำเตือนการนำเข้าข้อมูล</h3>
+      <p id="confirm-message" style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">รายละเอียดข้อความเตือน</p>
+      <div style="display: flex; gap: 10px; width: 100%;">
+        <button class="btn btn-secondary" onclick="closeConfirmModal()" style="flex: 1; justify-content: center; font-weight: 600;">ยกเลิก</button>
+        <button class="btn btn-primary" id="btn-confirm-import" style="flex: 1; justify-content: center; font-weight: 600; background: #eab308; border-color: #eab308; color: #0b0f19;">ยืนยันนำเข้า</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Embed MockData for self-contained package -->
   <script>
     // Database of Medical Spare Parts & Equipment - Nakhonping Hospital
@@ -3198,6 +3222,24 @@ function sendLineNotify(message, token, toId) {
         }
       }
 
+      const btnExportCatalog = document.getElementById("btn-export-catalog");
+      if (btnExportCatalog) {
+        if (role === "General User") {
+          btnExportCatalog.style.display = "none";
+        } else {
+          btnExportCatalog.style.display = "inline-flex";
+        }
+      }
+
+      const btnImportCatalog = document.getElementById("btn-import-catalog-trigger");
+      if (btnImportCatalog) {
+        if (role === "General User") {
+          btnImportCatalog.style.display = "none";
+        } else {
+          btnImportCatalog.style.display = "inline-flex";
+        }
+      }
+
       const refDocGroup = document.getElementById("tx-ref-doc-group");
       if (refDocGroup) {
         if (role === "General User") {
@@ -3356,6 +3398,15 @@ function sendLineNotify(message, token, toId) {
         document.getElementById("part-code").disabled = false;
         openModal("modal-add-part");
       });
+
+      document.getElementById("btn-export-catalog").addEventListener("click", exportCatalogToCSV);
+      
+      const fileInput = document.getElementById("btn-import-catalog");
+      document.getElementById("btn-import-catalog-trigger").addEventListener("click", () => {
+        fileInput.value = "";
+        fileInput.click();
+      });
+      fileInput.addEventListener("change", importCatalogFromCSV);
 
       document.getElementById("btn-save-part").addEventListener("click", savePartDetails);
       document.getElementById("btn-copy-code").addEventListener("click", copyAppsScriptCode);
@@ -3857,6 +3908,150 @@ function sendLineNotify(message, token, toId) {
       document.getElementById("part-compat").value = part.equipmentModels ? part.equipmentModels.join(", ") : "";
 
       openModal("modal-add-part");
+    }
+
+    function exportCatalogToCSV() {
+      const csvHeaders = [
+        "code", "name", "description", "manufacturer", "equipmentModels",
+        "inStock", "unitPrice", "minStock", "maxStock", "reorderPoint",
+        "reorderQty", "location", "supplierName", "supplierContact",
+        "purchaseDate", "expiryDate", "leadTime", "repairFreq"
+      ];
+      
+      let csvRows = [csvHeaders.join(",")];
+      
+      parts.forEach(p => {
+        let values = csvHeaders.map(header => {
+          let val = p[header];
+          if (header === "equipmentModels") {
+            val = Array.isArray(val) ? val.join(";") : (val || "");
+          }
+          val = val === undefined || val === null ? "" : String(val);
+          // Escape quotes and wrap in quotes if commas, quotes, or newlines exist
+          if (val.includes(",") || val.includes('"') || val.includes("\n") || val.includes("\r")) {
+            val = `"${val.replace(/"/g, '""')}"`;
+          }
+          return val;
+        });
+        csvRows.push(values.join(","));
+      });
+      
+      const csvContent = "\ufeff" + csvRows.join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `NKP_Medparts_Catalog_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function parseCSVLine(text) {
+      let p = '', r = [];
+      let q = false;
+      for (let i = 0; i < text.length; i++) {
+        let c = text[i];
+        if (c === '"') {
+          if (q && text[i+1] === '"') { r[r.length-1] += '"'; i++; }
+          else { q = !q; }
+        } else if (c === ',' && !q) {
+          r.push('');
+        } else {
+          if (r.length === 0) r.push('');
+          r[r.length-1] += c;
+        }
+      }
+      return r.map(x => x.trim());
+    }
+
+    window.closeConfirmModal = function() {
+      const modal = document.getElementById("confirm-modal");
+      if (modal) modal.classList.remove("show");
+    }
+
+    function importCatalogFromCSV(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const text = evt.target.result;
+        const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
+        if (lines.length === 0) {
+          showToast("รูปแบบไฟล์ไม่ถูกต้อง", "ไฟล์ CSV ว่างเปล่า ไม่มีข้อมูลสำหรับนำเข้า", "danger");
+          return;
+        }
+
+        const expectedHeaders = [
+          "code", "name", "description", "manufacturer", "equipmentModels",
+          "inStock", "unitPrice", "minStock", "maxStock", "reorderPoint",
+          "reorderQty", "location", "supplierName", "supplierContact",
+          "purchaseDate", "expiryDate", "leadTime", "repairFreq"
+        ];
+
+        let headerLine = lines[0];
+        if (headerLine.charCodeAt(0) === 0xFEFF) {
+          headerLine = headerLine.substring(1);
+        }
+        const headers = parseCSVLine(headerLine);
+
+        const isValidHeaders = expectedHeaders.every((h, idx) => headers[idx] === h);
+        if (!isValidHeaders) {
+          showToast("นำเข้าข้อมูลล้มเหลว", "หัวข้อตาราง (Headers) ของไฟล์ CSV ไม่ถูกต้องตามรูปแบบของคลัง", "danger");
+          return;
+        }
+
+        let parsedParts = [];
+        for (let i = 1; i < lines.length; i++) {
+          const values = parseCSVLine(lines[i]);
+          if (values.length < expectedHeaders.length) continue;
+
+          let partObj = {};
+          expectedHeaders.forEach((h, idx) => {
+            let val = values[idx];
+            if ([
+              "inStock", "minStock", "maxStock", "reorderPoint",
+              "reorderQty", "leadTime", "repairFreq"
+            ].includes(h)) {
+              partObj[h] = parseInt(val) || 0;
+            } else if (h === "unitPrice") {
+              partObj[h] = parseFloat(val) || 0;
+            } else if (h === "equipmentModels") {
+              partObj[h] = val ? val.split(";").map(m => m.trim()).filter(Boolean) : [];
+            } else {
+              partObj[h] = val || "";
+            }
+          });
+          parsedParts.push(partObj);
+        }
+
+        if (parsedParts.length === 0) {
+          showToast("ไม่พบรายการอะไหล่", "ไม่มีข้อมูลอะไหล่ที่ถูกต้องในไฟล์ CSV สำหรับนำเข้า", "danger");
+          return;
+        }
+
+        // Show custom confirmation modal
+        document.getElementById("confirm-message").innerText = `พบอะไหล่จำนวน ${parsedParts.length} รายการในไฟล์นี้ การนำเข้าข้อมูลนี้จะทำการล้างข้อมูลเดิมในคลังทั้งหมดและเขียนทับใหม่ คุณยืนยันที่จะทำรายการนี้หรือไม่?`;
+        
+        const confirmBtn = document.getElementById("btn-confirm-import");
+        confirmBtn.onclick = function() {
+          closeConfirmModal();
+          parts = parsedParts;
+          persistState();
+          
+          renderCatalog();
+          updateDashboard();
+          populateTransactionSelects();
+          
+          showToast("นำเข้าข้อมูลสำเร็จ", `นำเข้าคลังอะไหล่ใหม่จำนวน ${parsedParts.length} รายการ และซิงก์เรียบร้อยแล้ว`, "success");
+        };
+
+        const modal = document.getElementById("confirm-modal");
+        if (modal) modal.classList.add("show");
+      };
+      
+      reader.readAsText(file, "UTF-8");
     }
 
     function savePartDetails() {
