@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1280">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ระบบบริหารคลังอะไหล่ศูนย์เครื่องมือแพทย์ | โรงพยาบาลนครพิงค์ (SMM 07-1:2024)</title>
   
   <!-- Chart.js and Lucide Icons CDN -->
@@ -505,11 +505,6 @@
       gap: 24px;
     }
 
-    @media (max-width: 1024px) {
-      .charts-grid {
-        grid-template-columns: 1fr;
-      }
-    }
 
     .card {
       background-color: var(--bg-secondary);
@@ -925,16 +920,16 @@
     .toast.danger { border-left-color: var(--danger); }
     .toast.warning { border-left-color: var(--warning); }
 
-    /* Grid Layout Classes for Responsiveness */
+    /* Grid Layout Classes - Always Desktop columns to fit zoomed viewport */
     .grid-layout-split {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 2fr;
       gap: 24px;
     }
     
     .grid-layout-half {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 24px;
     }
     
@@ -1066,68 +1061,7 @@
       border-color: var(--primary);
     }
 
-    @media (min-width: 1024px) {
-      .grid-layout-half {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (min-width: 1200px) {
-      .grid-layout-split {
-        grid-template-columns: 1fr 2fr;
-      }
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 1200px) {
-      :root {
-        --sidebar-width: 220px;
-      }
-      .main-content {
-        padding: 24px;
-        gap: 20px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      body {
-        flex-direction: column;
-      }
-      .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-      }
-      .sidebar-header {
-        padding: 16px;
-      }
-      .sidebar-menu {
-        flex-direction: row;
-        overflow-x: auto;
-        padding: 8px;
-        height: auto;
-      }
-      .sidebar-link {
-        white-space: nowrap;
-        padding: 8px 12px;
-      }
-      .sidebar-footer {
-        display: none; /* Hide toggle and user profiles to save mobile space */
-      }
-      .main-content {
-        margin-left: 0;
-        max-width: 100%;
-        padding: 16px;
-      }
-      
-      .top-bar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-      }
-    }
+    /* Removed mobile layout queries to enforce consistent desktop viewport zoom scaling */
 
 
 
@@ -2716,6 +2650,33 @@ function sendLineNotify(message, token, toId) {
 
   <!-- Embed Main App Controller logic -->
   <script>
+    // Mobile Viewport Zoom Auto-Adjustment for Desktop View on Mobile
+    function adjustZoom() {
+      const targetWidth = 1280;
+      const width = window.innerWidth;
+      const appContainer = document.querySelector(".app-container");
+      
+      if (width < targetWidth) {
+        const scale = width / targetWidth;
+        document.body.style.zoom = scale;
+        document.body.style.width = targetWidth + "px";
+        if (appContainer) {
+          appContainer.style.width = targetWidth + "px";
+        }
+      } else {
+        document.body.style.zoom = "1";
+        document.body.style.width = "auto";
+        if (appContainer) {
+          appContainer.style.width = "100vw";
+        }
+      }
+    }
+
+    // Run zoom adjustment immediately and on window resize / load
+    adjustZoom();
+    window.addEventListener("resize", adjustZoom);
+    document.addEventListener("DOMContentLoaded", adjustZoom);
+
     // Global State
     let parts = [];
     let equipment = [];

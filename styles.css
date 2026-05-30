@@ -492,11 +492,6 @@ input:checked + .slider:before {
   gap: 24px;
 }
 
-@media (max-width: 1024px) {
-  .charts-grid {
-    grid-template-columns: 1fr;
-  }
-}
 
 .card {
   background-color: var(--bg-secondary);
@@ -909,44 +904,6 @@ input:checked + .slider:before {
 .toast.danger { border-left-color: var(--danger); }
 .toast.warning { border-left-color: var(--warning); }
 
-@media (max-width: 768px) {
-  body {
-    flex-direction: column;
-  }
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
-  }
-  .sidebar-header {
-    padding: 16px;
-  }
-  .sidebar-menu {
-    flex-direction: row;
-    overflow-x: auto;
-    padding: 8px;
-    height: auto;
-  }
-  .sidebar-link {
-    white-space: nowrap;
-    padding: 8px 12px;
-  }
-  .sidebar-footer {
-    display: none; /* Hide toggle and user profiles to save mobile space */
-  }
-  .main-content {
-    margin-left: 0;
-    max-width: 100%;
-    padding: 20px;
-  }
-  
-  .top-bar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-}
+/* Removed mobile layout queries to enforce consistent desktop viewport zoom scaling */
 
 
