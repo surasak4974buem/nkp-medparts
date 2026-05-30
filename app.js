@@ -1,7 +1,4 @@
-// Standalone Application Logic Core - Nakhonping Hospital Spare Parts System
-// Auto-synchronized from index.html
-
-// Mobile Viewport Zoom Auto-Adjustment for Desktop View on Mobile
+﻿    // Mobile Viewport Zoom Auto-Adjustment for Desktop View on Mobile
     function adjustZoom() {
       const targetWidth = 1280;
       const width = window.innerWidth;
@@ -38,14 +35,82 @@
       gasUrl: "https://script.google.com/macros/s/AKfycbyD6kMKrvj8O1JjYAj_Dk-tYY4iW63phFQIidNGPsqjymO2d_dZtmFL9B4ujgYNZps8/exec",
       lineToggle: true,
       lineToken: "",
-      lineGroupId: ""
+      lineGroupId: "",
+      // Default budgets
+      budgetProj1CatA: 1294500,
+      budgetProj1CatB: 124000,
+      budgetProj2CatA: 150000,
+      budgetProj2CatB: 50000
     };
     let userAccounts = [];
     let currentUser = null;
 
-    // Chart References
+    // Active Dashboard Analysis Controls
+    let activeAnalysisTab = "consumption"; // default tab as requested
+    let activeConsumptionRange = "fiscal";  // default range as requested
+    let consumptionChartRef = null;
     let tscEvChartRef = null;
     let abcChartRef = null;
+
+    // Helper: Map parts to Project & Category
+    function getPartCategoryAndProject(partCode, partName, supplierName) {
+      const code = (partCode || "").toUpperCase();
+      const name = (partName || "").toLowerCase();
+      const supplier = (supplierName || "").toLowerCase();
+      
+      // If code starts with SR-SPO2 or supplier matches SR Science
+      if (code.startsWith("SR-SPO2-") || supplier.includes("sr science") || supplier.includes("à¹€à¸­à¸ªà¸­à¸²à¸£à¹Œ.à¸Šà¸²à¸¢à¸™à¹Œ")) {
+        if (code === "SR-SPO2-004" || name.includes("probe") || name.includes("à¹‚à¸žà¸£à¸š")) {
+          return { 
+            project: "Project 1", 
+            category: "Cat 1.2",
+            projectName: "à¹‚à¸„à¸£à¸‡à¸à¸²à¸£à¸—à¸µà¹ˆ 1: à¸ˆà¸±à¸”à¸‹à¸·à¹‰à¸­à¸ªà¸²à¸¢ SPO2 Bedside Monitor (à¸£à¹‰à¸²à¸™à¹€à¸­à¸ªà¸­à¸²à¸£à¹Œ.à¸Šà¸²à¸¢à¸™à¹Œà¸¯)",
+            categoryName: "à¸ªà¸²à¸¢à¸§à¸±à¸” SpO2 à¹à¸šà¸š Cable/Probe",
+            budgetKey: "budgetProj1CatB"
+          };
+        } else {
+          return {
+            project: "Project 1",
+            category: "Cat 1.1",
+            projectName: "à¹‚à¸„à¸£à¸‡à¸à¸²à¸£à¸—à¸µà¹ˆ 1: à¸ˆà¸±à¸”à¸‹à¸·à¹‰à¸­à¸ªà¸²à¸¢ SPO2 Bedside Monitor (à¸£à¹‰à¸²à¸™à¹€à¸­à¸ªà¸­à¸²à¸£à¹Œ.à¸Šà¸²à¸¢à¸™à¹Œà¸¯)",
+            categoryName: "à¸ªà¸²à¸¢à¸§à¸±à¸” SpO2 à¹à¸šà¸š Reusable",
+            budgetKey: "budgetProj1CatA"
+          };
+        }
+      } else {
+        // Bangkok Medical Pro or others
+        if (name.includes("ac gray") || name.includes("à¸ªà¸²à¸¢à¹„à¸Ÿ ac") || name.includes("ac power") || name.includes("gray medical")) {
+          return {
+            project: "Project 2",
+            category: "Cat 2.2",
+            projectName: "à¹‚à¸„à¸£à¸‡à¸à¸²à¸£à¸—à¸µà¹ˆ 2: à¸ˆà¸±à¸”à¸‹à¸·à¹‰à¸­à¸ªà¸²à¸¢à¹„à¸Ÿà¹à¸¥à¸°à¸ªà¸²à¸¢à¸•à¹ˆà¸­à¸žà¹ˆà¸§à¸‡ (à¸šà¸ˆà¸. à¹à¸šà¸‡à¸„à¹‡à¸­à¸ à¹€à¸¡à¸”à¸´à¸„à¸­à¸¥ à¹‚à¸›à¸£)",
+            categoryName: "à¸ªà¸²à¸¢à¹„à¸Ÿ AC Gray Medical Grade",
+            budgetKey: "budgetProj2CatB"
+          };
+        } else {
+          return {
+            project: "Project 2",
+            category: "Cat 2.1",
+            projectName: "à¹‚à¸„à¸£à¸‡à¸à¸²à¸£à¸—à¸µà¹ˆ 2: à¸ˆà¸±à¸”à¸‹à¸·à¹‰à¸­à¸ªà¸²à¸¢à¹„à¸Ÿà¹à¸¥à¸°à¸ªà¸²à¸¢à¸•à¹ˆà¸­à¸žà¹ˆà¸§à¸‡ (à¸šà¸ˆà¸. à¹à¸šà¸‡à¸„à¹‡à¸­à¸ à¹€à¸¡à¸”à¸´à¸„à¸­à¸¥ à¹‚à¸›à¸£)",
+            categoryName: "à¸ªà¸²à¸¢à¸•à¹ˆà¸­à¸žà¹ˆà¸§à¸‡ SpO2 Extension Cable",
+            budgetKey: "budgetProj2CatA"
+          };
+        }
+      }
+    }
+
+    // Helper: Thai Fiscal Year calculation (Oct 1 - Sep 30 of next year)
+    function getFiscalYear(dateObj) {
+      if (!(dateObj instanceof Date) || isNaN(dateObj)) {
+        dateObj = new Date(dateObj);
+      }
+      const year = dateObj.getFullYear();
+      const month = dateObj.getMonth(); // 0-indexed: 0 = Jan, 9 = Oct
+      if (month >= 9) { // Oct, Nov, Dec
+        return year + 1;
+      }
+      return year;
+    }
 
     // Initialize App
     document.addEventListener("DOMContentLoaded", () => {
@@ -60,7 +125,7 @@
       renderProcurementMonitor();
       renderMemorandum();
       
-      // ดึงโค้ด Google Apps Script ล่าสุดมาแสดงผลในหน้าตั้งค่าโดยตรง
+      // à¸”à¸¶à¸‡à¹‚à¸„à¹‰à¸” Google Apps Script à¸¥à¹ˆà¸²à¸ªà¸¸à¸”à¸¡à¸²à¹à¸ªà¸”à¸‡à¸œà¸¥à¹ƒà¸™à¸«à¸™à¹‰à¸²à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¹‚à¸”à¸¢à¸•à¸£à¸‡
       fetch('./code.gs')
         .then(response => {
           if (response.ok) return response.text();
@@ -81,10 +146,17 @@
       if (storedSettings) {
         const parsed = JSON.parse(storedSettings);
         settings = { ...settings, ...parsed };
+        
+        // Ensure budgets are set
+        if (settings.budgetProj1CatA === undefined) settings.budgetProj1CatA = 1294500;
+        if (settings.budgetProj1CatB === undefined) settings.budgetProj1CatB = 124000;
+        if (settings.budgetProj2CatA === undefined) settings.budgetProj2CatA = 150000;
+        if (settings.budgetProj2CatB === undefined) settings.budgetProj2CatB = 50000;
+        
         if (!settings.gasUrl) {
           settings.gasUrl = "https://script.google.com/macros/s/AKfycbyD6kMKrvj8O1JjYAj_Dk-tYY4iW63phFQIidNGPsqjymO2d_dZtmFL9B4ujgYNZps8/exec";
-          localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
         }
+        localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
       } else {
         localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
       }
@@ -199,15 +271,15 @@
         updateUserDisplay();
         applyPermissions(currentUser.role);
 
-        showToast("เข้าสู่ระบบสำเร็จ", `ยินดีต้อนรับคุณ ${currentUser.realName}`, "success");
+        showToast("à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸šà¸ªà¸³à¹€à¸£à¹‡à¸ˆ", `à¸¢à¸´à¸™à¸”à¸µà¸•à¹‰à¸­à¸™à¸£à¸±à¸šà¸„à¸¸à¸“ ${currentUser.realName}`, "success");
         persistState();
 
         setTimeout(() => {
           drawDashboardCharts();
         }, 200);
       } else {
-        errorDiv.innerText = "รหัสผ่านไม่ถูกต้อง หรือ บัญชีนี้ถูกระงับสิทธิ์การใช้งาน";
-        showToast("เข้าสู่ระบบล้มเหลว", "รหัสผ่านที่กรอกไม่ถูกต้อง", "danger");
+        errorDiv.innerText = "à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™à¹„à¸¡à¹ˆà¸–à¸¹à¸à¸•à¹‰à¸­à¸‡ à¸«à¸£à¸·à¸­ à¸šà¸±à¸à¸Šà¸µà¸™à¸µà¹‰à¸–à¸¹à¸à¸£à¸°à¸‡à¸±à¸šà¸ªà¸´à¸—à¸˜à¸´à¹Œà¸à¸²à¸£à¹ƒà¸Šà¹‰à¸‡à¸²à¸™";
+        showToast("à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸šà¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§", "à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™à¸—à¸µà¹ˆà¸à¸£à¸­à¸à¹„à¸¡à¹ˆà¸–à¸¹à¸à¸•à¹‰à¸­à¸‡", "danger");
       }
     }
 
@@ -343,11 +415,11 @@
       txTypeSelect.innerHTML = "";
 
       const options = [
-        { value: "Issue", text: "เบิกจ่ายไปซ่อมบำรุง (Issue)" },
-        { value: "Receive", text: "รับสินค้าเข้าคลัง (Receive)" },
-        { value: "Borrow", text: "ยืมเพื่อทดสอบ (Borrow)" },
-        { value: "Return", text: "คืนของที่ยืม (Return)" },
-        { value: "Audit", text: "ตรวจสอบสต๊อกจริง (Audit)" }
+        { value: "Issue", text: "à¹€à¸šà¸´à¸à¸ˆà¹ˆà¸²à¸¢à¹„à¸›à¸‹à¹ˆà¸­à¸¡à¸šà¸³à¸£à¸¸à¸‡ (Issue)" },
+        { value: "Receive", text: "à¸£à¸±à¸šà¸ªà¸´à¸™à¸„à¹‰à¸²à¹€à¸‚à¹‰à¸²à¸„à¸¥à¸±à¸‡ (Receive)" },
+        { value: "Borrow", text: "à¸¢à¸·à¸¡à¹€à¸žà¸·à¹ˆà¸­à¸—à¸”à¸ªà¸­à¸š (Borrow)" },
+        { value: "Return", text: "à¸„à¸·à¸™à¸‚à¸­à¸‡à¸—à¸µà¹ˆà¸¢à¸·à¸¡ (Return)" },
+        { value: "Audit", text: "à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸ªà¸•à¹Šà¸­à¸à¸ˆà¸£à¸´à¸‡ (Audit)" }
       ];
 
       options.forEach(opt => {
@@ -446,10 +518,112 @@
       document.getElementById("btn-save-settings").addEventListener("click", saveSettings);
       document.getElementById("btn-test-line").addEventListener("click", testLineMessage);
 
+      // New Event Listeners for Budget & Combo Chart & EOM Reports
+      const btnConsumption = document.getElementById("tab-btn-consumption");
+      const btnTscEv = document.getElementById("tab-btn-tscev");
+      if (btnConsumption && btnTscEv) {
+        btnConsumption.addEventListener("click", () => {
+          activeAnalysisTab = "consumption";
+          btnConsumption.style.background = "var(--bg-secondary)";
+          btnConsumption.style.color = "var(--text-primary)";
+          btnConsumption.style.boxShadow = "var(--card-shadow)";
+          btnConsumption.classList.add("btn-active-tab");
+          btnTscEv.style.background = "transparent";
+          btnTscEv.style.color = "var(--text-secondary)";
+          btnTscEv.style.boxShadow = "none";
+          btnTscEv.classList.remove("btn-active-tab");
+          drawDashboardCharts();
+        });
+        btnTscEv.addEventListener("click", () => {
+          activeAnalysisTab = "tscev";
+          btnTscEv.style.background = "var(--bg-secondary)";
+          btnTscEv.style.color = "var(--text-primary)";
+          btnTscEv.style.boxShadow = "var(--card-shadow)";
+          btnTscEv.classList.add("btn-active-tab");
+          btnConsumption.style.background = "transparent";
+          btnConsumption.style.color = "var(--text-secondary)";
+          btnConsumption.style.boxShadow = "none";
+          btnConsumption.classList.remove("btn-active-tab");
+          drawDashboardCharts();
+        });
+      }
+
+      const filterBtns = document.querySelectorAll(".time-filter-btn");
+      filterBtns.forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          filterBtns.forEach(b => {
+            b.classList.remove("filter-active");
+            b.style.background = "transparent";
+            b.style.color = "var(--text-secondary)";
+            b.style.fontWeight = "500";
+            b.style.boxShadow = "none";
+          });
+          btn.classList.add("filter-active");
+          btn.style.background = "var(--primary)";
+          btn.style.color = "#ffffff";
+          btn.style.fontWeight = "600";
+          btn.style.boxShadow = "var(--card-shadow)";
+          
+          activeConsumptionRange = btn.getAttribute("data-range");
+          drawDashboardCharts();
+        });
+      });
+
+      const btnSaveBudget = document.getElementById("btn-save-budget-settings");
+      if (btnSaveBudget) {
+        btnSaveBudget.addEventListener("click", saveBudgetSettings);
+      }
+
+      const btnGenMonthlyReport = document.getElementById("btn-generate-monthly-report");
+      if (btnGenMonthlyReport) {
+        btnGenMonthlyReport.addEventListener("click", () => {
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = (now.getMonth() + 1).toString().padStart(2, '0');
+          document.getElementById("report-month-select").value = `${year}-${month}`;
+          
+          document.getElementById("monthly-report-preview").innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+              <i data-lucide="file-text" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5;"></i>
+              <p>à¸à¸£à¸¸à¸“à¸²à¸à¸”à¸›à¸¸à¹ˆà¸¡ "à¸”à¸¶à¸‡à¸£à¸²à¸¢à¸‡à¸²à¸™" à¹€à¸žà¸·à¹ˆà¸­à¹à¸ªà¸”à¸‡à¸•à¸±à¸§à¸­à¸¢à¹ˆà¸²à¸‡</p>
+            </div>
+          `;
+          if (window.lucide) window.lucide.createIcons();
+          openModal("modal-monthly-report");
+        });
+      }
+
+      const btnRenderReportPreview = document.getElementById("btn-render-report-preview");
+      if (btnRenderReportPreview) {
+        btnRenderReportPreview.addEventListener("click", () => {
+          const month = document.getElementById("report-month-select").value;
+          if (!month) {
+            alert("à¸à¸£à¸¸à¸“à¸²à¹€à¸¥à¸·à¸­à¸à¸›à¸£à¸°à¸ˆà¸³à¹€à¸”à¸·à¸­à¸™");
+            return;
+          }
+          const previewHtml = generateMonthlyReportPreview(month);
+          document.getElementById("monthly-report-preview").innerHTML = previewHtml;
+        });
+      }
+
+      const btnPrintReport = document.getElementById("btn-print-report");
+      if (btnPrintReport) {
+        btnPrintReport.addEventListener("click", () => {
+          const preview = document.getElementById("monthly-report-preview");
+          if (preview.querySelector("table") === null) {
+            alert("à¸à¸£à¸¸à¸“à¸²à¸”à¸¶à¸‡à¸£à¸²à¸¢à¸‡à¸²à¸™à¹€à¸žà¸·à¹ˆà¸­à¸”à¸¹à¸žà¸£à¸µà¸§à¸´à¸§à¸à¹ˆà¸­à¸™à¸ªà¸±à¹ˆà¸‡à¸žà¸´à¸¡à¸žà¹Œ");
+            return;
+          }
+          const printArea = document.getElementById("monthly-report-print-area");
+          printArea.innerHTML = preview.innerHTML;
+          window.print();
+        });
+      }
+
       document.getElementById("btn-add-part").addEventListener("click", () => {
         document.getElementById("part-form").reset();
         document.getElementById("part-form-mode").value = "add";
-        document.getElementById("modal-add-title").innerText = "เพิ่มอะไหล่ทางการแพทย์ใหม่เข้าระบบ";
+        document.getElementById("modal-add-title").innerText = "à¹€à¸žà¸´à¹ˆà¸¡à¸­à¸°à¹„à¸«à¸¥à¹ˆà¸—à¸²à¸‡à¸à¸²à¸£à¹à¸žà¸—à¸¢à¹Œà¹ƒà¸«à¸¡à¹ˆà¹€à¸‚à¹‰à¸²à¸£à¸°à¸šà¸š";
         document.getElementById("part-code").disabled = false;
         openModal("modal-add-part");
       });
@@ -530,14 +704,14 @@
 
     function updateTabHeader(tabName) {
       const titles = {
-        dashboard: ["แดชบอร์ดภาพรวม", "วิเคราะห์สถิติคลังสินค้า ความปลอดภัย และอัตราค่าบำรุงรักษา"],
-        catalog: ["คลังอะไหล่และอุปกรณ์", "จัดการรายชื่ออะไหล่ สเปกทางเทคนิค และจุดสั่งซื้อที่ได้รับการระบุ"],
-        transactions: ["เบิกจ่ายและรับเข้าคลัง", "ทำกิจกรรม เบิก จ่าย รับของ ยืม คืน และตรวจสอบความถูกต้องของระบบคลัง"],
-        ledger: ["ประวัติรายการคลังอะไหล่ (Ledger Logs)", "ตรวจสอบประวัติการเบิกจ่าย รับเข้า ยืมคืน อะไหล่สำรองคลังทั้งหมด"],
-        planning: ["แผนบำรุงรักษาเชิงรุก", "ตาราง PM ประจำปี และเครื่องมือคาดการณ์ความต้องการวัสดุอะไหล่ในอนาคต"],
-        procurement: ["ใบขอจัดซื้ออะไหล่", "ตรวจสอบชิ้นส่วนที่หมดเกณฑ์สำรอง และสร้างใบขอเสนอซื้อแบบอัตโนมัติ"],
-        "user-management": ["ระบบจัดการสิทธิ์ผู้ใช้", "จัดการผู้ดูแลระบบและกำหนดรหัสผ่านแยกสิทธิ์ในการใช้งาน"],
-        settings: ["คลาวด์ & LINE Settings", "ตั้งค่าการเชื่อมต่อฐานข้อมูล Google Sheets และระบบ LINE OA Notifications"]
+        dashboard: ["à¹à¸”à¸Šà¸šà¸­à¸£à¹Œà¸”à¸ à¸²à¸žà¸£à¸§à¸¡", "à¸§à¸´à¹€à¸„à¸£à¸²à¸°à¸«à¹Œà¸ªà¸–à¸´à¸•à¸´à¸„à¸¥à¸±à¸‡à¸ªà¸´à¸™à¸„à¹‰à¸² à¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢ à¹à¸¥à¸°à¸­à¸±à¸•à¸£à¸²à¸„à¹ˆà¸²à¸šà¸³à¸£à¸¸à¸‡à¸£à¸±à¸à¸©à¸²"],
+        catalog: ["à¸„à¸¥à¸±à¸‡à¸­à¸°à¹„à¸«à¸¥à¹ˆà¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œ", "à¸ˆà¸±à¸”à¸à¸²à¸£à¸£à¸²à¸¢à¸Šà¸·à¹ˆà¸­à¸­à¸°à¹„à¸«à¸¥à¹ˆ à¸ªà¹€à¸›à¸à¸—à¸²à¸‡à¹€à¸—à¸„à¸™à¸´à¸„ à¹à¸¥à¸°à¸ˆà¸¸à¸”à¸ªà¸±à¹ˆà¸‡à¸‹à¸·à¹‰à¸­à¸—à¸µà¹ˆà¹„à¸”à¹‰à¸£à¸±à¸šà¸à¸²à¸£à¸£à¸°à¸šà¸¸"],
+        transactions: ["à¹€à¸šà¸´à¸à¸ˆà¹ˆà¸²à¸¢à¹à¸¥à¸°à¸£à¸±à¸šà¹€à¸‚à¹‰à¸²à¸„à¸¥à¸±à¸‡", "à¸—à¸³à¸à¸´à¸ˆà¸à¸£à¸£à¸¡ à¹€à¸šà¸´à¸ à¸ˆà¹ˆà¸²à¸¢ à¸£à¸±à¸šà¸‚à¸­à¸‡ à¸¢à¸·à¸¡ à¸„à¸·à¸™ à¹à¸¥à¸°à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸„à¸§à¸²à¸¡à¸–à¸¹à¸à¸•à¹‰à¸­à¸‡à¸‚à¸­à¸‡à¸£à¸°à¸šà¸šà¸„à¸¥à¸±à¸‡"],
+        ledger: ["à¸›à¸£à¸°à¸§à¸±à¸•à¸´à¸£à¸²à¸¢à¸à¸²à¸£à¸„à¸¥à¸±à¸‡à¸­à¸°à¹„à¸«à¸¥à¹ˆ (Ledger Logs)", "à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸›à¸£à¸°à¸§à¸±à¸•à¸´à¸à¸²à¸£à¹€à¸šà¸´à¸à¸ˆà¹ˆà¸²à¸¢ à¸£à¸±à¸šà¹€à¸‚à¹‰à¸² à¸¢à¸·à¸¡à¸„à¸·à¸™ à¸­à¸°à¹„à¸«à¸¥à¹ˆà¸ªà¸³à¸£à¸­à¸‡à¸„à¸¥à¸±à¸‡à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”"],
+        planning: ["à¹à¸œà¸™à¸šà¸³à¸£à¸¸à¸‡à¸£à¸±à¸à¸©à¸²à¹€à¸Šà¸´à¸‡à¸£à¸¸à¸", "à¸•à¸²à¸£à¸²à¸‡ PM à¸›à¸£à¸°à¸ˆà¸³à¸›à¸µ à¹à¸¥à¸°à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸¡à¸·à¸­à¸„à¸²à¸”à¸à¸²à¸£à¸“à¹Œà¸„à¸§à¸²à¸¡à¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸§à¸±à¸ªà¸”à¸¸à¸­à¸°à¹„à¸«à¸¥à¹ˆà¹ƒà¸™à¸­à¸™à¸²à¸„à¸•"],
+        procurement: ["à¹ƒà¸šà¸‚à¸­à¸ˆà¸±à¸”à¸‹à¸·à¹‰à¸­à¸­à¸°à¹„à¸«à¸¥à¹ˆ", "à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸Šà¸´à¹‰à¸™à¸ªà¹ˆà¸§à¸™à¸—à¸µà¹ˆà¸«à¸¡à¸”à¹€à¸à¸“à¸‘à¹Œà¸ªà¸³à¸£à¸­à¸‡ à¹à¸¥à¸°à¸ªà¸£à¹‰à¸²à¸‡à¹ƒà¸šà¸‚à¸­à¹€à¸ªà¸™à¸­à¸‹à¸·à¹‰à¸­à¹à¸šà¸šà¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´"],
+        "user-management": ["à¸£à¸°à¸šà¸šà¸ˆà¸±à¸”à¸à¸²à¸£à¸ªà¸´à¸—à¸˜à¸´à¹Œà¸œà¸¹à¹‰à¹ƒà¸Šà¹‰", "à¸ˆà¸±à¸”à¸à¸²à¸£à¸œà¸¹à¹‰à¸”à¸¹à¹à¸¥à¸£à¸°à¸šà¸šà¹à¸¥à¸°à¸à¸³à¸«à¸™à¸”à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™à¹à¸¢à¸à¸ªà¸´à¸—à¸˜à¸´à¹Œà¹ƒà¸™à¸à¸²à¸£à¹ƒà¸Šà¹‰à¸‡à¸²à¸™"],
+        settings: ["à¸„à¸¥à¸²à¸§à¸”à¹Œ & LINE Settings", "à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¸à¸²à¸£à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­à¸à¸²à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥ Google Sheets à¹à¸¥à¸°à¸£à¸°à¸šà¸š LINE OA Notifications"]
       };
       
       if (titles[tabName]) {
@@ -566,6 +740,11 @@
         document.getElementById("settings-line-toggle").checked = settings.lineToggle;
         document.getElementById("settings-line-token").value = settings.lineToken || "";
         document.getElementById("settings-line-groupid").value = settings.lineGroupId || "";
+        // Populate budgets
+        document.getElementById("settings-budget-proj1-catA").value = settings.budgetProj1CatA || 1294500;
+        document.getElementById("settings-budget-proj1-catB").value = settings.budgetProj1CatB || 124000;
+        document.getElementById("settings-budget-proj2-catA").value = settings.budgetProj2CatA || 150000;
+        document.getElementById("settings-budget-proj2-catB").value = settings.budgetProj2CatB || 50000;
       }
     }
 
@@ -611,21 +790,21 @@
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
       if (diffDays < 0) {
-        return { status: "Expired", label: "หมดอายุแล้ว", class: "badge-expired" };
+        return { status: "Expired", label: "à¸«à¸¡à¸”à¸­à¸²à¸¢à¸¸à¹à¸¥à¹‰à¸§", class: "badge-expired" };
       } else if (diffDays <= 90) {
-        return { status: "Near Expiry", label: `ใกล้หมดอายุ (${diffDays} วัน)`, class: "badge-near-expiry" };
+        return { status: "Near Expiry", label: `à¹ƒà¸à¸¥à¹‰à¸«à¸¡à¸”à¸­à¸²à¸¢à¸¸ (${diffDays} à¸§à¸±à¸™)`, class: "badge-near-expiry" };
       } else {
-        return { status: "Safe", label: "ปกติ", class: "badge-safe" };
+        return { status: "Safe", label: "à¸›à¸à¸•à¸´", class: "badge-safe" };
       }
     }
 
     function getStockState(part) {
       if (part.inStock <= 0) {
-        return { status: "Out of Stock", label: "สินค้าหมด", class: "badge-out-of-stock" };
+        return { status: "Out of Stock", label: "à¸ªà¸´à¸™à¸„à¹‰à¸²à¸«à¸¡à¸”", class: "badge-out-of-stock" };
       } else if (part.inStock <= part.reorderPoint) {
-        return { status: "Low Stock", label: "ต่ำกว่าจุดสั่งซื้อ", class: "badge-low-stock" };
+        return { status: "Low Stock", label: "à¸•à¹ˆà¸³à¸à¸§à¹ˆà¸²à¸ˆà¸¸à¸”à¸ªà¸±à¹ˆà¸‡à¸‹à¸·à¹‰à¸­", class: "badge-low-stock" };
       } else {
-        return { status: "In Stock", label: "ปกติ", class: "badge-in-stock" };
+        return { status: "In Stock", label: "à¸›à¸à¸•à¸´", class: "badge-in-stock" };
       }
     }
 
@@ -652,7 +831,7 @@
       if (expiredCount > 0) expiredCard.style.borderLeftColor = "var(--danger)";
 
       const totalValue = parts.reduce((sum, p) => sum + (p.unitPrice * p.inStock), 0);
-      document.getElementById("metric-total-value").innerText = "฿" + totalValue.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById("metric-total-value").innerText = "à¸¿" + totalValue.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
       renderDashboardAlertsTable();
       drawDashboardCharts();
@@ -669,7 +848,7 @@
       });
 
       if (alertParts.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">🎉 ไม่มีรายการด่วน อะไหล่ทุกรายการมีความปลอดภัยและเพียงพอ</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">ðŸŽ‰ à¹„à¸¡à¹ˆà¸¡à¸µà¸£à¸²à¸¢à¸à¸²à¸£à¸”à¹ˆà¸§à¸™ à¸­à¸°à¹„à¸«à¸¥à¹ˆà¸—à¸¸à¸à¸£à¸²à¸¢à¸à¸²à¸£à¸¡à¸µà¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢à¹à¸¥à¸°à¹€à¸žà¸µà¸¢à¸‡à¸žà¸­</td></tr>`;
         return;
       }
 
@@ -678,11 +857,11 @@
         const expiryState = getExpiryState(p.expiryDate);
         
         let issueLabel = "";
-        if (stockState.status === "Out of Stock") issueLabel += `<span class="badge badge-out-of-stock">คลังหมด</span> `;
-        else if (stockState.status === "Low Stock") issueLabel += `<span class="badge badge-low-stock">สต๊อกต่ำ</span> `;
+        if (stockState.status === "Out of Stock") issueLabel += `<span class="badge badge-out-of-stock">à¸„à¸¥à¸±à¸‡à¸«à¸¡à¸”</span> `;
+        else if (stockState.status === "Low Stock") issueLabel += `<span class="badge badge-low-stock">à¸ªà¸•à¹Šà¸­à¸à¸•à¹ˆà¸³</span> `;
         
-        if (expiryState.status === "Expired") issueLabel += `<span class="badge badge-expired">หมดอายุ</span>`;
-        else if (expiryState.status === "Near Expiry") issueLabel += `<span class="badge badge-near-expiry">ใกล้หมดอายุ</span>`;
+        if (expiryState.status === "Expired") issueLabel += `<span class="badge badge-expired">à¸«à¸¡à¸”à¸­à¸²à¸¢à¸¸</span>`;
+        else if (expiryState.status === "Near Expiry") issueLabel += `<span class="badge badge-near-expiry">à¹ƒà¸à¸¥à¹‰à¸«à¸¡à¸”à¸­à¸²à¸¢à¸¸</span>`;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -703,6 +882,7 @@
       const labelColor = isDark ? "#d1d5db" : "#334155";
       const gridColor = isDark ? "#374151" : "#e2e8f0";
 
+      // 1. Render ABC doughnut chart
       const abcCounts = { A: 0, B: 0, C: 0 };
       const abcValues = { A: 0, B: 0, C: 0 };
 
@@ -718,9 +898,9 @@
         type: 'doughnut',
         data: {
           labels: [
-            `Class A (มูลค่าสูง) (${abcCounts.A} รายการ)`,
-            `Class B (มูลค่ากลาง) (${abcCounts.B} รายการ)`,
-            `Class C (มูลค่าต่ำ) (${abcCounts.C} รายการ)`
+            `Class A (à¸¡à¸¹à¸¥à¸„à¹ˆà¸²à¸ªà¸¹à¸‡) (${abcCounts.A} à¸£à¸²à¸¢à¸à¸²à¸£)`,
+            `Class B (à¸¡à¸¹à¸¥à¸„à¹ˆà¸²à¸à¸¥à¸²à¸‡) (${abcCounts.B} à¸£à¸²à¸¢à¸à¸²à¸£)`,
+            `Class C (à¸¡à¸¹à¸¥à¸„à¹ˆà¸²à¸•à¹ˆà¸³) (${abcCounts.C} à¸£à¸²à¸¢à¸à¸²à¸£)`
           ],
           datasets: [{
             data: [abcValues.A, abcValues.B, abcValues.C],
@@ -741,7 +921,7 @@
               callbacks: {
                 label: function(context) {
                   const val = context.raw || 0;
-                  return " มูลค่า: ฿" + val.toLocaleString("th-TH", { maximumFractionDigits: 0 });
+                  return " à¸¡à¸¹à¸¥à¸„à¹ˆà¸²: à¸¿" + val.toLocaleString("th-TH", { maximumFractionDigits: 0 });
                 }
               }
             }
@@ -749,76 +929,624 @@
         }
       });
 
-      const serviceCosts = {};
-      transactions.filter(t => t.type === "Issue" && t.eqSerial).forEach(t => {
-        if (!serviceCosts[t.eqSerial]) {
-          serviceCosts[t.eqSerial] = 0;
-        }
-        const part = parts.find(p => p.code === t.partCode);
-        const unitPrice = part ? part.unitPrice : 0;
-        serviceCosts[t.eqSerial] += (t.qty * unitPrice);
-      });
+      // 2. Render active analysis chart
+      if (activeAnalysisTab === "consumption") {
+        document.getElementById("consumptionChart").style.display = "block";
+        document.getElementById("tscEvChart").style.display = "none";
+        document.getElementById("consumption-time-filters").style.display = "flex";
 
-      const labels = [];
-      const ratios = [];
-      const backgroundColors = [];
+        const now = new Date();
+        let filteredTx = [];
 
-      equipment.forEach(eq => {
-        const cost = serviceCosts[eq.serial] || 0;
-        const ratio = (cost / eq.value) * 100;
-        
-        labels.push(`${eq.serial} (${eq.model.split(" ")[0]})`);
-        ratios.push(ratio.toFixed(1));
-
-        if (ratio >= 25.0) {
-          backgroundColors.push('#ef4444');
-        } else if (ratio >= 5.0) {
-          backgroundColors.push('#f97316');
+        if (activeConsumptionRange === "daily") {
+          const cutOff = new Date();
+          cutOff.setDate(now.getDate() - 7);
+          filteredTx = transactions.filter(t => new Date(t.timestamp) >= cutOff);
+        } else if (activeConsumptionRange === "weekly") {
+          const cutOff = new Date();
+          cutOff.setDate(now.getDate() - 28);
+          filteredTx = transactions.filter(t => new Date(t.timestamp) >= cutOff);
+        } else if (activeConsumptionRange === "monthly") {
+          const cutOff = new Date();
+          cutOff.setMonth(now.getMonth() - 12);
+          filteredTx = transactions.filter(t => new Date(t.timestamp) >= cutOff);
         } else {
-          backgroundColors.push('#14b8a6');
+          // Fiscal Year
+          const currentFY = getFiscalYear(now);
+          filteredTx = transactions.filter(t => getFiscalYear(new Date(t.timestamp)) === currentFY);
         }
-      });
 
-      if (tscEvChartRef) tscEvChartRef.destroy();
+        const issues = filteredTx.filter(t => t.type === "Issue");
 
-      const tscCtx = document.getElementById("tscEvChart").getContext("2d");
-      tscEvChartRef = new Chart(tscCtx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'สัดส่วน TSC / EV (%)',
-            data: ratios,
-            backgroundColor: backgroundColors,
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: { color: labelColor, font: { family: 'Sarabun', size: 10 } }
-            },
-            y: {
-              grid: { color: gridColor },
-              ticks: { color: labelColor },
-              title: { display: true, text: 'อัตราส่วน (%)', color: labelColor }
-            }
+        // Sum qty and cost for each part
+        const partStats = {};
+        parts.forEach(p => {
+          partStats[p.code] = { qty: 0, cost: 0 };
+        });
+
+        issues.forEach(t => {
+          if (!partStats[t.partCode]) {
+            partStats[t.partCode] = { qty: 0, cost: 0 };
+          }
+          partStats[t.partCode].qty += parseInt(t.qty) || 0;
+          
+          const part = parts.find(p => p.code === t.partCode);
+          const cost = parseFloat(t.cost) || (parseInt(t.qty) * (part ? part.unitPrice : 0)) || 0;
+          partStats[t.partCode].cost += cost;
+        });
+
+        const labels = [];
+        const qtyData = [];
+        const costData = [];
+
+        parts.forEach(p => {
+          labels.push(p.code);
+          qtyData.push(partStats[p.code].qty);
+          costData.push(partStats[p.code].cost);
+        });
+
+        if (consumptionChartRef) consumptionChartRef.destroy();
+
+        const ctx = document.getElementById("consumptionChart").getContext("2d");
+        const barColor = isDark ? '#2dd4bf' : '#0f766e'; // Teal shades
+        const lineColor = isDark ? '#60a5fa' : '#1d4ed8'; // Blue shades
+
+        consumptionChartRef = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                type: 'bar',
+                label: 'à¸ˆà¸³à¸™à¸§à¸™à¹€à¸šà¸´à¸à¸ªà¸°à¸ªà¸¡ (à¸Šà¸´à¹‰à¸™)',
+                data: qtyData,
+                backgroundColor: barColor,
+                borderRadius: 4,
+                yAxisID: 'y'
+              },
+              {
+                type: 'line',
+                label: 'à¸¢à¸­à¸”à¹€à¸‡à¸´à¸™à¹€à¸šà¸´à¸à¸ªà¸°à¸ªà¸¡ (à¸šà¸²à¸—)',
+                data: costData,
+                borderColor: lineColor,
+                backgroundColor: lineColor,
+                borderWidth: 2,
+                pointBackgroundColor: lineColor,
+                pointBorderColor: '#ffffff',
+                pointRadius: 4,
+                tension: 0.15,
+                yAxisID: 'y1'
+              }
+            ]
           },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return ` อัตราส่วน: ${context.raw}% ของราคาซื้อเครื่อง`;
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: labelColor, font: { family: 'Sarabun', size: 9 } }
+              },
+              y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                grid: { color: gridColor },
+                ticks: { color: labelColor },
+                title: { display: true, text: 'à¸ˆà¸³à¸™à¸§à¸™à¹€à¸šà¸´à¸ (à¸Šà¸´à¹‰à¸™)', color: labelColor, font: { family: 'Sarabun' } }
+              },
+              y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                grid: { drawOnChartArea: false },
+                ticks: { 
+                  color: labelColor,
+                  callback: function(value) {
+                    return 'à¸¿' + value.toLocaleString();
+                  }
+                },
+                title: { display: true, text: 'à¸¢à¸­à¸”à¸ªà¸°à¸ªà¸¡à¸à¸²à¸£à¹€à¸šà¸´à¸ (à¸šà¸²à¸—)', color: labelColor, font: { family: 'Sarabun' } }
+              }
+            },
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: { color: labelColor, font: { family: 'Sarabun', size: 10 } }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const label = context.dataset.label || '';
+                    const val = context.raw || 0;
+                    if (context.dataset.type === 'bar') {
+                      return `${label}: ${val} à¸Šà¸´à¹‰à¸™`;
+                    } else {
+                      return `${label}: à¸¿${val.toLocaleString()}`;
+                    }
+                  }
                 }
               }
             }
           }
+        });
+      } else {
+        // TSC / EV Analyzer
+        document.getElementById("consumptionChart").style.display = "none";
+        document.getElementById("tscEvChart").style.display = "block";
+        document.getElementById("consumption-time-filters").style.display = "none";
+
+        const serviceCosts = {};
+        transactions.filter(t => t.type === "Issue" && t.eqSerial).forEach(t => {
+          if (!serviceCosts[t.eqSerial]) {
+            serviceCosts[t.eqSerial] = 0;
+          }
+          const part = parts.find(p => p.code === t.partCode);
+          const unitPrice = part ? part.unitPrice : 0;
+          serviceCosts[t.eqSerial] += (t.qty * unitPrice);
+        });
+
+        const labels = [];
+        const ratios = [];
+        const backgroundColors = [];
+
+        equipment.forEach(eq => {
+          const cost = serviceCosts[eq.serial] || 0;
+          const ratio = (cost / eq.value) * 100;
+          
+          labels.push(`${eq.serial} (${eq.model.split(" ")[0]})`);
+          ratios.push(ratio.toFixed(1));
+
+          if (ratio >= 25.0) {
+            backgroundColors.push('#ef4444');
+          } else if (ratio >= 5.0) {
+            backgroundColors.push('#f97316');
+          } else {
+            backgroundColors.push('#14b8a6');
+          }
+        });
+
+        if (tscEvChartRef) tscEvChartRef.destroy();
+
+        const tscCtx = document.getElementById("tscEvChart").getContext("2d");
+        tscEvChartRef = new Chart(tscCtx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'à¸ªà¸±à¸”à¸ªà¹ˆà¸§à¸™ TSC / EV (%)',
+              data: ratios,
+              backgroundColor: backgroundColors,
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: labelColor, font: { family: 'Sarabun', size: 10 } }
+              },
+              y: {
+                grid: { color: gridColor },
+                ticks: { color: labelColor },
+                title: { display: true, text: 'à¸­à¸±à¸•à¸£à¸²à¸ªà¹ˆà¸§à¸™ (%)', color: labelColor }
+              }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return ` à¸­à¸±à¸•à¸£à¸²à¸ªà¹ˆà¸§à¸™: ${context.raw}% à¸‚à¸­à¸‡à¸£à¸²à¸„à¸²à¸‹à¸·à¹‰à¸­à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 3. Update Budget Progress status bar
+      updateBudgetProgress();
+    }
+
+    // New Budget & EOM Functions
+    function updateBudgetProgress() {
+      const now = new Date();
+      const currentFY = getFiscalYear(now);
+      
+      // Update Fiscal Year labels
+      const fyLabel = (currentFY + 543).toString(); // Convert to BE (e.g. 2026 + 543 = 2569)
+      const labelEl = document.getElementById("budget-fiscal-year-label");
+      if (labelEl) labelEl.innerText = `à¸ž.à¸¨. ${fyLabel} (${currentFY})`;
+
+      // Get budget limits from settings
+      const budget1A = settings.budgetProj1CatA || 0;
+      const budget1B = settings.budgetProj1CatB || 0;
+      const budget1Total = budget1A + budget1B;
+
+      const budget2A = settings.budgetProj2CatA || 0;
+      const budget2B = settings.budgetProj2CatB || 0;
+      const budget2Total = budget2A + budget2B;
+
+      // Reset used values
+      let used1A = 0;
+      let used1B = 0;
+      let used2A = 0;
+      let used2B = 0;
+
+      // Filter transactions for "Issue" in the current fiscal year
+      transactions.forEach(t => {
+        if (t.type === "Issue") {
+          const txDate = new Date(t.timestamp);
+          if (getFiscalYear(txDate) === currentFY) {
+            // Find part to map category
+            const part = parts.find(p => p.code === t.partCode);
+            const pName = part ? part.name : t.partName;
+            const pSupplier = part ? part.supplierName : "";
+            const catMap = getPartCategoryAndProject(t.partCode, pName, pSupplier);
+
+            const cost = parseFloat(t.cost) || (parseInt(t.qty) * (part ? part.unitPrice : 0)) || 0;
+
+            if (catMap.project === "Project 1") {
+              if (catMap.category === "Cat 1.1") used1A += cost;
+              else if (catMap.category === "Cat 1.2") used1B += cost;
+            } else if (catMap.project === "Project 2") {
+              if (catMap.category === "Cat 2.1") used2A += cost;
+              else if (catMap.category === "Cat 2.2") used2B += cost;
+            }
+          }
         }
       });
+
+      const used1Total = used1A + used1B;
+      const used2Total = used2A + used2B;
+
+      // Calculate percentages
+      const pct1A = budget1A > 0 ? ((used1A / budget1A) * 100).toFixed(1) : 0;
+      const pct1B = budget1B > 0 ? ((used1B / budget1B) * 100).toFixed(1) : 0;
+      const pct1Total = budget1Total > 0 ? ((used1Total / budget1Total) * 100).toFixed(1) : 0;
+
+      const pct2A = budget2A > 0 ? ((used2A / budget2A) * 100).toFixed(1) : 0;
+      const pct2B = budget2B > 0 ? ((used2B / budget2B) * 100).toFixed(1) : 0;
+      const pct2Total = budget2Total > 0 ? ((used2Total / budget2Total) * 100).toFixed(1) : 0;
+
+      // Helper: set UI values
+      const setEl = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = val;
+      };
+
+      setEl("proj1-total-budget-val", budget1Total.toLocaleString());
+      setEl("proj1-total-used-val", used1Total.toLocaleString());
+      setEl("proj1-total-pct", pct1Total);
+
+      setEl("proj1-catA-budget-val", budget1A.toLocaleString());
+      setEl("proj1-catA-used-val", used1A.toLocaleString());
+      setEl("proj1-catA-pct", pct1A);
+
+      setEl("proj1-catB-budget-val", budget1B.toLocaleString());
+      setEl("proj1-catB-used-val", used1B.toLocaleString());
+      setEl("proj1-catB-pct", pct1B);
+
+      setEl("proj2-total-budget-val", budget2Total.toLocaleString());
+      setEl("proj2-total-used-val", used2Total.toLocaleString());
+      setEl("proj2-total-pct", pct2Total);
+
+      setEl("proj2-catA-budget-val", budget2A.toLocaleString());
+      setEl("proj2-catA-used-val", used2A.toLocaleString());
+      setEl("proj2-catA-pct", pct2A);
+
+      setEl("proj2-catB-budget-val", budget2B.toLocaleString());
+      setEl("proj2-catB-used-val", used2B.toLocaleString());
+      setEl("proj2-catB-pct", pct2B);
+
+      // Helper: Update Progress Bars
+      const updateBar = (barId, pct) => {
+        const el = document.getElementById(barId);
+        if (el) {
+          const safePct = Math.min(parseFloat(pct), 100);
+          el.style.width = safePct + "%";
+          
+          if (pct >= 85) {
+            el.style.background = "var(--danger)";
+          } else if (pct >= 70) {
+            el.style.background = "var(--warning)";
+          } else {
+            if (barId.includes("proj1")) el.style.background = "var(--primary)";
+            if (barId.includes("proj2")) el.style.background = "var(--secondary)";
+          }
+        }
+      };
+
+      updateBar("proj1-total-progress", pct1Total);
+      updateBar("proj1-catA-progress", pct1A);
+      updateBar("proj1-catB-progress", pct1B);
+
+      updateBar("proj2-total-progress", pct2Total);
+      updateBar("proj2-catA-progress", pct2A);
+      updateBar("proj2-catB-progress", pct2B);
+    }
+
+    function saveBudgetSettings() {
+      if (!currentUser || currentUser.role !== "Programmer") {
+        showToast("à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”", "à¸‚à¸­à¸­à¸ à¸±à¸¢ à¸ªà¸´à¸—à¸˜à¸´à¹Œà¸‚à¸­à¸‡à¸„à¸¸à¸“à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¹à¸à¹‰à¹„à¸‚à¸‡à¸šà¸›à¸£à¸°à¸¡à¸²à¸“à¹„à¸”à¹‰", "danger");
+        return;
+      }
+      
+      const b1a = parseFloat(document.getElementById("settings-budget-proj1-catA").value) || 0;
+      const b1b = parseFloat(document.getElementById("settings-budget-proj1-catB").value) || 0;
+      const b2a = parseFloat(document.getElementById("settings-budget-proj2-catA").value) || 0;
+      const b2b = parseFloat(document.getElementById("settings-budget-proj2-catB").value) || 0;
+
+      settings.budgetProj1CatA = b1a;
+      settings.budgetProj1CatB = b1b;
+      settings.budgetProj2CatA = b2a;
+      settings.budgetProj2CatB = b2b;
+
+      localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¸‡à¸šà¸›à¸£à¸°à¸¡à¸²à¸“à¹à¸¥à¹‰à¸§", "à¸­à¸±à¸›à¹€à¸”à¸•à¸§à¸‡à¹€à¸‡à¸´à¸™à¸‡à¸šà¸›à¸£à¸°à¸¡à¸²à¸“à¸£à¸²à¸¢à¹‚à¸„à¸£à¸‡à¸à¸²à¸£à¹à¸¥à¸°à¸›à¸£à¸°à¹€à¸ à¸—à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢", "success");
+      updateDashboard();
+      persistState();
+    }
+
+    function generateMonthlyReportPreview(targetMonth) {
+      const partsMap = {};
+      parts.forEach(p => { partsMap[p.code] = p; });
+
+      // Determine month info
+      const monthsThai = ["à¸¡à¸à¸£à¸²à¸„à¸¡", "à¸à¸¸à¸¡à¸ à¸²à¸žà¸±à¸™à¸˜à¹Œ", "à¸¡à¸µà¸™à¸²à¸„à¸¡", "à¹€à¸¡à¸©à¸²à¸¢à¸™", "à¸žà¸¤à¸©à¸ à¸²à¸„à¸¡", "à¸¡à¸´à¸–à¸¸à¸™à¸²à¸¢à¸™", "à¸à¸£à¸à¸Žà¸²à¸„à¸¡", "à¸ªà¸´à¸‡à¸«à¸²à¸„à¸¡", "à¸à¸±à¸™à¸¢à¸²à¸¢à¸™", "à¸•à¸¸à¸¥à¸²à¸„à¸¡", "à¸žà¸¤à¸¨à¸ˆà¸´à¸à¸²à¸¢à¸™", "à¸˜à¸±à¸™à¸§à¸²à¸„à¸¡"];
+      const [year, monthIdxStr] = targetMonth.split("-");
+      const monthIdx = parseInt(monthIdxStr) - 1;
+      const monthLabel = monthsThai[monthIdx];
+      const yearBE = parseInt(year) + 543;
+
+      // Filter transactions for this month
+      const thisMonthTx = transactions.filter(t => t.timestamp.startsWith(targetMonth));
+      const thisMonthIssues = thisMonthTx.filter(t => t.type === "Issue");
+
+      // Filter transactions for this Fiscal Year up to selected month
+      const targetDate = new Date(year, monthIdx, 28);
+      const currentFY = getFiscalYear(targetDate);
+
+      const fyIssuesUpToNow = transactions.filter(t => {
+        if (t.type !== "Issue") return false;
+        const d = new Date(t.timestamp);
+        if (getFiscalYear(d) !== currentFY) return false;
+        const tMonth = t.timestamp.substring(0, 7);
+        return tMonth <= targetMonth;
+      });
+
+      // Sum values for budget table
+      let used1A_m = 0, used1B_m = 0, used2A_m = 0, used2B_m = 0;
+      let used1A_y = 0, used1B_y = 0, used2A_y = 0, used2B_y = 0;
+
+      thisMonthIssues.forEach(t => {
+        const part = partsMap[t.partCode];
+        const pName = part ? part.name : t.partName;
+        const pSupplier = part ? part.supplierName : "";
+        const catMap = getPartCategoryAndProject(t.partCode, pName, pSupplier);
+        const cost = parseFloat(t.cost) || (parseInt(t.qty) * (part ? part.unitPrice : 0)) || 0;
+
+        if (catMap.project === "Project 1") {
+          if (catMap.category === "Cat 1.1") used1A_m += cost;
+          else if (catMap.category === "Cat 1.2") used1B_m += cost;
+        } else if (catMap.project === "Project 2") {
+          if (catMap.category === "Cat 2.1") used2A_m += cost;
+          else if (catMap.category === "Cat 2.2") used2B_m += cost;
+        }
+      });
+
+      fyIssuesUpToNow.forEach(t => {
+        const part = partsMap[t.partCode];
+        const pName = part ? part.name : t.partName;
+        const pSupplier = part ? part.supplierName : "";
+        const catMap = getPartCategoryAndProject(t.partCode, pName, pSupplier);
+        const cost = parseFloat(t.cost) || (parseInt(t.qty) * (part ? part.unitPrice : 0)) || 0;
+
+        if (catMap.project === "Project 1") {
+          if (catMap.category === "Cat 1.1") used1A_y += cost;
+          else if (catMap.category === "Cat 1.2") used1B_y += cost;
+        } else if (catMap.project === "Project 2") {
+          if (catMap.category === "Cat 2.1") used2A_y += cost;
+          else if (catMap.category === "Cat 2.2") used2B_y += cost;
+        }
+      });
+
+      // Budget Limits
+      const limit1A = settings.budgetProj1CatA || 0;
+      const limit1B = settings.budgetProj1CatB || 0;
+      const limit1Total = limit1A + limit1B;
+      const limit2A = settings.budgetProj2CatA || 0;
+      const limit2B = settings.budgetProj2CatB || 0;
+      const limit2Total = limit2A + limit2B;
+
+      // Top 3 Fast Moving
+      const partCounts = {};
+      thisMonthIssues.forEach(t => {
+        if (!partCounts[t.partCode]) {
+          partCounts[t.partCode] = { qty: 0, cost: 0, name: t.partName };
+        }
+        partCounts[t.partCode].qty += parseInt(t.qty) || 0;
+        const part = partsMap[t.partCode];
+        const cost = parseFloat(t.cost) || (parseInt(t.qty) * (part ? part.unitPrice : 0)) || 0;
+        partCounts[t.partCode].cost += cost;
+      });
+      const topParts = Object.keys(partCounts)
+        .map(code => ({ code, ...partCounts[code] }))
+        .sort((a, b) => b.qty - a.qty)
+        .slice(0, 3);
+
+      // Top 3 Repair Devices
+      const eqCosts = {};
+      thisMonthIssues.filter(t => t.eqSerial).forEach(t => {
+        if (!eqCosts[t.eqSerial]) {
+          eqCosts[t.eqSerial] = { cost: 0, model: t.eqModel || "Bedside Monitor", dept: t.dept || "ICU" };
+        }
+        const part = partsMap[t.partCode];
+        const cost = parseFloat(t.cost) || (parseInt(t.qty) * (part ? part.unitPrice : 0)) || 0;
+        eqCosts[t.eqSerial].cost += cost;
+      });
+      const topEq = Object.keys(eqCosts)
+        .map(serial => ({ serial, ...eqCosts[serial] }))
+        .sort((a, b) => b.cost - a.cost)
+        .slice(0, 3);
+
+      const reporterName = currentUser ? currentUser.realName : "à¸™à¸²à¸¢à¸ªà¸¸à¸£à¸¨à¸±à¸à¸”à¸´à¹Œ à¸žà¸¶à¹ˆà¸‡à¹€à¸¥à¹ˆà¸«à¹Œ";
+      const reporterRole = currentUser ? (currentUser.role === "Programmer" ? "à¸Šà¹ˆà¸²à¸‡à¹€à¸—à¸„à¸™à¸´à¸„à¸­à¸²à¸§à¸¸à¹‚à¸ª" : currentUser.role) : "à¸Šà¹ˆà¸²à¸‡à¹€à¸—à¸„à¸™à¸´à¸„à¸›à¸£à¸°à¸ˆà¸³à¸¨à¸¹à¸™à¸¢à¹Œà¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸¡à¸·à¸­à¹à¸žà¸—à¸¢à¹Œ";
+
+      const reportHtml = `
+        <div style="font-family: 'Sarabun', Arial, sans-serif; line-height: 1.5; color: #000000; padding: 10px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="font-size: 1.3rem; font-weight: bold;">à¸£à¸²à¸¢à¸‡à¸²à¸™à¸ªà¸£à¸¸à¸›à¸à¸²à¸£à¹€à¸šà¸´à¸à¸ˆà¹ˆà¸²à¸¢à¹à¸¥à¸°à¸‡à¸šà¸›à¸£à¸°à¸¡à¸²à¸“à¸žà¸±à¸ªà¸”à¸¸à¸­à¸°à¹„à¸«à¸¥à¹ˆà¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸¡à¸·à¸­à¹à¸žà¸—à¸¢à¹Œ</div>
+            <div style="font-size: 1.1rem; font-weight: bold; margin-top: 5px;">à¸¨à¸¹à¸™à¸¢à¹Œà¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸¡à¸·à¸­à¹à¸žà¸—à¸¢à¹Œ à¹‚à¸£à¸‡à¸žà¸¢à¸²à¸šà¸²à¸¥à¸™à¸„à¸£à¸žà¸´à¸‡à¸„à¹Œ</div>
+            <div style="font-size: 1rem; margin-top: 5px;">à¸›à¸£à¸°à¸ˆà¸³à¹€à¸”à¸·à¸­à¸™ ${monthLabel} à¸ž.à¸¨. ${yearBE} (à¸›à¸µà¸‡à¸šà¸›à¸£à¸°à¸¡à¸²à¸“ ${currentFY + 543})</div>
+          </div>
+          
+          <hr style="border: 0; border-top: 2px solid #000000; margin-bottom: 20px;">
+
+          <div style="margin-bottom: 20px;">
+            <div style="font-weight: bold; font-size: 1rem; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 10px;">
+              à¹‘. à¸•à¸²à¸£à¸²à¸‡à¸ªà¸£à¸¸à¸›à¸à¸²à¸£à¹ƒà¸Šà¹‰à¸‡à¸šà¸›à¸£à¸°à¸¡à¸²à¸“à¹à¸¢à¸à¸£à¸²à¸¢à¹‚à¸„à¸£à¸‡à¸à¸²à¸£
+            </div>
+            <table class="print-table" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th style="border: 1px solid #000; padding: 6px; background-color: #f2f2f2;">à¹‚à¸„à¸£à¸‡à¸à¸²à¸£ / à¸›à¸£à¸°à¹€à¸ à¸—à¸§à¸±à¸ªà¸”à¸¸à¸­à¸°à¹„à¸«à¸¥à¹ˆ</th>
+                  <th style="border: 1px solid #000; padding: 6px; text-align: right; background-color: #f2f2f2;">à¸‡à¸šà¸›à¸£à¸°à¸¡à¸²à¸“à¸ˆà¸±à¸”à¸ªà¸£à¸£ (à¸šà¸²à¸—)</th>
+                  <th style="border: 1px solid #000; padding: 6px; text-align: right; background-color: #f2f2f2;">à¹€à¸šà¸´à¸à¸ˆà¹ˆà¸²à¸¢à¹€à¸”à¸·à¸­à¸™à¸™à¸µà¹‰ (à¸šà¸²à¸—)</th>
+                  <th style="border: 1px solid #000; padding: 6px; text-align: right; background-color: #f2f2f2;">à¹€à¸šà¸´à¸à¸ªà¸°à¸ªà¸¡à¸—à¸±à¹‰à¸‡à¸›à¸µ (à¸šà¸²à¸—)</th>
+                  <th style="border: 1px solid #000; padding: 6px; text-align: right; background-color: #f2f2f2;">à¸‡à¸šà¸›à¸£à¸°à¸¡à¸²à¸“à¸„à¸‡à¹€à¸«à¸¥à¸·à¸­ (à¸šà¸²à¸—)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="font-weight: bold; background-color: #fafafa;">
+                  <td style="border: 1px solid #000; padding: 6px;">à¹‚à¸„à¸£à¸‡à¸à¸²à¸£à¸—à¸µà¹ˆ à¹‘: à¸ªà¸²à¸¢ SPO2 (à¸£à¹‰à¸²à¸™à¹€à¸­à¸ªà¸­à¸²à¸£à¹Œ.à¸Šà¸²à¸¢à¸™à¹Œà¸¯)</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(limit1A + limit1B).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(used1A_m + used1B_m).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(used1A_y + used1B_y).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${((limit1A + limit1B) - (used1A_y + used1B_y)).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000; padding: 6px; padding-left: 20px;">- à¸ªà¸²à¸¢à¸§à¸±à¸” SpO2 à¹à¸šà¸š Reusable</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${limit1A.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used1A_m.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used1A_y.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(limit1A - used1A_y).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000; padding: 6px; padding-left: 20px;">- à¸ªà¸²à¸¢à¸§à¸±à¸” SpO2 à¹à¸šà¸š Cable/Probe</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${limit1B.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used1B_m.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used1B_y.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(limit1B - used1B_y).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                </tr>
+                <tr style="font-weight: bold; background-color: #fafafa;">
+                  <td style="border: 1px solid #000; padding: 6px;">à¹‚à¸„à¸£à¸‡à¸à¸²à¸£à¸—à¸µà¹ˆ à¹’: à¸ªà¸²à¸¢à¹„à¸Ÿà¹à¸¥à¸°à¸•à¹ˆà¸­à¸žà¹ˆà¸§à¸‡ (à¸šà¸ˆà¸. à¹à¸šà¸‡à¸„à¹‡à¸­à¸ à¹€à¸¡à¸”à¸´à¸„à¸­à¸¥ à¹‚à¸›à¸£)</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(limit2A + limit2B).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(used2A_m + used2B_m).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(used2A_y + used2B_y).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${((limit2A + limit2B) - (used2A_y + used2B_y)).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000; padding: 6px; padding-left: 20px;">- à¸ªà¸²à¸¢à¸•à¹ˆà¸­à¸žà¹ˆà¸§à¸‡ SpO2 Extension Cable</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${limit2A.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used2A_m.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used2A_y.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(limit2A - used2A_y).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000; padding: 6px; padding-left: 20px;">- à¸ªà¸²à¸¢à¹„à¸Ÿ AC Gray Medical Grade</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${limit2B.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used2B_m.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used2B_y.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(limit2B - used2B_y).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                </tr>
+                <tr style="font-weight: bold; background-color: #f2f2f2;">
+                  <td style="border: 1px solid #000; padding: 6px; text-align: center;">à¸¢à¸­à¸”à¸£à¸§à¸¡à¸ªà¸¸à¸—à¸˜à¸´à¸—à¸¸à¸à¹‚à¸„à¸£à¸‡à¸à¸²à¸£</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(limit1Total + limit2Total).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(used1A_m + used1B_m + used2A_m + used2B_m).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(used1A_y + used1B_y + used2A_y + used2B_y).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${((limit1Total + limit2Total) - (used1A_y + used1B_y + used2A_y + used2B_y)).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+              <div style="font-weight: bold; font-size: 0.95rem; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 8px;">
+                à¹’. à¸­à¸°à¹„à¸«à¸¥à¹ˆà¸—à¸µà¹ˆà¹€à¸šà¸´à¸à¸ªà¸¹à¸‡à¸ªà¸¸à¸”à¹ƒà¸™à¹€à¸”à¸·à¸­à¸™à¸™à¸µà¹‰ (Top Requisitions)
+              </div>
+              <table class="print-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background-color: #fafafa;">
+                    <th style="border: 1px solid #000; padding: 4px; font-size: 8.5pt;">à¸£à¸«à¸±à¸ªà¸­à¸°à¹„à¸«à¸¥à¹ˆ</th>
+                    <th style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: center;">à¸ˆà¸³à¸™à¸§à¸™à¹€à¸šà¸´à¸</th>
+                    <th style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: right;">à¸¡à¸¹à¸¥à¸„à¹ˆà¸²à¸£à¸§à¸¡ (à¸šà¸²à¸—)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${topParts.length === 0 ? '<tr><td colspan="3" style="text-align:center; font-size: 8.5pt; padding: 8px;">à¹„à¸¡à¹ˆà¸¡à¸µà¸à¸²à¸£à¸—à¸³à¸£à¸²à¸¢à¸à¸²à¸£à¹€à¸šà¸´à¸</td></tr>' : 
+                    topParts.map(p => `
+                      <tr>
+                        <td style="border: 1px solid #000; padding: 4px; font-size: 8.5pt;"><strong>${p.code}</strong><br><span style="font-size: 7.5pt; color: #555;">${p.name}</span></td>
+                        <td style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: center;">${p.qty} à¸Šà¸´à¹‰à¸™</td>
+                        <td style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: right;">${p.cost.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                      </tr>
+                    `).join('')
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <div>
+              <div style="font-weight: bold; font-size: 0.95rem; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 8px;">
+                à¹“. à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸¡à¸·à¸­à¸—à¸µà¹ˆà¸—à¸³à¸¢à¸­à¸”à¸„à¹ˆà¸²à¸‹à¹ˆà¸­à¸¡à¸ªà¸¹à¸‡à¸ªà¸¸à¸”à¹ƒà¸™à¹€à¸”à¸·à¸­à¸™à¸™à¸µà¹‰ (Top Repairs)
+              </div>
+              <table class="print-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background-color: #fafafa;">
+                    <th style="border: 1px solid #000; padding: 4px; font-size: 8.5pt;">à¹€à¸¥à¸‚à¸„à¸£à¸¸à¸ à¸±à¸“à¸‘à¹Œ / à¸£à¸¸à¹ˆà¸™</th>
+                    <th style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: center;">à¹à¸œà¸™à¸</th>
+                    <th style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: right;">à¸„à¹ˆà¸²à¸­à¸°à¹„à¸«à¸¥à¹ˆà¸‹à¹ˆà¸­à¸¡ (à¸šà¸²à¸—)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${topEq.length === 0 ? '<tr><td colspan="3" style="text-align:center; font-size: 8.5pt; padding: 8px;">à¹„à¸¡à¹ˆà¸¡à¸µà¸›à¸£à¸°à¸§à¸±à¸•à¸´à¸à¸²à¸£à¸‹à¹ˆà¸­à¸¡à¹ƒà¸™à¹€à¸”à¸·à¸­à¸™à¸™à¸µà¹‰</td></tr>' : 
+                    topEq.map(e => `
+                      <tr>
+                        <td style="border: 1px solid #000; padding: 4px; font-size: 8.5pt;"><strong>${e.serial}</strong><br><span style="font-size: 7.5pt; color: #555;">${e.model}</span></td>
+                        <td style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: center;">${e.dept}</td>
+                        <td style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: right;">${e.cost.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                      </tr>
+                    `).join('')
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style="margin-top: 50px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; text-align: center; font-size: 0.95rem;">
+            <div>
+              <div style="margin-bottom: 45px;">(à¸¥à¸‡à¸Šà¸·à¹ˆà¸­) ............................................................ à¸œà¸¹à¹‰à¹€à¸ªà¸™à¸­à¸£à¸²à¸¢à¸‡à¸²à¸™</div>
+              <div>( <strong>${reporterName}</strong> )</div>
+              <div style="font-size: 0.85rem; color: #555; margin-top: 5px;">à¸•à¸³à¹à¸«à¸™à¹ˆà¸‡ ${reporterRole}</div>
+              <div style="margin-top: 5px;">à¸§à¸±à¸™à¸—à¸µà¹ˆ ........ / ........................ / ................</div>
+            </div>
+            <div>
+              <div style="margin-bottom: 45px;">(à¸¥à¸‡à¸Šà¸·à¹ˆà¸­) ............................................................ à¸œà¸¹à¹‰à¸šà¸£à¸´à¸«à¸²à¸£à¸­à¸™à¸¸à¸¡à¸±à¸•à¸´</div>
+              <div>( <strong>à¸™à¸²à¸¢à¸£à¸±à¸à¸¨à¸²à¸ªà¸•à¸£à¹Œ à¸¡à¸«à¸²à¹€à¸—à¸ž</strong> )</div>
+              <div style="font-size: 0.85rem; color: #555; margin-top: 5px;">à¸•à¸³à¹à¸«à¸™à¹ˆà¸‡ à¸«à¸±à¸§à¸«à¸™à¹‰à¸²à¹€à¸ˆà¹‰à¸²à¸«à¸™à¹‰à¸²à¸—à¸µà¹ˆà¸‡à¸²à¸™à¸¨à¸¹à¸™à¸¢à¹Œà¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸¡à¸·à¸­à¹à¸žà¸—à¸¢à¹Œ</div>
+              <div style="margin-top: 5px;">à¸§à¸±à¸™à¸—à¸µà¹ˆ ........ / ........................ / ................</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      return reportHtml;
     }
 
     // 6. Spare Parts Catalog tab rendering
@@ -851,7 +1579,7 @@
       });
 
       if (filteredParts.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 30px; color: var(--text-muted);">❌ ไม่พบรายการอะไหล่ตามเงื่อนไขการค้นหา</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 30px; color: var(--text-muted);">âŒ à¹„à¸¡à¹ˆà¸žà¸šà¸£à¸²à¸¢à¸à¸²à¸£à¸­à¸°à¹„à¸«à¸¥à¹ˆà¸•à¸²à¸¡à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸à¸²à¸£à¸„à¹‰à¸™à¸«à¸²</td></tr>`;
         return;
       }
 
@@ -870,20 +1598,20 @@
           <td><span class="badge badge-${p.abcClass.toLowerCase()}">Class ${p.abcClass}</span></td>
           <td><span style="font-size: 0.8rem; background: var(--bg-tertiary); padding: 4px 8px; border-radius: 4px;">${p.location}</span></td>
           <td>
-            <span class="badge ${stockState.class}">${p.inStock} ชิ้น</span>
+            <span class="badge ${stockState.class}">${p.inStock} à¸Šà¸´à¹‰à¸™</span>
           </td>
-          <td><strong>฿${p.unitPrice.toLocaleString("th-TH")}</strong></td>
+          <td><strong>à¸¿${p.unitPrice.toLocaleString("th-TH")}</strong></td>
           <td>
             <span class="badge ${expiryState.class}">${p.expiryDate}</span>
           </td>
           <td>
             <div style="display: flex; gap: 8px;">
               <button class="btn btn-secondary btn-sm" onclick="showStockCard('${p.code}')" style="padding: 4px 8px; font-size: 0.75rem;">
-                <i data-lucide="eye" style="width: 14px; height: 14px;"></i> การใช้งาน
+                <i data-lucide="eye" style="width: 14px; height: 14px;"></i> à¸à¸²à¸£à¹ƒà¸Šà¹‰à¸‡à¸²à¸™
               </button>
               ${currentUser && currentUser.role !== "General User" ? `
               <button class="btn btn-secondary btn-sm" onclick="editPartDetails('${p.code}')" style="padding: 4px 8px; font-size: 0.75rem; color: var(--primary);">
-                <i data-lucide="edit" style="width: 14px; height: 14px;"></i> แก้ไข
+                <i data-lucide="edit" style="width: 14px; height: 14px;"></i> à¹à¸à¹‰à¹„à¸‚
               </button>
               ` : ''}
             </div>
@@ -901,21 +1629,21 @@
 
       document.getElementById("modal-sc-name").innerText = part.name;
       document.getElementById("modal-sc-code").innerText = part.code;
-      document.getElementById("modal-sc-abc").innerText = `Class ${part.abcClass} (ระดับความเข้มงวด)`;
+      document.getElementById("modal-sc-abc").innerText = `Class ${part.abcClass} (à¸£à¸°à¸”à¸±à¸šà¸„à¸§à¸²à¸¡à¹€à¸‚à¹‰à¸¡à¸‡à¸§à¸”)`;
       document.getElementById("modal-sc-desc").innerText = part.description || "-";
       document.getElementById("modal-sc-manufacturer").innerText = part.manufacturer;
       document.getElementById("modal-sc-location").innerText = part.location;
-      document.getElementById("modal-sc-stock").innerText = `${part.inStock} ชิ้น`;
+      document.getElementById("modal-sc-stock").innerText = `${part.inStock} à¸Šà¸´à¹‰à¸™`;
       
       const stockColor = part.inStock <= part.reorderPoint ? "var(--danger)" : "var(--success)";
       document.getElementById("modal-sc-stock").style.color = stockColor;
 
-      document.getElementById("modal-sc-price").innerText = `฿${part.unitPrice.toLocaleString("th-TH")}`;
+      document.getElementById("modal-sc-price").innerText = `à¸¿${part.unitPrice.toLocaleString("th-TH")}`;
       document.getElementById("modal-sc-purchase").innerText = part.purchaseDate;
       document.getElementById("modal-sc-expiry").innerText = part.expiryDate;
-      document.getElementById("modal-sc-leadtime").innerText = `${part.leadTime} วัน`;
-      document.getElementById("modal-sc-freq").innerText = `${part.repairFreq} ครั้ง/ปี`;
-      document.getElementById("modal-sc-supplier").innerText = `${part.supplierName} (โทร: ${part.supplierContact})`;
+      document.getElementById("modal-sc-leadtime").innerText = `${part.leadTime} à¸§à¸±à¸™`;
+      document.getElementById("modal-sc-freq").innerText = `${part.repairFreq} à¸„à¸£à¸±à¹‰à¸‡/à¸›à¸µ`;
+      document.getElementById("modal-sc-supplier").innerText = `${part.supplierName} (à¹‚à¸—à¸£: ${part.supplierContact})`;
 
       const compatList = document.getElementById("modal-sc-compat-list");
       compatList.innerHTML = "";
@@ -925,11 +1653,11 @@
           const units = equipment.filter(e => e.model === model);
           const serialsStr = units.map(u => u.serial).join(", ");
           const li = document.createElement("li");
-          li.innerHTML = `<strong>${model}</strong> ${serialsStr ? `[ซีเรียลใน รพ.: ${serialsStr}]` : `(ไม่มีเครื่องติดตั้งในระบบ)`}`;
+          li.innerHTML = `<strong>${model}</strong> ${serialsStr ? `[à¸‹à¸µà¹€à¸£à¸µà¸¢à¸¥à¹ƒà¸™ à¸£à¸ž.: ${serialsStr}]` : `(à¹„à¸¡à¹ˆà¸¡à¸µà¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸•à¸´à¸”à¸•à¸±à¹‰à¸‡à¹ƒà¸™à¸£à¸°à¸šà¸š)`}`;
           compatList.appendChild(li);
         });
       } else {
-        compatList.innerHTML = `<span style="color: var(--text-muted);">ไม่ได้ระบุเครื่องมือที่เชื่อมโยง</span>`;
+        compatList.innerHTML = `<span style="color: var(--text-muted);">à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¸£à¸°à¸šà¸¸à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸¡à¸·à¸­à¸—à¸µà¹ˆà¹€à¸Šà¸·à¹ˆà¸­à¸¡à¹‚à¸¢à¸‡</span>`;
       }
 
       openModal("modal-stock-card");
@@ -940,7 +1668,7 @@
       if (!part) return;
 
       document.getElementById("part-form-mode").value = "edit";
-      document.getElementById("modal-add-title").innerText = `แก้ไขข้อมูลอะไหล่: ${part.code}`;
+      document.getElementById("modal-add-title").innerText = `à¹à¸à¹‰à¹„à¸‚à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸­à¸°à¹„à¸«à¸¥à¹ˆ: ${part.code}`;
       
       document.getElementById("part-code").value = part.code;
       document.getElementById("part-code").disabled = true;
@@ -1034,7 +1762,7 @@
         const text = evt.target.result;
         const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
         if (lines.length === 0) {
-          showToast("รูปแบบไฟล์ไม่ถูกต้อง", "ไฟล์ CSV ว่างเปล่า ไม่มีข้อมูลสำหรับนำเข้า", "danger");
+          showToast("à¸£à¸¹à¸›à¹à¸šà¸šà¹„à¸Ÿà¸¥à¹Œà¹„à¸¡à¹ˆà¸–à¸¹à¸à¸•à¹‰à¸­à¸‡", "à¹„à¸Ÿà¸¥à¹Œ CSV à¸§à¹ˆà¸²à¸‡à¹€à¸›à¸¥à¹ˆà¸² à¹„à¸¡à¹ˆà¸¡à¸µà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸³à¸«à¸£à¸±à¸šà¸™à¸³à¹€à¸‚à¹‰à¸²", "danger");
           return;
         }
 
@@ -1053,7 +1781,7 @@
 
         const isValidHeaders = expectedHeaders.every((h, idx) => headers[idx] === h);
         if (!isValidHeaders) {
-          showToast("นำเข้าข้อมูลล้มเหลว", "หัวข้อตาราง (Headers) ของไฟล์ CSV ไม่ถูกต้องตามรูปแบบของคลัง", "danger");
+          showToast("à¸™à¸³à¹€à¸‚à¹‰à¸²à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§", "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸•à¸²à¸£à¸²à¸‡ (Headers) à¸‚à¸­à¸‡à¹„à¸Ÿà¸¥à¹Œ CSV à¹„à¸¡à¹ˆà¸–à¸¹à¸à¸•à¹‰à¸­à¸‡à¸•à¸²à¸¡à¸£à¸¹à¸›à¹à¸šà¸šà¸‚à¸­à¸‡à¸„à¸¥à¸±à¸‡", "danger");
           return;
         }
 
@@ -1082,12 +1810,12 @@
         }
 
         if (parsedParts.length === 0) {
-          showToast("ไม่พบรายการอะไหล่", "ไม่มีข้อมูลอะไหล่ที่ถูกต้องในไฟล์ CSV สำหรับนำเข้า", "danger");
+          showToast("à¹„à¸¡à¹ˆà¸žà¸šà¸£à¸²à¸¢à¸à¸²à¸£à¸­à¸°à¹„à¸«à¸¥à¹ˆ", "à¹„à¸¡à¹ˆà¸¡à¸µà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸­à¸°à¹„à¸«à¸¥à¹ˆà¸—à¸µà¹ˆà¸–à¸¹à¸à¸•à¹‰à¸­à¸‡à¹ƒà¸™à¹„à¸Ÿà¸¥à¹Œ CSV à¸ªà¸³à¸«à¸£à¸±à¸šà¸™à¸³à¹€à¸‚à¹‰à¸²", "danger");
           return;
         }
 
         // Show custom confirmation modal
-        document.getElementById("confirm-message").innerText = `พบอะไหล่จำนวน ${parsedParts.length} รายการในไฟล์นี้ การนำเข้าข้อมูลนี้จะทำการล้างข้อมูลเดิมในคลังทั้งหมดและเขียนทับใหม่ คุณยืนยันที่จะทำรายการนี้หรือไม่?`;
+        document.getElementById("confirm-message").innerText = `à¸žà¸šà¸­à¸°à¹„à¸«à¸¥à¹ˆà¸ˆà¸³à¸™à¸§à¸™ ${parsedParts.length} à¸£à¸²à¸¢à¸à¸²à¸£à¹ƒà¸™à¹„à¸Ÿà¸¥à¹Œà¸™à¸µà¹‰ à¸à¸²à¸£à¸™à¸³à¹€à¸‚à¹‰à¸²à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸™à¸µà¹‰à¸ˆà¸°à¸—à¸³à¸à¸²à¸£à¸¥à¹‰à¸²à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹€à¸”à¸´à¸¡à¹ƒà¸™à¸„à¸¥à¸±à¸‡à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”à¹à¸¥à¸°à¹€à¸‚à¸µà¸¢à¸™à¸—à¸±à¸šà¹ƒà¸«à¸¡à¹ˆ à¸„à¸¸à¸“à¸¢à¸·à¸™à¸¢à¸±à¸™à¸—à¸µà¹ˆà¸ˆà¸°à¸—à¸³à¸£à¸²à¸¢à¸à¸²à¸£à¸™à¸µà¹‰à¸«à¸£à¸·à¸­à¹„à¸¡à¹ˆ?`;
         
         const confirmBtn = document.getElementById("btn-confirm-import");
         confirmBtn.onclick = function() {
@@ -1099,7 +1827,7 @@
           updateDashboard();
           populateTransactionSelects();
           
-          showToast("นำเข้าข้อมูลสำเร็จ", `นำเข้าคลังอะไหล่ใหม่จำนวน ${parsedParts.length} รายการ และซิงก์เรียบร้อยแล้ว`, "success");
+          showToast("à¸™à¸³à¹€à¸‚à¹‰à¸²à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸³à¹€à¸£à¹‡à¸ˆ", `à¸™à¸³à¹€à¸‚à¹‰à¸²à¸„à¸¥à¸±à¸‡à¸­à¸°à¹„à¸«à¸¥à¹ˆà¹ƒà¸«à¸¡à¹ˆà¸ˆà¸³à¸™à¸§à¸™ ${parsedParts.length} à¸£à¸²à¸¢à¸à¸²à¸£ à¹à¸¥à¸°à¸‹à¸´à¸‡à¸à¹Œà¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§`, "success");
         };
 
         const modal = document.getElementById("confirm-modal");
@@ -1125,7 +1853,7 @@
       if (supplierInput.includes("/")) {
         const parts = supplierInput.split("/");
         supName = parts[0].trim();
-        supContact = parts[1].replace(/Tel:|ติดต่อ:/gi, "").trim();
+        supContact = parts[1].replace(/Tel:|à¸•à¸´à¸”à¸•à¹ˆà¸­:/gi, "").trim();
       }
 
       const compatInput = document.getElementById("part-compat").value.trim();
@@ -1147,22 +1875,22 @@
         expiryDate: document.getElementById("part-expiry-date").value,
         leadTime: parseInt(document.getElementById("part-leadtime").value),
         repairFreq: parseInt(document.getElementById("part-freq").value),
-        supplierName: supName || "ทั่วไป",
+        supplierName: supName || "à¸—à¸±à¹ˆà¸§à¹„à¸›",
         supplierContact: supContact
       };
 
       if (mode === "add") {
         if (parts.some(p => p.code === partCode)) {
-          alert("รหัสอะไหล่นี้มีอยู่แล้วในระบบ กรุณาใช้รหัสอื่น");
+          alert("à¸£à¸«à¸±à¸ªà¸­à¸°à¹„à¸«à¸¥à¹ˆà¸™à¸µà¹‰à¸¡à¸µà¸­à¸¢à¸¹à¹ˆà¹à¸¥à¹‰à¸§à¹ƒà¸™à¸£à¸°à¸šà¸š à¸à¸£à¸¸à¸“à¸²à¹ƒà¸Šà¹‰à¸£à¸«à¸±à¸ªà¸­à¸·à¹ˆà¸™");
           return;
         }
         parts.push(partPayload);
-        showToast("สำเร็จ", `เพิ่มอะไหล่ ${partCode} สำเร็จ`, "success");
+        showToast("à¸ªà¸³à¹€à¸£à¹‡à¸ˆ", `à¹€à¸žà¸´à¹ˆà¸¡à¸­à¸°à¹„à¸«à¸¥à¹ˆ ${partCode} à¸ªà¸³à¹€à¸£à¹‡à¸ˆ`, "success");
       } else {
         const index = parts.findIndex(p => p.code === partCode);
         if (index !== -1) {
           parts[index] = { ...parts[index], ...partPayload };
-          showToast("สำเร็จ", `แก้ไขรายละเอียดอะไหล่ ${partCode} สำเร็จ`, "success");
+          showToast("à¸ªà¸³à¹€à¸£à¹‡à¸ˆ", `à¹à¸à¹‰à¹„à¸‚à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¸­à¸°à¹„à¸«à¸¥à¹ˆ ${partCode} à¸ªà¸³à¹€à¸£à¹‡à¸ˆ`, "success");
         }
       }
 
@@ -1179,7 +1907,7 @@
       parts.forEach(p => {
         const opt = document.createElement("option");
         opt.value = p.code;
-        opt.innerText = `[${p.code}] ${p.name} (คงเหลือ: ${p.inStock} ชิ้น)`;
+        opt.innerText = `[${p.code}] ${p.name} (à¸„à¸‡à¹€à¸«à¸¥à¸·à¸­: ${p.inStock} à¸Šà¸´à¹‰à¸™)`;
         partSelect.appendChild(opt);
       });
     }
@@ -1290,22 +2018,22 @@
       if (isRequired) {
         const serialVal = document.getElementById("tx-eq-serial").value.trim();
         if (serialVal === "") {
-          showToast("ตรวจสอบข้อมูลล้มเหลว", "กรุณาระบุซีเรียลเครื่องมือแพทย์ที่ใช้อะไหล่", "danger");
+          showToast("à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§", "à¸à¸£à¸¸à¸“à¸²à¸£à¸°à¸šà¸¸à¸‹à¸µà¹€à¸£à¸µà¸¢à¸¥à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸¡à¸·à¸­à¹à¸žà¸—à¸¢à¹Œà¸—à¸µà¹ˆà¹ƒà¸Šà¹‰à¸­à¸°à¹„à¸«à¸¥à¹ˆ", "danger");
           return;
         }
         if (!/^\d{6}$/.test(repairNoVal)) {
-          showToast("ตรวจสอบข้อมูลล้มเหลว", "กรุณาระบุเลขซ่อมให้ถูกต้อง (ต้องเป็นตัวเลข 6 หลัก)", "danger");
+          showToast("à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§", "à¸à¸£à¸¸à¸“à¸²à¸£à¸°à¸šà¸¸à¹€à¸¥à¸‚à¸‹à¹ˆà¸­à¸¡à¹ƒà¸«à¹‰à¸–à¸¹à¸à¸•à¹‰à¸­à¸‡ (à¸•à¹‰à¸­à¸‡à¹€à¸›à¹‡à¸™à¸•à¸±à¸§à¹€à¸¥à¸‚ 6 à¸«à¸¥à¸±à¸)", "danger");
           return;
         }
         if (deptVal === "") {
-          showToast("ตรวจสอบข้อมูลล้มเหลว", "กรุณาระบุหน่วยงานที่เบิก / แผนกที่ใช้", "danger");
+          showToast("à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§", "à¸à¸£à¸¸à¸“à¸²à¸£à¸°à¸šà¸¸à¸«à¸™à¹ˆà¸§à¸¢à¸‡à¸²à¸™à¸—à¸µà¹ˆà¹€à¸šà¸´à¸ / à¹à¸œà¸™à¸à¸—à¸µà¹ˆà¹ƒà¸Šà¹‰", "danger");
           return;
         }
       }
 
       const partIndex = parts.findIndex(p => p.code === partCode);
       if (partIndex === -1) {
-        showToast("ไม่พบรหัสชิ้นส่วน", "ไม่พบรหัสอะไหล่ดังกล่าวในระบบ", "danger");
+        showToast("à¹„à¸¡à¹ˆà¸žà¸šà¸£à¸«à¸±à¸ªà¸Šà¸´à¹‰à¸™à¸ªà¹ˆà¸§à¸™", "à¹„à¸¡à¹ˆà¸žà¸šà¸£à¸«à¸±à¸ªà¸­à¸°à¹„à¸«à¸¥à¹ˆà¸”à¸±à¸‡à¸à¸¥à¹ˆà¸²à¸§à¹ƒà¸™à¸£à¸°à¸šà¸š", "danger");
         return;
       }
       
@@ -1313,7 +2041,7 @@
 
       if (type === "Issue" || type === "Borrow") {
         if (part.inStock < qty) {
-          showToast("จำนวนอะไหล่ไม่พอ", `อะไหล่ในสต๊อกมีเพียง ${part.inStock} ชิ้น ไม่เพียงพอต่อการจัดกิจกรรมเบิก/ยืมจำนวน ${qty} ชิ้น`, "danger");
+          showToast("à¸ˆà¸³à¸™à¸§à¸™à¸­à¸°à¹„à¸«à¸¥à¹ˆà¹„à¸¡à¹ˆà¸žà¸­", `à¸­à¸°à¹„à¸«à¸¥à¹ˆà¹ƒà¸™à¸ªà¸•à¹Šà¸­à¸à¸¡à¸µà¹€à¸žà¸µà¸¢à¸‡ ${part.inStock} à¸Šà¸´à¹‰à¸™ à¹„à¸¡à¹ˆà¹€à¸žà¸µà¸¢à¸‡à¸žà¸­à¸•à¹ˆà¸­à¸à¸²à¸£à¸ˆà¸±à¸”à¸à¸´à¸ˆà¸à¸£à¸£à¸¡à¹€à¸šà¸´à¸/à¸¢à¸·à¸¡à¸ˆà¸³à¸™à¸§à¸™ ${qty} à¸Šà¸´à¹‰à¸™`, "danger");
           return;
         }
       }
@@ -1322,7 +2050,7 @@
       const submitBtn = e.target.querySelector('button[type="submit"]');
       const originalBtnHtml = submitBtn.innerHTML;
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 5px;"></span> กำลังบันทึกรายการ...';
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 5px;"></span> à¸à¸³à¸¥à¸±à¸‡à¸šà¸±à¸™à¸—à¸¶à¸à¸£à¸²à¸¢à¸à¸²à¸£...';
 
       try {
         let stockAdjustment = 0;
@@ -1415,18 +2143,18 @@
         // Check LINE result to determine popup modal notification style
         if (lineResult.success) {
           if (lineResult.omitted) {
-            showToast("บันทึกสำเร็จ", `บันทึกรายการทำธุรกรรม ${type} (รหัสอะไหล่ ${partCode}) ลงในฐานข้อมูลคลังสำเร็จเรียบร้อยแล้ว`, "success");
+            showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¸ªà¸³à¹€à¸£à¹‡à¸ˆ", `à¸šà¸±à¸™à¸—à¸¶à¸à¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸³à¸˜à¸¸à¸£à¸à¸£à¸£à¸¡ ${type} (à¸£à¸«à¸±à¸ªà¸­à¸°à¹„à¸«à¸¥à¹ˆ ${partCode}) à¸¥à¸‡à¹ƒà¸™à¸à¸²à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸„à¸¥à¸±à¸‡à¸ªà¸³à¹€à¸£à¹‡à¸ˆà¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§`, "success");
           } else {
-            showToast("บันทึก & แจ้งเตือนสำเร็จ", `บันทึกรายการธุรกรรมคลังสำเร็จ และได้จัดส่งข้อความแจ้งเตือน LINE เรียบร้อยสมบูรณ์`, "success");
+            showToast("à¸šà¸±à¸™à¸—à¸¶à¸ & à¹à¸ˆà¹‰à¸‡à¹€à¸•à¸·à¸­à¸™à¸ªà¸³à¹€à¸£à¹‡à¸ˆ", `à¸šà¸±à¸™à¸—à¸¶à¸à¸£à¸²à¸¢à¸à¸²à¸£à¸˜à¸¸à¸£à¸à¸£à¸£à¸¡à¸„à¸¥à¸±à¸‡à¸ªà¸³à¹€à¸£à¹‡à¸ˆ à¹à¸¥à¸°à¹„à¸”à¹‰à¸ˆà¸±à¸”à¸ªà¹ˆà¸‡à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¹à¸ˆà¹‰à¸‡à¹€à¸•à¸·à¸­à¸™ LINE à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¸ªà¸¡à¸šà¸¹à¸£à¸“à¹Œ`, "success");
           }
         } else {
           // Local save succeeded, but LINE failed (Partial Success)
-          showToast("สมบูรณ์บางส่วน (บันทึกสำเร็จ แต่ LINE ล้มเหลว)", `ระบบบันทึกรายการในคลังสำเร็จแล้ว แต่ไม่สามารถส่งแจ้งเตือน LINE ได้เนื่องจาก: ${lineResult.error}`, "warning");
+          showToast("à¸ªà¸¡à¸šà¸¹à¸£à¸“à¹Œà¸šà¸²à¸‡à¸ªà¹ˆà¸§à¸™ (à¸šà¸±à¸™à¸—à¸¶à¸à¸ªà¸³à¹€à¸£à¹‡à¸ˆ à¹à¸•à¹ˆ LINE à¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§)", `à¸£à¸°à¸šà¸šà¸šà¸±à¸™à¸—à¸¶à¸à¸£à¸²à¸¢à¸à¸²à¸£à¹ƒà¸™à¸„à¸¥à¸±à¸‡à¸ªà¸³à¹€à¸£à¹‡à¸ˆà¹à¸¥à¹‰à¸§ à¹à¸•à¹ˆà¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸ªà¹ˆà¸‡à¹à¸ˆà¹‰à¸‡à¹€à¸•à¸·à¸­à¸™ LINE à¹„à¸”à¹‰à¹€à¸™à¸·à¹ˆà¸­à¸‡à¸ˆà¸²à¸: ${lineResult.error}`, "warning");
         }
 
       } catch (err) {
         console.error(err);
-        showToast("บันทึกข้อมูลล้มเหลว", `ไม่สามารถทำการบันทึกหรือส่ง LINE ได้เลย: ${err.message}`, "danger");
+        showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§", `à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸—à¸³à¸à¸²à¸£à¸šà¸±à¸™à¸—à¸¶à¸à¸«à¸£à¸·à¸­à¸ªà¹ˆà¸‡ LINE à¹„à¸”à¹‰à¹€à¸¥à¸¢: ${err.message}`, "danger");
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalBtnHtml;
@@ -1484,7 +2212,7 @@
       updateLedgerStatsWidgets();
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">📭 ไม่พบรายการคลังตามเงื่อนไขค้นหา</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">ðŸ“­ à¹„à¸¡à¹ˆà¸žà¸šà¸£à¸²à¸¢à¸à¸²à¸£à¸„à¸¥à¸±à¸‡à¸•à¸²à¸¡à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸„à¹‰à¸™à¸«à¸²</td></tr>`;
         return;
       }
 
@@ -1494,34 +2222,34 @@
 
         let typeClass = "badge-in-stock";
         let typeTh = t.type;
-        if (t.type === "Issue") { typeClass = "badge-low-stock"; typeTh = "เบิกซ่อม (Issue)"; }
-        else if (t.type === "Borrow") { typeClass = "badge-expired"; typeTh = "ยืมทดสอบ (Borrow)"; }
-        else if (t.type === "Return") { typeClass = "badge-safe"; typeTh = "คืนของยืม (Return)"; }
-        else if (t.type === "Receive") { typeClass = "badge-in-stock"; typeTh = "รับเข้า (Receive)"; }
-        else if (t.type === "Audit") { typeClass = "badge-class-b"; typeTh = "นับยอด (Audit)"; }
+        if (t.type === "Issue") { typeClass = "badge-low-stock"; typeTh = "à¹€à¸šà¸´à¸à¸‹à¹ˆà¸­à¸¡ (Issue)"; }
+        else if (t.type === "Borrow") { typeClass = "badge-expired"; typeTh = "à¸¢à¸·à¸¡à¸—à¸”à¸ªà¸­à¸š (Borrow)"; }
+        else if (t.type === "Return") { typeClass = "badge-safe"; typeTh = "à¸„à¸·à¸™à¸‚à¸­à¸‡à¸¢à¸·à¸¡ (Return)"; }
+        else if (t.type === "Receive") { typeClass = "badge-in-stock"; typeTh = "à¸£à¸±à¸šà¹€à¸‚à¹‰à¸² (Receive)"; }
+        else if (t.type === "Audit") { typeClass = "badge-class-b"; typeTh = "à¸™à¸±à¸šà¸¢à¸­à¸” (Audit)"; }
 
         let borrowBadge = "";
         if (t.type === "Borrow" && t.borrowStatus === "Borrowed") {
           const isOverdue = new Date(t.borrowDueDate) < new Date();
-          borrowBadge = `<span class="badge ${isOverdue ? 'badge-expired' : 'badge-near-expiry'}">กำลังยืม (คืน ${t.borrowDueDate})</span>`;
+          borrowBadge = `<span class="badge ${isOverdue ? 'badge-expired' : 'badge-near-expiry'}">à¸à¸³à¸¥à¸±à¸‡à¸¢à¸·à¸¡ (à¸„à¸·à¸™ ${t.borrowDueDate})</span>`;
         } else if (t.type === "Return" || t.borrowStatus === "Returned") {
-          borrowBadge = `<span class="badge badge-safe">คืนเรียบร้อย</span>`;
+          borrowBadge = `<span class="badge badge-safe">à¸„à¸·à¸™à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢</span>`;
         }
 
         let eqText = "";
         if (t.eqSerial) {
-          eqText += `เครื่อง: ${t.eqSerial}`;
+          eqText += `à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡: ${t.eqSerial}`;
           if (t.maintenanceType) {
             eqText += `<br><span style="font-size: 0.75rem; color: var(--text-muted);">${t.maintenanceType}</span>`;
           }
         }
         if (t.repairNo) {
           if (eqText) eqText += "<br>";
-          eqText += `เลขซ่อม: ${t.repairNo}`;
+          eqText += `à¹€à¸¥à¸‚à¸‹à¹ˆà¸­à¸¡: ${t.repairNo}`;
         }
         if (t.dept) {
           if (eqText) eqText += "<br>";
-          eqText += `แผนก: ${t.dept}`;
+          eqText += `à¹à¸œà¸™à¸: ${t.dept}`;
         }
         if (!eqText) eqText = "-";
 
@@ -1636,7 +2364,7 @@
 
       const codes = Object.keys(requiredCounts);
       if (codes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">📅 ไม่มีแผนงานบำรุงรักษา PM ที่ต้องใช้อะไหล่ในช่วงเวลานี้</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">ðŸ“… à¹„à¸¡à¹ˆà¸¡à¸µà¹à¸œà¸™à¸‡à¸²à¸™à¸šà¸³à¸£à¸¸à¸‡à¸£à¸±à¸à¸©à¸² PM à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¹ƒà¸Šà¹‰à¸­à¸°à¹„à¸«à¸¥à¹ˆà¹ƒà¸™à¸Šà¹ˆà¸§à¸‡à¹€à¸§à¸¥à¸²à¸™à¸µà¹‰</td></tr>`;
         return;
       }
 
@@ -1648,22 +2376,22 @@
 
         let statusHtml = "";
         if (diff >= 0) {
-          statusHtml = `<span class="badge badge-safe">เพียงพอ (เหลือสำรอง ${diff})</span>`;
+          statusHtml = `<span class="badge badge-safe">à¹€à¸žà¸µà¸¢à¸‡à¸žà¸­ (à¹€à¸«à¸¥à¸·à¸­à¸ªà¸³à¸£à¸­à¸‡ ${diff})</span>`;
         } else {
-          statusHtml = `<span class="badge badge-expired" style="background-color: var(--danger-light); color: var(--danger);">⚠️ ขาดแคลน ${Math.abs(diff)} ชิ้น</span>`;
+          statusHtml = `<span class="badge badge-expired" style="background-color: var(--danger-light); color: var(--danger);">âš ï¸ à¸‚à¸²à¸”à¹à¸„à¸¥à¸™ ${Math.abs(diff)} à¸Šà¸´à¹‰à¸™</span>`;
         }
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td><strong>${code}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">${part ? part.name : 'ไม่ระบุ'}</span></td>
-          <td><strong>${required} ชิ้น</strong></td>
-          <td>${inStock} ชิ้น</td>
+          <td><strong>${code}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">${part ? part.name : 'à¹„à¸¡à¹ˆà¸£à¸°à¸šà¸¸'}</span></td>
+          <td><strong>${required} à¸Šà¸´à¹‰à¸™</strong></td>
+          <td>${inStock} à¸Šà¸´à¹‰à¸™</td>
           <td>${statusHtml}</td>
         `;
         tbody.appendChild(tr);
       });
 
-      showToast("คำนวณสำเร็จ", "คำนวณคาดการณ์อะไหล่สำหรับช่วงแผนงานซ่อมบำรุงเสร็จสมบูรณ์", "success");
+      showToast("à¸„à¸³à¸™à¸§à¸“à¸ªà¸³à¹€à¸£à¹‡à¸ˆ", "à¸„à¸³à¸™à¸§à¸“à¸„à¸²à¸”à¸à¸²à¸£à¸“à¹Œà¸­à¸°à¹„à¸«à¸¥à¹ˆà¸ªà¸³à¸«à¸£à¸±à¸šà¸Šà¹ˆà¸§à¸‡à¹à¸œà¸™à¸‡à¸²à¸™à¸‹à¹ˆà¸­à¸¡à¸šà¸³à¸£à¸¸à¸‡à¹€à¸ªà¸£à¹‡à¸ˆà¸ªà¸¡à¸šà¸¹à¸£à¸“à¹Œ", "success");
     }
 
     // 10. Procurement Reorder tab & Memorandum PR builder
@@ -1675,7 +2403,7 @@
       const reorderItems = parts.filter(p => p.inStock <= p.reorderPoint);
 
       if (reorderItems.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">🎉 อะไหล่ทุกรายการมีระดับคงคลังปลอดภัย สูงกว่าจุดเตือนภัยสั่งซื้อ</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">ðŸŽ‰ à¸­à¸°à¹„à¸«à¸¥à¹ˆà¸—à¸¸à¸à¸£à¸²à¸¢à¸à¸²à¸£à¸¡à¸µà¸£à¸°à¸”à¸±à¸šà¸„à¸‡à¸„à¸¥à¸±à¸‡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢ à¸ªà¸¹à¸‡à¸à¸§à¹ˆà¸²à¸ˆà¸¸à¸”à¹€à¸•à¸·à¸­à¸™à¸ à¸±à¸¢à¸ªà¸±à¹ˆà¸‡à¸‹à¸·à¹‰à¸­</td></tr>`;
         return;
       }
 
@@ -1685,14 +2413,14 @@
         tr.innerHTML = `
           <td><strong>${p.code}</strong></td>
           <td>${p.name}</td>
-          <td><span class="badge badge-low-stock">${p.inStock} ชิ้น</span></td>
-          <td>${p.reorderPoint} ชิ้น</td>
-          <td><strong>${p.reorderQty} ชิ้น</strong></td>
+          <td><span class="badge badge-low-stock">${p.inStock} à¸Šà¸´à¹‰à¸™</span></td>
+          <td>${p.reorderPoint} à¸Šà¸´à¹‰à¸™</td>
+          <td><strong>${p.reorderQty} à¸Šà¸´à¹‰à¸™</strong></td>
           <td><span style="font-size: 0.8rem;">${p.supplierName}<br>${p.supplierContact}</span></td>
-          <td><strong>฿${val.toLocaleString("th-TH")}</strong></td>
+          <td><strong>à¸¿${val.toLocaleString("th-TH")}</strong></td>
           <td>
             <button class="btn btn-primary btn-sm" onclick="loadPartIntoMemorandum('${p.code}')" style="padding: 4px 8px; font-size: 0.75rem;">
-              <i data-lucide="file-plus"></i> เพิ่มลงในบันทึกข้อความ
+              <i data-lucide="file-plus"></i> à¹€à¸žà¸´à¹ˆà¸¡à¸¥à¸‡à¹ƒà¸™à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡
             </button>
           </td>
         `;
@@ -1710,8 +2438,8 @@
       const baht = parts[0];
       const satang = parts[1];
 
-      const numbers = ["ศูนย์", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า"];
-      const positions = ["", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน"];
+      const numbers = ["à¸¨à¸¹à¸™à¸¢à¹Œ", "à¸«à¸™à¸¶à¹ˆà¸‡", "à¸ªà¸­à¸‡", "à¸ªà¸²à¸¡", "à¸ªà¸µà¹ˆ", "à¸«à¹‰à¸²", "à¸«à¸", "à¹€à¸ˆà¹‡à¸”", "à¹à¸›à¸”", "à¹€à¸à¹‰à¸²"];
+      const positions = ["", "à¸ªà¸´à¸š", "à¸£à¹‰à¸­à¸¢", "à¸žà¸±à¸™", "à¸«à¸¡à¸·à¹ˆà¸™", "à¹à¸ªà¸™", "à¸¥à¹‰à¸²à¸™"];
 
       function convertSection(section) {
         let result = "";
@@ -1721,11 +2449,11 @@
           const pos = len - i - 1;
           if (digit !== 0) {
             if (pos === 1 && digit === 1) {
-              result += "สิบ";
+              result += "à¸ªà¸´à¸š";
             } else if (pos === 1 && digit === 2) {
-              result += "ยี่สิบ";
+              result += "à¸¢à¸µà¹ˆà¸ªà¸´à¸š";
             } else if (pos === 0 && digit === 1 && len > 1) {
-              result += "เอ็ด";
+              result += "à¹€à¸­à¹‡à¸”";
             } else {
               result += numbers[digit] + positions[pos];
             }
@@ -1736,32 +2464,32 @@
 
       let text = "";
       if (parseInt(baht) === 0) {
-        text = "ศูนย์บาท";
+        text = "à¸¨à¸¹à¸™à¸¢à¹Œà¸šà¸²à¸—";
       } else {
         if (baht.length > 6) {
           const millionPart = baht.slice(0, -6);
           const restPart = baht.slice(-6);
-          text += convertSection(millionPart) + "ล้าน" + convertSection(restPart);
+          text += convertSection(millionPart) + "à¸¥à¹‰à¸²à¸™" + convertSection(restPart);
         } else {
           text += convertSection(baht);
         }
-        text += "บาท";
+        text += "à¸šà¸²à¸—";
       }
 
       if (!satang || parseInt(satang) === 0) {
-        text += "ถ้วน";
+        text += "à¸–à¹‰à¸§à¸™";
       } else {
-        text += convertSection(satang) + "สตางค์";
+        text += convertSection(satang) + "à¸ªà¸•à¸²à¸‡à¸„à¹Œ";
       }
       return text;
     }
 
     // Memorandum State
     let memoItems = [
-      { desc: "NIBP Connector A1-1", qty: 10, unit: "ชิ้น", price: 100, stock: "-", monthly: "-" },
-      { desc: "NIBP Connector A4", qty: 20, unit: "ชิ้น", price: 100, stock: "-", monthly: "-" },
-      { desc: "NIBP Connector A6", qty: 5, unit: "ชิ้น", price: 250, stock: "-", monthly: "-" },
-      { desc: "NIBP Connector A10", qty: 20, unit: "ชิ้น", price: 50, stock: "-", monthly: "-" }
+      { desc: "NIBP Connector A1-1", qty: 10, unit: "à¸Šà¸´à¹‰à¸™", price: 100, stock: "-", monthly: "-" },
+      { desc: "NIBP Connector A4", qty: 20, unit: "à¸Šà¸´à¹‰à¸™", price: 100, stock: "-", monthly: "-" },
+      { desc: "NIBP Connector A6", qty: 5, unit: "à¸Šà¸´à¹‰à¸™", price: 250, stock: "-", monthly: "-" },
+      { desc: "NIBP Connector A10", qty: 20, unit: "à¸Šà¸´à¹‰à¸™", price: 50, stock: "-", monthly: "-" }
     ];
 
     window.loadPartIntoMemorandum = function(partCode) {
@@ -1771,33 +2499,33 @@
       // Avoid duplicate adds
       const isDuplicate = memoItems.some(item => item.desc.includes(part.code));
       if (isDuplicate) {
-        showToast("มีรายการนี้แล้ว", "รายการอะไหล่นี้ถูกเลือกในบันทึกข้อความแล้ว", "warning");
+        showToast("à¸¡à¸µà¸£à¸²à¸¢à¸à¸²à¸£à¸™à¸µà¹‰à¹à¸¥à¹‰à¸§", "à¸£à¸²à¸¢à¸à¸²à¸£à¸­à¸°à¹„à¸«à¸¥à¹ˆà¸™à¸µà¹‰à¸–à¸¹à¸à¹€à¸¥à¸·à¸­à¸à¹ƒà¸™à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¹à¸¥à¹‰à¸§", "warning");
         return;
       }
 
       memoItems.push({
-        desc: `รหัส ${part.code} - ${part.name}`,
+        desc: `à¸£à¸«à¸±à¸ª ${part.code} - ${part.name}`,
         qty: part.reorderQty || 1,
-        unit: "ชิ้น",
+        unit: "à¸Šà¸´à¹‰à¸™",
         price: part.unitPrice || 0,
         stock: part.inStock || 0,
         monthly: "-"
       });
 
       renderMemorandum();
-      showToast("เพิ่มลงในบันทึกข้อความแล้ว", `เพิ่มรหัสอะไหล่ ${part.code} ลงในใบจัดซื้อสำเร็จ`, "success");
+      showToast("à¹€à¸žà¸´à¹ˆà¸¡à¸¥à¸‡à¹ƒà¸™à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¹à¸¥à¹‰à¸§", `à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸«à¸±à¸ªà¸­à¸°à¹„à¸«à¸¥à¹ˆ ${part.code} à¸¥à¸‡à¹ƒà¸™à¹ƒà¸šà¸ˆà¸±à¸”à¸‹à¸·à¹‰à¸­à¸ªà¸³à¹€à¸£à¹‡à¸ˆ`, "success");
     }
 
     function addMemoItem() {
       const desc = document.getElementById("memo-item-desc").value.trim();
       const qty = Number(document.getElementById("memo-item-qty").value) || 1;
-      const unit = document.getElementById("memo-item-unit").value.trim() || "ชิ้น";
+      const unit = document.getElementById("memo-item-unit").value.trim() || "à¸Šà¸´à¹‰à¸™";
       const price = Number(document.getElementById("memo-item-price").value) || 0;
       const stock = document.getElementById("memo-item-stock").value.trim() || "-";
       const monthly = document.getElementById("memo-item-monthly").value.trim() || "-";
 
       if (!desc) {
-        showToast("ระบุรายละเอียด", "กรุณาระบุรายละเอียดหรือชื่อรายการอะไหล่", "warning");
+        showToast("à¸£à¸°à¸šà¸¸à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”", "à¸à¸£à¸¸à¸“à¸²à¸£à¸°à¸šà¸¸à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¸«à¸£à¸·à¸­à¸Šà¸·à¹ˆà¸­à¸£à¸²à¸¢à¸à¸²à¸£à¸­à¸°à¹„à¸«à¸¥à¹ˆ", "warning");
         return;
       }
 
@@ -1812,19 +2540,19 @@
       document.getElementById("memo-item-monthly").value = "";
 
       renderMemorandum();
-      showToast("เพิ่มรายการแล้ว", "เพิ่มรายการลงในบันทึกข้อความสำเร็จ", "success");
+      showToast("à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸²à¸¢à¸à¸²à¸£à¹à¸¥à¹‰à¸§", "à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸²à¸¢à¸à¸²à¸£à¸¥à¸‡à¹ƒà¸™à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸ªà¸³à¹€à¸£à¹‡à¸ˆ", "success");
     }
 
     window.removeMemoItem = function(index) {
       memoItems.splice(index, 1);
       renderMemorandum();
-      showToast("ลบรายการแล้ว", "นำรายการออกจากใบอนุมัติจัดซื้อเรียบร้อย", "success");
+      showToast("à¸¥à¸šà¸£à¸²à¸¢à¸à¸²à¸£à¹à¸¥à¹‰à¸§", "à¸™à¸³à¸£à¸²à¸¢à¸à¸²à¸£à¸­à¸­à¸à¸ˆà¸²à¸à¹ƒà¸šà¸­à¸™à¸¸à¸¡à¸±à¸•à¸´à¸ˆà¸±à¸”à¸‹à¸·à¹‰à¸­à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢", "success");
     }
 
     function loadROPItemsIntoMemo() {
       const reorderItems = parts.filter(p => p.inStock <= p.reorderPoint);
       if (reorderItems.length === 0) {
-        showToast("ไม่มีรายการ ROP ต่ำ", "อะไหล่ทุกรายการในสต๊อกอยู่ในระดับปลอดภัย", "warning");
+        showToast("à¹„à¸¡à¹ˆà¸¡à¸µà¸£à¸²à¸¢à¸à¸²à¸£ ROP à¸•à¹ˆà¸³", "à¸­à¸°à¹„à¸«à¸¥à¹ˆà¸—à¸¸à¸à¸£à¸²à¸¢à¸à¸²à¸£à¹ƒà¸™à¸ªà¸•à¹Šà¸­à¸à¸­à¸¢à¸¹à¹ˆà¹ƒà¸™à¸£à¸°à¸”à¸±à¸šà¸›à¸¥à¸­à¸”à¸ à¸±à¸¢", "warning");
         return;
       }
 
@@ -1833,9 +2561,9 @@
         const isDuplicate = memoItems.some(item => item.desc.includes(p.code));
         if (!isDuplicate) {
           memoItems.push({
-            desc: `รหัส ${p.code} - ${p.name}`,
+            desc: `à¸£à¸«à¸±à¸ª ${p.code} - ${p.name}`,
             qty: p.reorderQty || 1,
-            unit: "ชิ้น",
+            unit: "à¸Šà¸´à¹‰à¸™",
             price: p.unitPrice || 0,
             stock: p.inStock || 0,
             monthly: "-"
@@ -1845,7 +2573,7 @@
       });
 
       renderMemorandum();
-      showToast("ดึงข้อมูล ROP แล้ว", `ดึงรายการอะไหล่ ROP ต่ำเพิ่มเข้ามา ${addedCount} รายการ`, "success");
+      showToast("à¸”à¸¶à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥ ROP à¹à¸¥à¹‰à¸§", `à¸”à¸¶à¸‡à¸£à¸²à¸¢à¸à¸²à¸£à¸­à¸°à¹„à¸«à¸¥à¹ˆ ROP à¸•à¹ˆà¸³à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸‚à¹‰à¸²à¸¡à¸² ${addedCount} à¸£à¸²à¸¢à¸à¸²à¸£`, "success");
     }
 
     function clearMemoForm() {
@@ -1865,7 +2593,7 @@
       document.getElementById("memo-chk-other-text").style.display = "none";
       
       renderMemorandum();
-      showToast("ล้างฟอร์มสำเร็จ", "ระบบเปลี่ยนเป็นฟอร์มขออนุมัติแบบว่างเรียบร้อยแล้ว", "success");
+      showToast("à¸¥à¹‰à¸²à¸‡à¸Ÿà¸­à¸£à¹Œà¸¡à¸ªà¸³à¹€à¸£à¹‡à¸ˆ", "à¸£à¸°à¸šà¸šà¹€à¸›à¸¥à¸µà¹ˆà¸¢à¸™à¹€à¸›à¹‡à¸™à¸Ÿà¸­à¸£à¹Œà¸¡à¸‚à¸­à¸­à¸™à¸¸à¸¡à¸±à¸•à¸´à¹à¸šà¸šà¸§à¹ˆà¸²à¸‡à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§", "success");
     }
 
     function renderMemorandum() {
@@ -1908,7 +2636,7 @@
         const editChk = document.getElementById(`memo-chk-${i}`);
         const viewChk = document.getElementById(`memo-view-chk-${i}`);
         if (editChk && viewChk) {
-          viewChk.innerText = editChk.checked ? "[✓]" : "[ ]";
+          viewChk.innerText = editChk.checked ? "[âœ“]" : "[ ]";
         }
       }
 
@@ -1959,7 +2687,7 @@
       if (editorTbody) {
         editorTbody.innerHTML = "";
         if (memoItems.length === 0) {
-          editorTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 12px;">ไม่มีรายการในเอกสาร (ฟอร์มเปล่า)</td></tr>`;
+          editorTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 12px;">à¹„à¸¡à¹ˆà¸¡à¸µà¸£à¸²à¸¢à¸à¸²à¸£à¹ƒà¸™à¹€à¸­à¸à¸ªà¸²à¸£ (à¸Ÿà¸­à¸£à¹Œà¸¡à¹€à¸›à¸¥à¹ˆà¸²)</td></tr>`;
         } else {
           memoItems.forEach((item, index) => {
             const tr = document.createElement("tr");
@@ -1967,7 +2695,7 @@
             tr.innerHTML = `
               <td style="padding: 8px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.desc}</td>
               <td style="padding: 8px; text-align: center;">${item.qty} ${item.unit}</td>
-              <td style="padding: 8px; text-align: right;">฿${item.price.toLocaleString("th-TH")}</td>
+              <td style="padding: 8px; text-align: right;">à¸¿${item.price.toLocaleString("th-TH")}</td>
               <td style="padding: 8px; text-align: right;">
                 <button type="button" class="btn btn-secondary btn-sm" onclick="removeMemoItem(${index})" style="padding: 2px 6px; background: rgba(220,38,38,0.1); color: var(--danger); border: none;">
                   <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
@@ -2003,7 +2731,30 @@
       settings.lineGroupId = lineGroupId;
 
       localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
-      showToast("บันทึกข้อมูลแล้ว", "อัปเดตระบบการตั้งค่าความปลอดภัยและเครือข่ายเรียบร้อย", "success");
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹à¸¥à¹‰à¸§", "à¸­à¸±à¸›à¹€à¸”à¸•à¸£à¸°à¸šà¸šà¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢à¹à¸¥à¸°à¹€à¸„à¸£à¸·à¸­à¸‚à¹ˆà¸²à¸¢à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢", "success");
+      persistState();
+    }
+
+    function saveBudgetSettings() {
+      // Check programmer permission
+      if (!currentUser || currentUser.role !== "Programmer") {
+        showToast("à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”", "à¸‚à¸­à¸­à¸ à¸±à¸¢ à¸ªà¸´à¸—à¸˜à¸´à¹Œà¸‚à¸­à¸‡à¸„à¸¸à¸“à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¹à¸à¹‰à¹„à¸‚à¸‡à¸šà¸›à¸£à¸°à¸¡à¸²à¸“à¹„à¸”à¹‰", "danger");
+        return;
+      }
+      
+      const b1a = parseFloat(document.getElementById("settings-budget-proj1-catA").value) || 0;
+      const b1b = parseFloat(document.getElementById("settings-budget-proj1-catB").value) || 0;
+      const b2a = parseFloat(document.getElementById("settings-budget-proj2-catA").value) || 0;
+      const b2b = parseFloat(document.getElementById("settings-budget-proj2-catB").value) || 0;
+
+      settings.budgetProj1CatA = b1a;
+      settings.budgetProj1CatB = b1b;
+      settings.budgetProj2CatA = b2a;
+      settings.budgetProj2CatB = b2b;
+
+      localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¸‡à¸šà¸›à¸£à¸°à¸¡à¸²à¸“à¹à¸¥à¹‰à¸§", "à¸­à¸±à¸›à¹€à¸”à¸•à¸§à¸‡à¹€à¸‡à¸´à¸™à¸‡à¸šà¸›à¸£à¸°à¸¡à¸²à¸“à¸£à¸²à¸¢à¹‚à¸„à¸£à¸‡à¸à¸²à¸£à¹à¸¥à¸°à¸›à¸£à¸°à¹€à¸ à¸—à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢", "success");
+      updateDashboard();
       persistState();
     }
 
@@ -2013,10 +2764,10 @@
         return Promise.resolve({ success: true, omitted: true });
       }
 
-      const typeLabel = tx.type === "Issue" ? "เบิกจ่ายอะไหล่ 📤" : 
-                        tx.type === "Borrow" ? "ยืมอะไหล่ทดสอบ 🔍" :
-                        tx.type === "Return" ? "คืนอะไหล่คลัง 📥" :
-                        tx.type === "Receive" ? "รับอะไหล่เข้าคลัง ➕" : "ปรับปรุงสต๊อก ⚙️";
+      const typeLabel = tx.type === "Issue" ? "à¹€à¸šà¸´à¸à¸ˆà¹ˆà¸²à¸¢à¸­à¸°à¹„à¸«à¸¥à¹ˆ ðŸ“¤" : 
+                        tx.type === "Borrow" ? "à¸¢à¸·à¸¡à¸­à¸°à¹„à¸«à¸¥à¹ˆà¸—à¸”à¸ªà¸­à¸š ðŸ”" :
+                        tx.type === "Return" ? "à¸„à¸·à¸™à¸­à¸°à¹„à¸«à¸¥à¹ˆà¸„à¸¥à¸±à¸‡ ðŸ“¥" :
+                        tx.type === "Receive" ? "à¸£à¸±à¸šà¸­à¸°à¹„à¸«à¸¥à¹ˆà¹€à¸‚à¹‰à¸²à¸„à¸¥à¸±à¸‡ âž•" : "à¸›à¸£à¸±à¸šà¸›à¸£à¸¸à¸‡à¸ªà¸•à¹Šà¸­à¸ âš™ï¸";
 
       const colorTheme = tx.type === "Issue" ? "#ef4444" : 
                          tx.type === "Borrow" ? "#f97316" :
@@ -2027,16 +2778,16 @@
           "type": "box",
           "layout": "horizontal",
           "contents": [
-            { "type": "text", "text": "จำนวน:", "size": "sm", "color": "#555555" },
-            { "type": "text", "text": tx.qty + " ชิ้น", "size": "sm", "weight": "bold", "align": "end" }
+            { "type": "text", "text": "à¸ˆà¸³à¸™à¸§à¸™:", "size": "sm", "color": "#555555" },
+            { "type": "text", "text": tx.qty + " à¸Šà¸´à¹‰à¸™", "size": "sm", "weight": "bold", "align": "end" }
           ]
         },
         {
           "type": "box",
           "layout": "horizontal",
           "contents": [
-            { "type": "text", "text": "คงคลังล่าสุด:", "size": "sm", "color": "#555555" },
-            { "type": "text", "text": remainingStock + " ชิ้น", "size": "sm", "weight": "bold", "color": remainingStock <= 5 ? "#ef4444" : "#22c55e", "align": "end" }
+            { "type": "text", "text": "à¸„à¸‡à¸„à¸¥à¸±à¸‡à¸¥à¹ˆà¸²à¸ªà¸¸à¸”:", "size": "sm", "color": "#555555" },
+            { "type": "text", "text": remainingStock + " à¸Šà¸´à¹‰à¸™", "size": "sm", "weight": "bold", "color": remainingStock <= 5 ? "#ef4444" : "#22c55e", "align": "end" }
           ]
         }
       ];
@@ -2046,7 +2797,7 @@
           "type": "box",
           "layout": "horizontal",
           "contents": [
-            { "type": "text", "text": "ซีเรียลเครื่องซ่อม:", "size": "sm", "color": "#555555" },
+            { "type": "text", "text": "à¸‹à¸µà¹€à¸£à¸µà¸¢à¸¥à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸‹à¹ˆà¸­à¸¡:", "size": "sm", "color": "#555555" },
             { "type": "text", "text": tx.eqSerial, "size": "sm", "align": "end" }
           ]
         });
@@ -2056,7 +2807,7 @@
         "type": "box",
         "layout": "horizontal",
         "contents": [
-          { "type": "text", "text": "ช่างเทคนิค:", "size": "sm", "color": "#555555" },
+          { "type": "text", "text": "à¸Šà¹ˆà¸²à¸‡à¹€à¸—à¸„à¸™à¸´à¸„:", "size": "sm", "color": "#555555" },
           { "type": "text", "text": tx.operator, "size": "sm", "align": "end" }
         ]
       });
@@ -2067,7 +2818,7 @@
           "type": "box",
           "layout": "vertical",
           "contents": [
-            { "type": "text", "text": "คลังเครื่องมือแพทย์ รพ.นครพิงค์", "color": "#ffffff", "weight": "bold", "size": "sm" },
+            { "type": "text", "text": "à¸„à¸¥à¸±à¸‡à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸¡à¸·à¸­à¹à¸žà¸—à¸¢à¹Œ à¸£à¸ž.à¸™à¸„à¸£à¸žà¸´à¸‡à¸„à¹Œ", "color": "#ffffff", "weight": "bold", "size": "sm" },
             { "type": "text", "text": typeLabel, "color": "#ffffff", "weight": "bold", "size": "xl", "margin": "sm" }
           ],
           "backgroundColor": colorTheme
@@ -2077,7 +2828,7 @@
           "layout": "vertical",
           "contents": [
             { "type": "text", "text": tx.partName, "weight": "bold", "size": "md", "wrap": true },
-            { "type": "text", "text": "รหัสอะไหล่: " + tx.partCode, "size": "xs", "color": "#888888", "margin": "xs" },
+            { "type": "text", "text": "à¸£à¸«à¸±à¸ªà¸­à¸°à¹„à¸«à¸¥à¹ˆ: " + tx.partCode, "size": "xs", "color": "#888888", "margin": "xs" },
             { "type": "separator", "margin": "md" },
             {
               "type": "box",
@@ -2111,29 +2862,29 @@
           return { success: false, error: err.message || err };
         });
       }
-      return Promise.resolve({ success: false, error: "ไม่ได้ระบุ URL ของ Web App" });
+      return Promise.resolve({ success: false, error: "à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¸£à¸°à¸šà¸¸ URL à¸‚à¸­à¸‡ Web App" });
     }
 
     async function testLineMessage() {
       if (!settings.lineToken || !settings.lineGroupId) {
-        showToast("ไม่สามารถทดสอบได้", "กรุณากรอก LINE Token และ Group ID ให้ครบก่อนการกดทดสอบ", "danger");
+        showToast("à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸—à¸”à¸ªà¸­à¸šà¹„à¸”à¹‰", "à¸à¸£à¸¸à¸“à¸²à¸à¸£à¸­à¸ LINE Token à¹à¸¥à¸° Group ID à¹ƒà¸«à¹‰à¸„à¸£à¸šà¸à¹ˆà¸­à¸™à¸à¸²à¸£à¸à¸”à¸—à¸”à¸ªà¸­à¸š", "danger");
         return;
       }
       const mockTx = {
         type: "Issue",
         partCode: "SR-SPO2-001",
-        partName: "ทดสอบการเบิกจ่าย (สายวัด SpO2 Masimo LNCS)",
+        partName: "à¸—à¸”à¸ªà¸­à¸šà¸à¸²à¸£à¹€à¸šà¸´à¸à¸ˆà¹ˆà¸²à¸¢ (à¸ªà¸²à¸¢à¸§à¸±à¸” SpO2 Masimo LNCS)",
         qty: 1,
-        operator: "นายสมชาย ใจดี (ทดสอบระบบ)",
+        operator: "à¸™à¸²à¸¢à¸ªà¸¡à¸Šà¸²à¸¢ à¹ƒà¸ˆà¸”à¸µ (à¸—à¸”à¸ªà¸­à¸šà¸£à¸°à¸šà¸š)",
         eqSerial: "NKP-BSM-001"
       };
       
-      showToast("กำลังส่งข้อความทดสอบ", "กำลังเชื่อมต่อระบบ LINE เพื่อส่งข้อความทดสอบ...", "warning");
+      showToast("à¸à¸³à¸¥à¸±à¸‡à¸ªà¹ˆà¸‡à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸—à¸”à¸ªà¸­à¸š", "à¸à¸³à¸¥à¸±à¸‡à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­à¸£à¸°à¸šà¸š LINE à¹€à¸žà¸·à¹ˆà¸­à¸ªà¹ˆà¸‡à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸—à¸”à¸ªà¸­à¸š...", "warning");
       const result = await sendLineNotification(mockTx, 29);
       if (result.success) {
-        showToast("สำเร็จ", "ส่งข้อความแจ้งเตือน LINE ทดสอบสำเร็จแล้ว", "success");
+        showToast("à¸ªà¸³à¹€à¸£à¹‡à¸ˆ", "à¸ªà¹ˆà¸‡à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¹à¸ˆà¹‰à¸‡à¹€à¸•à¸·à¸­à¸™ LINE à¸—à¸”à¸ªà¸­à¸šà¸ªà¸³à¹€à¸£à¹‡à¸ˆà¹à¸¥à¹‰à¸§", "success");
       } else {
-        showToast("ส่งข้อความล้มเหลว", `ไม่สามารถส่งแจ้งเตือน LINE ได้: ${result.error}`, "danger");
+        showToast("à¸ªà¹ˆà¸‡à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§", `à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸ªà¹ˆà¸‡à¹à¸ˆà¹‰à¸‡à¹€à¸•à¸·à¸­à¸™ LINE à¹„à¸”à¹‰: ${result.error}`, "danger");
       }
     }
 
@@ -2192,7 +2943,7 @@
     function copyAppsScriptCode() {
       const preText = document.getElementById("code-content").innerText;
       navigator.clipboard.writeText(preText).then(() => {
-        showToast("คัดลอกโค้ดสำเร็จ", "นำโค้ดไปวางใน Google Apps Script ใน Google Sheets ได้ทันที", "success");
+        showToast("à¸„à¸±à¸”à¸¥à¸­à¸à¹‚à¸„à¹‰à¸”à¸ªà¸³à¹€à¸£à¹‡à¸ˆ", "à¸™à¸³à¹‚à¸„à¹‰à¸”à¹„à¸›à¸§à¸²à¸‡à¹ƒà¸™ Google Apps Script à¹ƒà¸™ Google Sheets à¹„à¸”à¹‰à¸—à¸±à¸™à¸—à¸µ", "success");
       });
     }
 
@@ -2214,14 +2965,14 @@
         const tr = document.createElement("tr");
         
         let statusBadge = u.status === "Active" ? 
-          `<span class="badge badge-safe">เปิดใช้งาน</span>` : 
-          `<span class="badge badge-expired">ปิดสิทธิ์</span>`;
+          `<span class="badge badge-safe">à¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸‡à¸²à¸™</span>` : 
+          `<span class="badge badge-expired">à¸›à¸´à¸”à¸ªà¸´à¸—à¸˜à¸´à¹Œ</span>`;
 
         let roleBadge = "badge-c";
         if (u.role === "Programmer") roleBadge = "badge-a";
         else if (u.role === "Stock Manager") roleBadge = "badge-b";
 
-        const toggleBtnText = u.status === "Active" ? "ปิดสิทธิ์" : "เปิดใช้";
+        const toggleBtnText = u.status === "Active" ? "à¸›à¸´à¸”à¸ªà¸´à¸—à¸˜à¸´à¹Œ" : "à¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰";
         const toggleBtnColor = u.status === "Active" ? "var(--danger)" : "var(--success)";
 
         const isSelf = currentUser && String(currentUser.password) === String(u.password);
@@ -2253,7 +3004,7 @@
       localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
       renderUserManagement();
       persistState();
-      showToast("สิทธิ์ผู้ใช้ถูกปรับเปลี่ยน", `เปลี่ยนสถานะของ ${u.realName} เป็น ${u.status === "Active" ? 'เปิดใช้งาน' : 'ปิดสิทธิ์'}`, "success");
+      showToast("à¸ªà¸´à¸—à¸˜à¸´à¹Œà¸œà¸¹à¹‰à¹ƒà¸Šà¹‰à¸–à¸¹à¸à¸›à¸£à¸±à¸šà¹€à¸›à¸¥à¸µà¹ˆà¸¢à¸™", `à¹€à¸›à¸¥à¸µà¹ˆà¸¢à¸™à¸ªà¸–à¸²à¸™à¸°à¸‚à¸­à¸‡ ${u.realName} à¹€à¸›à¹‡à¸™ ${u.status === "Active" ? 'à¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸‡à¸²à¸™' : 'à¸›à¸´à¸”à¸ªà¸´à¸—à¸˜à¸´à¹Œ'}`, "success");
     };
 
     function generateUserAccount() {
@@ -2264,7 +3015,7 @@
       const role = roleSelect.value;
 
       if (!realName) {
-        alert("กรุณากรอกชื่อ-นามสกุลจริง!");
+        alert("à¸à¸£à¸¸à¸“à¸²à¸à¸£à¸­à¸à¸Šà¸·à¹ˆà¸­-à¸™à¸²à¸¡à¸ªà¸à¸¸à¸¥à¸ˆà¸£à¸´à¸‡!");
         return;
       }
 
@@ -2273,15 +3024,15 @@
       const countGen = userAccounts.filter(u => u.role === "General User").length;
 
       if (role === "Programmer" && countProg >= 3) {
-        alert("ขออภัย! สิทธิ์ Programmer จำกัดสูงสุดไม่เกิน 3 คน");
+        alert("à¸‚à¸­à¸­à¸ à¸±à¸¢! à¸ªà¸´à¸—à¸˜à¸´à¹Œ Programmer à¸ˆà¸³à¸à¸±à¸”à¸ªà¸¹à¸‡à¸ªà¸¸à¸”à¹„à¸¡à¹ˆà¹€à¸à¸´à¸™ 3 à¸„à¸™");
         return;
       }
       if (role === "Stock Manager" && countManager >= 3) {
-        alert("ขออภัย! สิทธิ์ Stock Manager จำกัดสูงสุดไม่เกิน 3 คน");
+        alert("à¸‚à¸­à¸­à¸ à¸±à¸¢! à¸ªà¸´à¸—à¸˜à¸´à¹Œ Stock Manager à¸ˆà¸³à¸à¸±à¸”à¸ªà¸¹à¸‡à¸ªà¸¸à¸”à¹„à¸¡à¹ˆà¹€à¸à¸´à¸™ 3 à¸„à¸™");
         return;
       }
       if (role === "General User" && countGen >= 10) {
-        alert("ขออภัย! สิทธิ์ General User จำกัดสูงสุดไม่เกิน 10 คน");
+        alert("à¸‚à¸­à¸­à¸ à¸±à¸¢! à¸ªà¸´à¸—à¸˜à¸´à¹Œ General User à¸ˆà¸³à¸à¸±à¸”à¸ªà¸¹à¸‡à¸ªà¸¸à¸”à¹„à¸¡à¹ˆà¹€à¸à¸´à¸™ 10 à¸„à¸™");
         return;
       }
 
@@ -2301,8 +3052,8 @@
       renderUserManagement();
       persistState();
       
-      showToast("สร้างบัญชีสำเร็จ", `ผู้ใช้งาน ${realName} รหัสผ่าน: ${password}`, "success");
-      alert(`สร้างผู้ใช้ใหม่เรียบร้อยแล้ว!\n\nชื่อ: ${realName}\nสิทธิ์: ${role}\nรหัสผ่าน: ${password}\n\nกรุณาจดบันทึกรหัสผ่านนี้ส่งต่อให้ผู้ใช้งาน`);
+      showToast("à¸ªà¸£à¹‰à¸²à¸‡à¸šà¸±à¸à¸Šà¸µà¸ªà¸³à¹€à¸£à¹‡à¸ˆ", `à¸œà¸¹à¹‰à¹ƒà¸Šà¹‰à¸‡à¸²à¸™ ${realName} à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™: ${password}`, "success");
+      alert(`à¸ªà¸£à¹‰à¸²à¸‡à¸œà¸¹à¹‰à¹ƒà¸Šà¹‰à¹ƒà¸«à¸¡à¹ˆà¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§!\n\nà¸Šà¸·à¹ˆà¸­: ${realName}\nà¸ªà¸´à¸—à¸˜à¸´à¹Œ: ${role}\nà¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™: ${password}\n\nà¸à¸£à¸¸à¸“à¸²à¸ˆà¸”à¸šà¸±à¸™à¸—à¸¶à¸à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™à¸™à¸µà¹‰à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­à¹ƒà¸«à¹‰à¸œà¸¹à¹‰à¹ƒà¸Šà¹‰à¸‡à¸²à¸™`);
     }
 
     function generateSecurePassword() {
@@ -2323,23 +3074,23 @@
       const errorDiv = document.getElementById("change-pwd-error");
 
       if (newPwd === "") {
-        errorDiv.innerText = "กรุณากรอกรหัสผ่านใหม่";
+        errorDiv.innerText = "à¸à¸£à¸¸à¸“à¸²à¸à¸£à¸­à¸à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™à¹ƒà¸«à¸¡à¹ˆ";
         return;
       }
 
       if (newPwd.length < 4) {
-        errorDiv.innerText = "รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร";
+        errorDiv.innerText = "à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™à¸•à¹‰à¸­à¸‡à¸¡à¸µà¸„à¸§à¸²à¸¡à¸¢à¸²à¸§à¸­à¸¢à¹ˆà¸²à¸‡à¸™à¹‰à¸­à¸¢ 4 à¸•à¸±à¸§à¸­à¸±à¸à¸©à¸£";
         return;
       }
 
       if (newPwd !== confirmPwd) {
-        errorDiv.innerText = "การยืนยันรหัสผ่านไม่ตรงกัน";
+        errorDiv.innerText = "à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™à¹„à¸¡à¹ˆà¸•à¸£à¸‡à¸à¸±à¸™";
         return;
       }
 
       const isDuplicate = userAccounts.some(u => String(u.password) === String(newPwd) && String(u.password) !== String(currentUser.password));
       if (isDuplicate) {
-        errorDiv.innerText = "รหัสผ่านนี้ถูกใช้โดยบัญชีอื่นแล้ว กรุณาเลือกรหัสผ่านอื่น";
+        errorDiv.innerText = "à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™à¸™à¸µà¹‰à¸–à¸¹à¸à¹ƒà¸Šà¹‰à¹‚à¸”à¸¢à¸šà¸±à¸à¸Šà¸µà¸­à¸·à¹ˆà¸™à¹à¸¥à¹‰à¸§ à¸à¸£à¸¸à¸“à¸²à¹€à¸¥à¸·à¸­à¸à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™à¸­à¸·à¹ˆà¸™";
         return;
       }
 
@@ -2358,12 +3109,12 @@
 
         closeModal("modal-change-own-password");
         persistState();
-        showToast("สำเร็จ", "เปลี่ยนรหัสผ่านของคุณเรียบร้อยแล้ว", "success");
+        showToast("à¸ªà¸³à¹€à¸£à¹‡à¸ˆ", "à¹€à¸›à¸¥à¸µà¹ˆà¸¢à¸™à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™à¸‚à¸­à¸‡à¸„à¸¸à¸“à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§", "success");
         if (currentUser.role === "Programmer") {
           renderUserManagement();
         }
       } else {
-        errorDiv.innerText = "เกิดข้อผิดพลาดในการค้นหาผู้ใช้";
+        errorDiv.innerText = "à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”à¹ƒà¸™à¸à¸²à¸£à¸„à¹‰à¸™à¸«à¸²à¸œà¸¹à¹‰à¹ƒà¸Šà¹‰";
       }
     }
 

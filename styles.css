@@ -1163,3 +1163,88 @@
       box-shadow: 0 0 25px rgba(239, 68, 68, 0.3), var(--card-shadow) !important;
       background: linear-gradient(180deg, rgba(239, 68, 68, 0.06), rgba(239, 68, 68, 0.02)) !important;
     }
+
+    /* Tab Switch and Chart Controls styling */
+    .card-header button.btn-sm {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-family);
+      transition: var(--transition);
+    }
+    .time-filter-btn {
+      background: transparent;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .time-filter-btn:hover {
+      background: rgba(15, 118, 110, 0.05);
+      color: var(--primary);
+    }
+    .time-filter-btn.filter-active {
+      background: var(--primary) !important;
+      font-weight: 600;
+      color: #ffffff !important;
+      box-shadow: var(--card-shadow);
+    }
+    .progress-bar-container {
+      background: var(--bg-tertiary);
+      width: 100%;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    /* Printable Report Styles */
+    #monthly-report-print-area {
+      display: none;
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 11pt !important;
+      }
+      .app-container, .modal, .toast-modal-overlay, #toast-notification, #confirm-modal {
+        display: none !important;
+      }
+      #monthly-report-print-area {
+        display: block !important;
+        visibility: visible !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 20px !important;
+        margin: 0 !important;
+      }
+      .print-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+      }
+      .print-table th, .print-table td {
+        border: 1px solid #000000 !important;
+        padding: 6px 8px;
+        font-size: 9pt;
+        text-align: left;
+        color: #000000 !important;
+      }
+      .print-table th {
+        background-color: #f2f2f2 !important;
+        font-weight: bold;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+

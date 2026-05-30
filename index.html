@@ -1176,6 +1176,90 @@
       box-shadow: 0 0 25px rgba(239, 68, 68, 0.3), var(--card-shadow) !important;
       background: linear-gradient(180deg, rgba(239, 68, 68, 0.06), rgba(239, 68, 68, 0.02)) !important;
     }
+
+    /* Tab Switch and Chart Controls styling */
+    .card-header button.btn-sm {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-family);
+      transition: var(--transition);
+    }
+    .time-filter-btn {
+      background: transparent;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .time-filter-btn:hover {
+      background: rgba(15, 118, 110, 0.05);
+      color: var(--primary);
+    }
+    .time-filter-btn.filter-active {
+      background: var(--primary) !important;
+      font-weight: 600;
+      color: #ffffff !important;
+      box-shadow: var(--card-shadow);
+    }
+    .progress-bar-container {
+      background: var(--bg-tertiary);
+      width: 100%;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    /* Printable Report Styles */
+    #monthly-report-print-area {
+      display: none;
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 11pt !important;
+      }
+      .app-container, .modal, .toast-modal-overlay, #toast-notification, #confirm-modal {
+        display: none !important;
+      }
+      #monthly-report-print-area {
+        display: block !important;
+        visibility: visible !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 20px !important;
+        margin: 0 !important;
+      }
+      .print-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+      }
+      .print-table th, .print-table td {
+        border: 1px solid #000000 !important;
+        padding: 6px 8px;
+        font-size: 9pt;
+        text-align: left;
+        color: #000000 !important;
+      }
+      .print-table th {
+        background-color: #f2f2f2 !important;
+        font-weight: bold;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
   </style>
 </head>
 <body data-theme="dark">
@@ -1340,6 +1424,89 @@
             <div class="metric-details">
               <span class="metric-val" id="metric-total-value">฿0</span>
               <span class="metric-label">มูลค่าอะไหล่คงคลังรวม</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Budget Status Section -->
+        <div class="card" id="budget-status-card" style="width: 100%;">
+          <div class="card-header">
+            <span class="card-title">
+              <i data-lucide="wallet" style="color: var(--primary);"></i>
+              สถานะงบประมาณพัสดุอะไหล่ประจำปีงบประมาณ <span id="budget-fiscal-year-label"></span>
+            </span>
+          </div>
+          <div class="budget-projects-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 24px;">
+            <!-- Project 1 -->
+            <div class="budget-project-card" style="padding: 16px; border: 1px solid var(--border-color); border-radius: 12px; background: rgba(15, 118, 110, 0.02);">
+              <h4 style="font-weight: 700; margin-bottom: 12px; font-size: 0.95rem; color: var(--primary);">
+                โครงการที่ 1: จัดซื้อสาย SPO2 Bedside Monitor (ร้านเอสอาร์.ชายน์ฯ)
+              </h4>
+              <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px;">
+                <span>ยอดงบประมาณรวม: ฿<span id="proj1-total-budget-val">1,418,500</span></span>
+                <span>ใช้ไปแล้ว: ฿<span id="proj1-total-used-val">0</span> (<span id="proj1-total-pct">0</span>%)</span>
+              </div>
+              <div class="progress-bar-container" style="background: var(--bg-tertiary); height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 15px;">
+                <div id="proj1-total-progress" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--success)); transition: width 0.4s ease;"></div>
+              </div>
+              
+              <!-- Cat 1.1 -->
+              <div style="margin-left: 10px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-secondary);">
+                  <span>• สายวัด SpO2 แบบ Reusable</span>
+                  <span>฿<span id="proj1-catA-used-val">0</span> / ฿<span id="proj1-catA-budget-val">1,294,500</span> (<span id="proj1-catA-pct">0</span>%)</span>
+                </div>
+                <div class="progress-bar-container" style="background: var(--bg-tertiary); height: 6px; border-radius: 3px; overflow: hidden;">
+                  <div id="proj1-catA-progress" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.4s ease;"></div>
+                </div>
+              </div>
+              
+              <!-- Cat 1.2 -->
+              <div style="margin-left: 10px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-secondary);">
+                  <span>• สายวัด SpO2 แบบ Cable/Probe</span>
+                  <span>฿<span id="proj1-catB-used-val">0</span> / ฿<span id="proj1-catB-budget-val">124,000</span> (<span id="proj1-catB-pct">0</span>%)</span>
+                </div>
+                <div class="progress-bar-container" style="background: var(--bg-tertiary); height: 6px; border-radius: 3px; overflow: hidden;">
+                  <div id="proj1-catB-progress" style="width: 0%; height: 100%; background: var(--secondary); transition: width 0.4s ease;"></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Project 2 -->
+            <div class="budget-project-card" style="padding: 16px; border: 1px solid var(--border-color); border-radius: 12px; background: rgba(29, 78, 216, 0.02);">
+              <h4 style="font-weight: 700; margin-bottom: 12px; font-size: 0.95rem; color: var(--secondary);">
+                โครงการที่ 2: จัดซื้อสายไฟและสายต่อพ่วง (บจก. แบงค็อก เมดิคอล โปร)
+              </h4>
+              <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px;">
+                <span>ยอดงบประมาณรวม: ฿<span id="proj2-total-budget-val">200,000</span></span>
+                <span>ใช้ไปแล้ว: ฿<span id="proj2-total-used-val">0</span> (<span id="proj2-total-pct">0</span>%)</span>
+              </div>
+              <div class="progress-bar-container" style="background: var(--bg-tertiary); height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 15px;">
+                <div id="proj2-total-progress" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--secondary), var(--primary-hover)); transition: width 0.4s ease;"></div>
+              </div>
+              
+              <!-- Cat 2.1 -->
+              <div style="margin-left: 10px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-secondary);">
+                  <span>• สายต่อพ่วง SpO2 Extension Cable</span>
+                  <span>฿<span id="proj2-catA-used-val">0</span> / ฿<span id="proj2-catA-budget-val">150,000</span> (<span id="proj2-catA-pct">0</span>%)</span>
+                </div>
+                <div class="progress-bar-container" style="background: var(--bg-tertiary); height: 6px; border-radius: 3px; overflow: hidden;">
+                  <div id="proj2-catA-progress" style="width: 0%; height: 100%; background: var(--secondary); transition: width 0.4s ease;"></div>
+                </div>
+              </div>
+              
+              <!-- Cat 2.2 -->
+              <div style="margin-left: 10px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-secondary);">
+                  <span>• สายไฟ AC Gray Medical Grade</span>
+                  <span>฿<span id="proj2-catB-used-val">0</span> / ฿<span id="proj2-catB-budget-val">50,000</span> (<span id="proj2-catB-pct">0</span>%)</span>
+                </div>
+                <div class="progress-bar-container" style="background: var(--bg-tertiary); height: 6px; border-radius: 3px; overflow: hidden;">
+                  <div id="proj2-catB-progress" style="width: 0%; height: 100%; background: var(--warning); transition: width 0.4s ease;"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1591,9 +1758,14 @@
               <i data-lucide="history" style="color: var(--secondary);"></i>
               ประวัติรายการรับจ่ายคลังอะไหล่ (Ledger Logs)
             </span>
-            <button class="btn btn-secondary btn-sm" id="btn-export-logs">
-              <i data-lucide="download"></i> Export CSV
-            </button>
+            <div class="card-actions">
+              <button class="btn btn-primary btn-sm" id="btn-generate-monthly-report">
+                <i data-lucide="file-text"></i> สรุปรายงานประจำเดือน
+              </button>
+              <button class="btn btn-secondary btn-sm" id="btn-export-logs">
+                <i data-lucide="download"></i> Export CSV
+              </button>
+            </div>
           </div>
 
           <!-- Professional Filters -->
@@ -2235,6 +2407,47 @@
             </div>
           </div>
 
+          <!-- Budget Settings Card -->
+          <div class="card" id="settings-budget-card" style="height: fit-content; margin-top: 20px;">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="wallet" style="color: var(--primary);"></i>
+                ตั้งค่างบประมาณปีงบประมาณ (สิทธิ์ Programmer เท่านั้น)
+              </span>
+            </div>
+            <div class="form-grid" style="grid-template-columns: 1fr; gap: 15px;">
+              <h4 style="font-weight: 600; font-size: 0.9rem; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">
+                โครงการที่ 1: จัดซื้อสาย SPO2 Bedside Monitor
+              </h4>
+              <div class="form-group">
+                <label for="settings-budget-proj1-catA">สายวัด SpO2 แบบ Reusable (งบประมาณเริ่มต้น)</label>
+                <input type="number" id="settings-budget-proj1-catA" value="1294500" min="0" step="1000">
+              </div>
+              <div class="form-group">
+                <label for="settings-budget-proj1-catB">สายวัด SpO2 แบบ Cable/Probe (งบประมาณเริ่มต้น)</label>
+                <input type="number" id="settings-budget-proj1-catB" value="124000" min="0" step="1000">
+              </div>
+
+              <h4 style="font-weight: 600; font-size: 0.9rem; color: var(--secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 10px;">
+                โครงการที่ 2: จัดซื้อสายไฟและสายต่อพ่วง
+              </h4>
+              <div class="form-group">
+                <label for="settings-budget-proj2-catA">สายต่อพ่วง SpO2 Extension Cable (งบประมาณเริ่มต้น)</label>
+                <input type="number" id="settings-budget-proj2-catA" value="150000" min="0" step="1000">
+              </div>
+              <div class="form-group">
+                <label for="settings-budget-proj2-catB">สายไฟ AC Gray Medical Grade (งบประมาณเริ่มต้น)</label>
+                <input type="number" id="settings-budget-proj2-catB" value="50000" min="0" step="1000">
+              </div>
+
+              <div style="margin-top: 5px;">
+                <button class="btn btn-primary" id="btn-save-budget-settings">
+                  <i data-lucide="save"></i> บันทึกงบประมาณประจำปี
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Apps Script Instructions and Code block -->
           <div class="card">
             <div class="card-header">
@@ -2680,6 +2893,44 @@ function sendLineNotify(flexMessage, token, groupId) {
     </div>
   </div>
 
+  <!-- MODAL 6: MONTHLY EXECUTIVE SUMMARY REPORT -->
+  <div id="modal-monthly-report" class="modal">
+    <div class="modal-content" style="max-width: 900px; width: 95%;">
+      <div class="modal-header">
+        <h3>สรุปรายงานการเบิกจ่ายและงบประมาณประจำเดือน</h3>
+        <button class="close-btn" onclick="closeModal('modal-monthly-report')">&times;</button>
+      </div>
+      <div class="modal-body" style="gap: 15px;">
+        <div style="display: flex; gap: 15px; align-items: center; background: var(--bg-tertiary); padding: 12px 18px; border-radius: 10px;">
+          <div class="form-group" style="margin: 0; flex-direction: row; align-items: center; gap: 10px;">
+            <label for="report-month-select" style="white-space: nowrap; margin: 0;">เลือกประจำเดือน:</label>
+            <input type="month" id="report-month-select" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); cursor: pointer;">
+          </div>
+          <button class="btn btn-primary" id="btn-render-report-preview" style="padding: 8px 16px;">
+            <i data-lucide="refresh-cw"></i> ดึงรายงาน
+          </button>
+        </div>
+        
+        <!-- Preview Container -->
+        <div id="monthly-report-preview" style="border: 1px solid var(--border-color); padding: 30px; border-radius: 12px; background: #ffffff; color: #000000; font-family: 'Sarabun', sans-serif; overflow-y: auto; max-height: 50vh; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+          <div style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+            <i data-lucide="file-text" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5;"></i>
+            <p>กรุณาเลือกเดือนที่ต้องการแล้วกดปุ่ม "ดึงรายงาน"</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-monthly-report')">ปิดหน้าต่าง</button>
+        <button class="btn btn-success" id="btn-print-report">
+          <i data-lucide="printer"></i> พิมพ์รายงาน / บันทึก PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Container for printing (Hidden on screen, visible only on print) -->
+  <div id="monthly-report-print-area"></div>
+
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toast-notification" class="toast-modal-overlay">
     <div id="toast-content-card" class="toast-modal-content">
@@ -3107,14 +3358,82 @@ function sendLineNotify(flexMessage, token, groupId) {
       gasUrl: "https://script.google.com/macros/s/AKfycbyD6kMKrvj8O1JjYAj_Dk-tYY4iW63phFQIidNGPsqjymO2d_dZtmFL9B4ujgYNZps8/exec",
       lineToggle: true,
       lineToken: "",
-      lineGroupId: ""
+      lineGroupId: "",
+      // Default budgets
+      budgetProj1CatA: 1294500,
+      budgetProj1CatB: 124000,
+      budgetProj2CatA: 150000,
+      budgetProj2CatB: 50000
     };
     let userAccounts = [];
     let currentUser = null;
 
-    // Chart References
+    // Active Dashboard Analysis Controls
+    let activeAnalysisTab = "consumption"; // default tab as requested
+    let activeConsumptionRange = "fiscal";  // default range as requested
+    let consumptionChartRef = null;
     let tscEvChartRef = null;
     let abcChartRef = null;
+
+    // Helper: Map parts to Project & Category
+    function getPartCategoryAndProject(partCode, partName, supplierName) {
+      const code = (partCode || "").toUpperCase();
+      const name = (partName || "").toLowerCase();
+      const supplier = (supplierName || "").toLowerCase();
+      
+      // If code starts with SR-SPO2 or supplier matches SR Science
+      if (code.startsWith("SR-SPO2-") || supplier.includes("sr science") || supplier.includes("เอสอาร์.ชายน์")) {
+        if (code === "SR-SPO2-004" || name.includes("probe") || name.includes("โพรบ")) {
+          return { 
+            project: "Project 1", 
+            category: "Cat 1.2",
+            projectName: "โครงการที่ 1: จัดซื้อสาย SPO2 Bedside Monitor (ร้านเอสอาร์.ชายน์ฯ)",
+            categoryName: "สายวัด SpO2 แบบ Cable/Probe",
+            budgetKey: "budgetProj1CatB"
+          };
+        } else {
+          return {
+            project: "Project 1",
+            category: "Cat 1.1",
+            projectName: "โครงการที่ 1: จัดซื้อสาย SPO2 Bedside Monitor (ร้านเอสอาร์.ชายน์ฯ)",
+            categoryName: "สายวัด SpO2 แบบ Reusable",
+            budgetKey: "budgetProj1CatA"
+          };
+        }
+      } else {
+        // Bangkok Medical Pro or others
+        if (name.includes("ac gray") || name.includes("สายไฟ ac") || name.includes("ac power") || name.includes("gray medical")) {
+          return {
+            project: "Project 2",
+            category: "Cat 2.2",
+            projectName: "โครงการที่ 2: จัดซื้อสายไฟและสายต่อพ่วง (บจก. แบงค็อก เมดิคอล โปร)",
+            categoryName: "สายไฟ AC Gray Medical Grade",
+            budgetKey: "budgetProj2CatB"
+          };
+        } else {
+          return {
+            project: "Project 2",
+            category: "Cat 2.1",
+            projectName: "โครงการที่ 2: จัดซื้อสายไฟและสายต่อพ่วง (บจก. แบงค็อก เมดิคอล โปร)",
+            categoryName: "สายต่อพ่วง SpO2 Extension Cable",
+            budgetKey: "budgetProj2CatA"
+          };
+        }
+      }
+    }
+
+    // Helper: Thai Fiscal Year calculation (Oct 1 - Sep 30 of next year)
+    function getFiscalYear(dateObj) {
+      if (!(dateObj instanceof Date) || isNaN(dateObj)) {
+        dateObj = new Date(dateObj);
+      }
+      const year = dateObj.getFullYear();
+      const month = dateObj.getMonth(); // 0-indexed: 0 = Jan, 9 = Oct
+      if (month >= 9) { // Oct, Nov, Dec
+        return year + 1;
+      }
+      return year;
+    }
 
     // Initialize App
     document.addEventListener("DOMContentLoaded", () => {
@@ -3150,10 +3469,17 @@ function sendLineNotify(flexMessage, token, groupId) {
       if (storedSettings) {
         const parsed = JSON.parse(storedSettings);
         settings = { ...settings, ...parsed };
+        
+        // Ensure budgets are set
+        if (settings.budgetProj1CatA === undefined) settings.budgetProj1CatA = 1294500;
+        if (settings.budgetProj1CatB === undefined) settings.budgetProj1CatB = 124000;
+        if (settings.budgetProj2CatA === undefined) settings.budgetProj2CatA = 150000;
+        if (settings.budgetProj2CatB === undefined) settings.budgetProj2CatB = 50000;
+        
         if (!settings.gasUrl) {
           settings.gasUrl = "https://script.google.com/macros/s/AKfycbyD6kMKrvj8O1JjYAj_Dk-tYY4iW63phFQIidNGPsqjymO2d_dZtmFL9B4ujgYNZps8/exec";
-          localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
         }
+        localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
       } else {
         localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
       }
@@ -3515,6 +3841,108 @@ function sendLineNotify(flexMessage, token, groupId) {
       document.getElementById("btn-save-settings").addEventListener("click", saveSettings);
       document.getElementById("btn-test-line").addEventListener("click", testLineMessage);
 
+      // New Event Listeners for Budget & Combo Chart & EOM Reports
+      const btnConsumption = document.getElementById("tab-btn-consumption");
+      const btnTscEv = document.getElementById("tab-btn-tscev");
+      if (btnConsumption && btnTscEv) {
+        btnConsumption.addEventListener("click", () => {
+          activeAnalysisTab = "consumption";
+          btnConsumption.style.background = "var(--bg-secondary)";
+          btnConsumption.style.color = "var(--text-primary)";
+          btnConsumption.style.boxShadow = "var(--card-shadow)";
+          btnConsumption.classList.add("btn-active-tab");
+          btnTscEv.style.background = "transparent";
+          btnTscEv.style.color = "var(--text-secondary)";
+          btnTscEv.style.boxShadow = "none";
+          btnTscEv.classList.remove("btn-active-tab");
+          drawDashboardCharts();
+        });
+        btnTscEv.addEventListener("click", () => {
+          activeAnalysisTab = "tscev";
+          btnTscEv.style.background = "var(--bg-secondary)";
+          btnTscEv.style.color = "var(--text-primary)";
+          btnTscEv.style.boxShadow = "var(--card-shadow)";
+          btnTscEv.classList.add("btn-active-tab");
+          btnConsumption.style.background = "transparent";
+          btnConsumption.style.color = "var(--text-secondary)";
+          btnConsumption.style.boxShadow = "none";
+          btnConsumption.classList.remove("btn-active-tab");
+          drawDashboardCharts();
+        });
+      }
+
+      const filterBtns = document.querySelectorAll(".time-filter-btn");
+      filterBtns.forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          filterBtns.forEach(b => {
+            b.classList.remove("filter-active");
+            b.style.background = "transparent";
+            b.style.color = "var(--text-secondary)";
+            b.style.fontWeight = "500";
+            b.style.boxShadow = "none";
+          });
+          btn.classList.add("filter-active");
+          btn.style.background = "var(--primary)";
+          btn.style.color = "#ffffff";
+          btn.style.fontWeight = "600";
+          btn.style.boxShadow = "var(--card-shadow)";
+          
+          activeConsumptionRange = btn.getAttribute("data-range");
+          drawDashboardCharts();
+        });
+      });
+
+      const btnSaveBudget = document.getElementById("btn-save-budget-settings");
+      if (btnSaveBudget) {
+        btnSaveBudget.addEventListener("click", saveBudgetSettings);
+      }
+
+      const btnGenMonthlyReport = document.getElementById("btn-generate-monthly-report");
+      if (btnGenMonthlyReport) {
+        btnGenMonthlyReport.addEventListener("click", () => {
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = (now.getMonth() + 1).toString().padStart(2, '0');
+          document.getElementById("report-month-select").value = `${year}-${month}`;
+          
+          document.getElementById("monthly-report-preview").innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+              <i data-lucide="file-text" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5;"></i>
+              <p>กรุณากดปุ่ม "ดึงรายงาน" เพื่อแสดงตัวอย่าง</p>
+            </div>
+          `;
+          if (window.lucide) window.lucide.createIcons();
+          openModal("modal-monthly-report");
+        });
+      }
+
+      const btnRenderReportPreview = document.getElementById("btn-render-report-preview");
+      if (btnRenderReportPreview) {
+        btnRenderReportPreview.addEventListener("click", () => {
+          const month = document.getElementById("report-month-select").value;
+          if (!month) {
+            alert("กรุณาเลือกประจำเดือน");
+            return;
+          }
+          const previewHtml = generateMonthlyReportPreview(month);
+          document.getElementById("monthly-report-preview").innerHTML = previewHtml;
+        });
+      }
+
+      const btnPrintReport = document.getElementById("btn-print-report");
+      if (btnPrintReport) {
+        btnPrintReport.addEventListener("click", () => {
+          const preview = document.getElementById("monthly-report-preview");
+          if (preview.querySelector("table") === null) {
+            alert("กรุณาดึงรายงานเพื่อดูพรีวิวก่อนสั่งพิมพ์");
+            return;
+          }
+          const printArea = document.getElementById("monthly-report-print-area");
+          printArea.innerHTML = preview.innerHTML;
+          window.print();
+        });
+      }
+
       document.getElementById("btn-add-part").addEventListener("click", () => {
         document.getElementById("part-form").reset();
         document.getElementById("part-form-mode").value = "add";
@@ -3635,6 +4063,11 @@ function sendLineNotify(flexMessage, token, groupId) {
         document.getElementById("settings-line-toggle").checked = settings.lineToggle;
         document.getElementById("settings-line-token").value = settings.lineToken || "";
         document.getElementById("settings-line-groupid").value = settings.lineGroupId || "";
+        // Populate budgets
+        document.getElementById("settings-budget-proj1-catA").value = settings.budgetProj1CatA || 1294500;
+        document.getElementById("settings-budget-proj1-catB").value = settings.budgetProj1CatB || 124000;
+        document.getElementById("settings-budget-proj2-catA").value = settings.budgetProj2CatA || 150000;
+        document.getElementById("settings-budget-proj2-catB").value = settings.budgetProj2CatB || 50000;
       }
     }
 
@@ -3772,6 +4205,7 @@ function sendLineNotify(flexMessage, token, groupId) {
       const labelColor = isDark ? "#d1d5db" : "#334155";
       const gridColor = isDark ? "#374151" : "#e2e8f0";
 
+      // 1. Render ABC doughnut chart
       const abcCounts = { A: 0, B: 0, C: 0 };
       const abcValues = { A: 0, B: 0, C: 0 };
 
@@ -3818,76 +4252,624 @@ function sendLineNotify(flexMessage, token, groupId) {
         }
       });
 
-      const serviceCosts = {};
-      transactions.filter(t => t.type === "Issue" && t.eqSerial).forEach(t => {
-        if (!serviceCosts[t.eqSerial]) {
-          serviceCosts[t.eqSerial] = 0;
-        }
-        const part = parts.find(p => p.code === t.partCode);
-        const unitPrice = part ? part.unitPrice : 0;
-        serviceCosts[t.eqSerial] += (t.qty * unitPrice);
-      });
+      // 2. Render active analysis chart
+      if (activeAnalysisTab === "consumption") {
+        document.getElementById("consumptionChart").style.display = "block";
+        document.getElementById("tscEvChart").style.display = "none";
+        document.getElementById("consumption-time-filters").style.display = "flex";
 
-      const labels = [];
-      const ratios = [];
-      const backgroundColors = [];
+        const now = new Date();
+        let filteredTx = [];
 
-      equipment.forEach(eq => {
-        const cost = serviceCosts[eq.serial] || 0;
-        const ratio = (cost / eq.value) * 100;
-        
-        labels.push(`${eq.serial} (${eq.model.split(" ")[0]})`);
-        ratios.push(ratio.toFixed(1));
-
-        if (ratio >= 25.0) {
-          backgroundColors.push('#ef4444');
-        } else if (ratio >= 5.0) {
-          backgroundColors.push('#f97316');
+        if (activeConsumptionRange === "daily") {
+          const cutOff = new Date();
+          cutOff.setDate(now.getDate() - 7);
+          filteredTx = transactions.filter(t => new Date(t.timestamp) >= cutOff);
+        } else if (activeConsumptionRange === "weekly") {
+          const cutOff = new Date();
+          cutOff.setDate(now.getDate() - 28);
+          filteredTx = transactions.filter(t => new Date(t.timestamp) >= cutOff);
+        } else if (activeConsumptionRange === "monthly") {
+          const cutOff = new Date();
+          cutOff.setMonth(now.getMonth() - 12);
+          filteredTx = transactions.filter(t => new Date(t.timestamp) >= cutOff);
         } else {
-          backgroundColors.push('#14b8a6');
+          // Fiscal Year
+          const currentFY = getFiscalYear(now);
+          filteredTx = transactions.filter(t => getFiscalYear(new Date(t.timestamp)) === currentFY);
         }
-      });
 
-      if (tscEvChartRef) tscEvChartRef.destroy();
+        const issues = filteredTx.filter(t => t.type === "Issue");
 
-      const tscCtx = document.getElementById("tscEvChart").getContext("2d");
-      tscEvChartRef = new Chart(tscCtx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'สัดส่วน TSC / EV (%)',
-            data: ratios,
-            backgroundColor: backgroundColors,
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: { color: labelColor, font: { family: 'Sarabun', size: 10 } }
-            },
-            y: {
-              grid: { color: gridColor },
-              ticks: { color: labelColor },
-              title: { display: true, text: 'อัตราส่วน (%)', color: labelColor }
-            }
+        // Sum qty and cost for each part
+        const partStats = {};
+        parts.forEach(p => {
+          partStats[p.code] = { qty: 0, cost: 0 };
+        });
+
+        issues.forEach(t => {
+          if (!partStats[t.partCode]) {
+            partStats[t.partCode] = { qty: 0, cost: 0 };
+          }
+          partStats[t.partCode].qty += parseInt(t.qty) || 0;
+          
+          const part = parts.find(p => p.code === t.partCode);
+          const cost = parseFloat(t.cost) || (parseInt(t.qty) * (part ? part.unitPrice : 0)) || 0;
+          partStats[t.partCode].cost += cost;
+        });
+
+        const labels = [];
+        const qtyData = [];
+        const costData = [];
+
+        parts.forEach(p => {
+          labels.push(p.code);
+          qtyData.push(partStats[p.code].qty);
+          costData.push(partStats[p.code].cost);
+        });
+
+        if (consumptionChartRef) consumptionChartRef.destroy();
+
+        const ctx = document.getElementById("consumptionChart").getContext("2d");
+        const barColor = isDark ? '#2dd4bf' : '#0f766e'; // Teal shades
+        const lineColor = isDark ? '#60a5fa' : '#1d4ed8'; // Blue shades
+
+        consumptionChartRef = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                type: 'bar',
+                label: 'จำนวนเบิกสะสม (ชิ้น)',
+                data: qtyData,
+                backgroundColor: barColor,
+                borderRadius: 4,
+                yAxisID: 'y'
+              },
+              {
+                type: 'line',
+                label: 'ยอดเงินเบิกสะสม (บาท)',
+                data: costData,
+                borderColor: lineColor,
+                backgroundColor: lineColor,
+                borderWidth: 2,
+                pointBackgroundColor: lineColor,
+                pointBorderColor: '#ffffff',
+                pointRadius: 4,
+                tension: 0.15,
+                yAxisID: 'y1'
+              }
+            ]
           },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return ` อัตราส่วน: ${context.raw}% ของราคาซื้อเครื่อง`;
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: labelColor, font: { family: 'Sarabun', size: 9 } }
+              },
+              y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                grid: { color: gridColor },
+                ticks: { color: labelColor },
+                title: { display: true, text: 'จำนวนเบิก (ชิ้น)', color: labelColor, font: { family: 'Sarabun' } }
+              },
+              y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                grid: { drawOnChartArea: false },
+                ticks: { 
+                  color: labelColor,
+                  callback: function(value) {
+                    return '฿' + value.toLocaleString();
+                  }
+                },
+                title: { display: true, text: 'ยอดสะสมการเบิก (บาท)', color: labelColor, font: { family: 'Sarabun' } }
+              }
+            },
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: { color: labelColor, font: { family: 'Sarabun', size: 10 } }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const label = context.dataset.label || '';
+                    const val = context.raw || 0;
+                    if (context.dataset.type === 'bar') {
+                      return `${label}: ${val} ชิ้น`;
+                    } else {
+                      return `${label}: ฿${val.toLocaleString()}`;
+                    }
+                  }
                 }
               }
             }
           }
+        });
+      } else {
+        // TSC / EV Analyzer
+        document.getElementById("consumptionChart").style.display = "none";
+        document.getElementById("tscEvChart").style.display = "block";
+        document.getElementById("consumption-time-filters").style.display = "none";
+
+        const serviceCosts = {};
+        transactions.filter(t => t.type === "Issue" && t.eqSerial).forEach(t => {
+          if (!serviceCosts[t.eqSerial]) {
+            serviceCosts[t.eqSerial] = 0;
+          }
+          const part = parts.find(p => p.code === t.partCode);
+          const unitPrice = part ? part.unitPrice : 0;
+          serviceCosts[t.eqSerial] += (t.qty * unitPrice);
+        });
+
+        const labels = [];
+        const ratios = [];
+        const backgroundColors = [];
+
+        equipment.forEach(eq => {
+          const cost = serviceCosts[eq.serial] || 0;
+          const ratio = (cost / eq.value) * 100;
+          
+          labels.push(`${eq.serial} (${eq.model.split(" ")[0]})`);
+          ratios.push(ratio.toFixed(1));
+
+          if (ratio >= 25.0) {
+            backgroundColors.push('#ef4444');
+          } else if (ratio >= 5.0) {
+            backgroundColors.push('#f97316');
+          } else {
+            backgroundColors.push('#14b8a6');
+          }
+        });
+
+        if (tscEvChartRef) tscEvChartRef.destroy();
+
+        const tscCtx = document.getElementById("tscEvChart").getContext("2d");
+        tscEvChartRef = new Chart(tscCtx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'สัดส่วน TSC / EV (%)',
+              data: ratios,
+              backgroundColor: backgroundColors,
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: labelColor, font: { family: 'Sarabun', size: 10 } }
+              },
+              y: {
+                grid: { color: gridColor },
+                ticks: { color: labelColor },
+                title: { display: true, text: 'อัตราส่วน (%)', color: labelColor }
+              }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return ` อัตราส่วน: ${context.raw}% ของราคาซื้อเครื่อง`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 3. Update Budget Progress status bar
+      updateBudgetProgress();
+    }
+
+    // New Budget & EOM Functions
+    function updateBudgetProgress() {
+      const now = new Date();
+      const currentFY = getFiscalYear(now);
+      
+      // Update Fiscal Year labels
+      const fyLabel = (currentFY + 543).toString(); // Convert to BE (e.g. 2026 + 543 = 2569)
+      const labelEl = document.getElementById("budget-fiscal-year-label");
+      if (labelEl) labelEl.innerText = `พ.ศ. ${fyLabel} (${currentFY})`;
+
+      // Get budget limits from settings
+      const budget1A = settings.budgetProj1CatA || 0;
+      const budget1B = settings.budgetProj1CatB || 0;
+      const budget1Total = budget1A + budget1B;
+
+      const budget2A = settings.budgetProj2CatA || 0;
+      const budget2B = settings.budgetProj2CatB || 0;
+      const budget2Total = budget2A + budget2B;
+
+      // Reset used values
+      let used1A = 0;
+      let used1B = 0;
+      let used2A = 0;
+      let used2B = 0;
+
+      // Filter transactions for "Issue" in the current fiscal year
+      transactions.forEach(t => {
+        if (t.type === "Issue") {
+          const txDate = new Date(t.timestamp);
+          if (getFiscalYear(txDate) === currentFY) {
+            // Find part to map category
+            const part = parts.find(p => p.code === t.partCode);
+            const pName = part ? part.name : t.partName;
+            const pSupplier = part ? part.supplierName : "";
+            const catMap = getPartCategoryAndProject(t.partCode, pName, pSupplier);
+
+            const cost = parseFloat(t.cost) || (parseInt(t.qty) * (part ? part.unitPrice : 0)) || 0;
+
+            if (catMap.project === "Project 1") {
+              if (catMap.category === "Cat 1.1") used1A += cost;
+              else if (catMap.category === "Cat 1.2") used1B += cost;
+            } else if (catMap.project === "Project 2") {
+              if (catMap.category === "Cat 2.1") used2A += cost;
+              else if (catMap.category === "Cat 2.2") used2B += cost;
+            }
+          }
         }
       });
+
+      const used1Total = used1A + used1B;
+      const used2Total = used2A + used2B;
+
+      // Calculate percentages
+      const pct1A = budget1A > 0 ? ((used1A / budget1A) * 100).toFixed(1) : 0;
+      const pct1B = budget1B > 0 ? ((used1B / budget1B) * 100).toFixed(1) : 0;
+      const pct1Total = budget1Total > 0 ? ((used1Total / budget1Total) * 100).toFixed(1) : 0;
+
+      const pct2A = budget2A > 0 ? ((used2A / budget2A) * 100).toFixed(1) : 0;
+      const pct2B = budget2B > 0 ? ((used2B / budget2B) * 100).toFixed(1) : 0;
+      const pct2Total = budget2Total > 0 ? ((used2Total / budget2Total) * 100).toFixed(1) : 0;
+
+      // Helper: set UI values
+      const setEl = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = val;
+      };
+
+      setEl("proj1-total-budget-val", budget1Total.toLocaleString());
+      setEl("proj1-total-used-val", used1Total.toLocaleString());
+      setEl("proj1-total-pct", pct1Total);
+
+      setEl("proj1-catA-budget-val", budget1A.toLocaleString());
+      setEl("proj1-catA-used-val", used1A.toLocaleString());
+      setEl("proj1-catA-pct", pct1A);
+
+      setEl("proj1-catB-budget-val", budget1B.toLocaleString());
+      setEl("proj1-catB-used-val", used1B.toLocaleString());
+      setEl("proj1-catB-pct", pct1B);
+
+      setEl("proj2-total-budget-val", budget2Total.toLocaleString());
+      setEl("proj2-total-used-val", used2Total.toLocaleString());
+      setEl("proj2-total-pct", pct2Total);
+
+      setEl("proj2-catA-budget-val", budget2A.toLocaleString());
+      setEl("proj2-catA-used-val", used2A.toLocaleString());
+      setEl("proj2-catA-pct", pct2A);
+
+      setEl("proj2-catB-budget-val", budget2B.toLocaleString());
+      setEl("proj2-catB-used-val", used2B.toLocaleString());
+      setEl("proj2-catB-pct", pct2B);
+
+      // Helper: Update Progress Bars
+      const updateBar = (barId, pct) => {
+        const el = document.getElementById(barId);
+        if (el) {
+          const safePct = Math.min(parseFloat(pct), 100);
+          el.style.width = safePct + "%";
+          
+          if (pct >= 85) {
+            el.style.background = "var(--danger)";
+          } else if (pct >= 70) {
+            el.style.background = "var(--warning)";
+          } else {
+            if (barId.includes("proj1")) el.style.background = "var(--primary)";
+            if (barId.includes("proj2")) el.style.background = "var(--secondary)";
+          }
+        }
+      };
+
+      updateBar("proj1-total-progress", pct1Total);
+      updateBar("proj1-catA-progress", pct1A);
+      updateBar("proj1-catB-progress", pct1B);
+
+      updateBar("proj2-total-progress", pct2Total);
+      updateBar("proj2-catA-progress", pct2A);
+      updateBar("proj2-catB-progress", pct2B);
+    }
+
+    function saveBudgetSettings() {
+      if (!currentUser || currentUser.role !== "Programmer") {
+        showToast("ข้อผิดพลาด", "ขออภัย สิทธิ์ของคุณไม่สามารถแก้ไขงบประมาณได้", "danger");
+        return;
+      }
+      
+      const b1a = parseFloat(document.getElementById("settings-budget-proj1-catA").value) || 0;
+      const b1b = parseFloat(document.getElementById("settings-budget-proj1-catB").value) || 0;
+      const b2a = parseFloat(document.getElementById("settings-budget-proj2-catA").value) || 0;
+      const b2b = parseFloat(document.getElementById("settings-budget-proj2-catB").value) || 0;
+
+      settings.budgetProj1CatA = b1a;
+      settings.budgetProj1CatB = b1b;
+      settings.budgetProj2CatA = b2a;
+      settings.budgetProj2CatB = b2b;
+
+      localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
+      showToast("บันทึกงบประมาณแล้ว", "อัปเดตวงเงินงบประมาณรายโครงการและประเภทเรียบร้อย", "success");
+      updateDashboard();
+      persistState();
+    }
+
+    function generateMonthlyReportPreview(targetMonth) {
+      const partsMap = {};
+      parts.forEach(p => { partsMap[p.code] = p; });
+
+      // Determine month info
+      const monthsThai = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+      const [year, monthIdxStr] = targetMonth.split("-");
+      const monthIdx = parseInt(monthIdxStr) - 1;
+      const monthLabel = monthsThai[monthIdx];
+      const yearBE = parseInt(year) + 543;
+
+      // Filter transactions for this month
+      const thisMonthTx = transactions.filter(t => t.timestamp.startsWith(targetMonth));
+      const thisMonthIssues = thisMonthTx.filter(t => t.type === "Issue");
+
+      // Filter transactions for this Fiscal Year up to selected month
+      const targetDate = new Date(year, monthIdx, 28);
+      const currentFY = getFiscalYear(targetDate);
+
+      const fyIssuesUpToNow = transactions.filter(t => {
+        if (t.type !== "Issue") return false;
+        const d = new Date(t.timestamp);
+        if (getFiscalYear(d) !== currentFY) return false;
+        const tMonth = t.timestamp.substring(0, 7);
+        return tMonth <= targetMonth;
+      });
+
+      // Sum values for budget table
+      let used1A_m = 0, used1B_m = 0, used2A_m = 0, used2B_m = 0;
+      let used1A_y = 0, used1B_y = 0, used2A_y = 0, used2B_y = 0;
+
+      thisMonthIssues.forEach(t => {
+        const part = partsMap[t.partCode];
+        const pName = part ? part.name : t.partName;
+        const pSupplier = part ? part.supplierName : "";
+        const catMap = getPartCategoryAndProject(t.partCode, pName, pSupplier);
+        const cost = parseFloat(t.cost) || (parseInt(t.qty) * (part ? part.unitPrice : 0)) || 0;
+
+        if (catMap.project === "Project 1") {
+          if (catMap.category === "Cat 1.1") used1A_m += cost;
+          else if (catMap.category === "Cat 1.2") used1B_m += cost;
+        } else if (catMap.project === "Project 2") {
+          if (catMap.category === "Cat 2.1") used2A_m += cost;
+          else if (catMap.category === "Cat 2.2") used2B_m += cost;
+        }
+      });
+
+      fyIssuesUpToNow.forEach(t => {
+        const part = partsMap[t.partCode];
+        const pName = part ? part.name : t.partName;
+        const pSupplier = part ? part.supplierName : "";
+        const catMap = getPartCategoryAndProject(t.partCode, pName, pSupplier);
+        const cost = parseFloat(t.cost) || (parseInt(t.qty) * (part ? part.unitPrice : 0)) || 0;
+
+        if (catMap.project === "Project 1") {
+          if (catMap.category === "Cat 1.1") used1A_y += cost;
+          else if (catMap.category === "Cat 1.2") used1B_y += cost;
+        } else if (catMap.project === "Project 2") {
+          if (catMap.category === "Cat 2.1") used2A_y += cost;
+          else if (catMap.category === "Cat 2.2") used2B_y += cost;
+        }
+      });
+
+      // Budget Limits
+      const limit1A = settings.budgetProj1CatA || 0;
+      const limit1B = settings.budgetProj1CatB || 0;
+      const limit1Total = limit1A + limit1B;
+      const limit2A = settings.budgetProj2CatA || 0;
+      const limit2B = settings.budgetProj2CatB || 0;
+      const limit2Total = limit2A + limit2B;
+
+      // Top 3 Fast Moving
+      const partCounts = {};
+      thisMonthIssues.forEach(t => {
+        if (!partCounts[t.partCode]) {
+          partCounts[t.partCode] = { qty: 0, cost: 0, name: t.partName };
+        }
+        partCounts[t.partCode].qty += parseInt(t.qty) || 0;
+        const part = partsMap[t.partCode];
+        const cost = parseFloat(t.cost) || (parseInt(t.qty) * (part ? part.unitPrice : 0)) || 0;
+        partCounts[t.partCode].cost += cost;
+      });
+      const topParts = Object.keys(partCounts)
+        .map(code => ({ code, ...partCounts[code] }))
+        .sort((a, b) => b.qty - a.qty)
+        .slice(0, 3);
+
+      // Top 3 Repair Devices
+      const eqCosts = {};
+      thisMonthIssues.filter(t => t.eqSerial).forEach(t => {
+        if (!eqCosts[t.eqSerial]) {
+          eqCosts[t.eqSerial] = { cost: 0, model: t.eqModel || "Bedside Monitor", dept: t.dept || "ICU" };
+        }
+        const part = partsMap[t.partCode];
+        const cost = parseFloat(t.cost) || (parseInt(t.qty) * (part ? part.unitPrice : 0)) || 0;
+        eqCosts[t.eqSerial].cost += cost;
+      });
+      const topEq = Object.keys(eqCosts)
+        .map(serial => ({ serial, ...eqCosts[serial] }))
+        .sort((a, b) => b.cost - a.cost)
+        .slice(0, 3);
+
+      const reporterName = currentUser ? currentUser.realName : "นายสุรศักดิ์ พึ่งเล่ห์";
+      const reporterRole = currentUser ? (currentUser.role === "Programmer" ? "ช่างเทคนิคอาวุโส" : currentUser.role) : "ช่างเทคนิคประจำศูนย์เครื่องมือแพทย์";
+
+      const reportHtml = `
+        <div style="font-family: 'Sarabun', Arial, sans-serif; line-height: 1.5; color: #000000; padding: 10px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="font-size: 1.3rem; font-weight: bold;">รายงานสรุปการเบิกจ่ายและงบประมาณพัสดุอะไหล่เครื่องมือแพทย์</div>
+            <div style="font-size: 1.1rem; font-weight: bold; margin-top: 5px;">ศูนย์เครื่องมือแพทย์ โรงพยาบาลนครพิงค์</div>
+            <div style="font-size: 1rem; margin-top: 5px;">ประจำเดือน ${monthLabel} พ.ศ. ${yearBE} (ปีงบประมาณ ${currentFY + 543})</div>
+          </div>
+          
+          <hr style="border: 0; border-top: 2px solid #000000; margin-bottom: 20px;">
+
+          <div style="margin-bottom: 20px;">
+            <div style="font-weight: bold; font-size: 1rem; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 10px;">
+              ๑. ตารางสรุปการใช้งบประมาณแยกรายโครงการ
+            </div>
+            <table class="print-table" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th style="border: 1px solid #000; padding: 6px; background-color: #f2f2f2;">โครงการ / ประเภทวัสดุอะไหล่</th>
+                  <th style="border: 1px solid #000; padding: 6px; text-align: right; background-color: #f2f2f2;">งบประมาณจัดสรร (บาท)</th>
+                  <th style="border: 1px solid #000; padding: 6px; text-align: right; background-color: #f2f2f2;">เบิกจ่ายเดือนนี้ (บาท)</th>
+                  <th style="border: 1px solid #000; padding: 6px; text-align: right; background-color: #f2f2f2;">เบิกสะสมทั้งปี (บาท)</th>
+                  <th style="border: 1px solid #000; padding: 6px; text-align: right; background-color: #f2f2f2;">งบประมาณคงเหลือ (บาท)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="font-weight: bold; background-color: #fafafa;">
+                  <td style="border: 1px solid #000; padding: 6px;">โครงการที่ ๑: สาย SPO2 (ร้านเอสอาร์.ชายน์ฯ)</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(limit1A + limit1B).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(used1A_m + used1B_m).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(used1A_y + used1B_y).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${((limit1A + limit1B) - (used1A_y + used1B_y)).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000; padding: 6px; padding-left: 20px;">- สายวัด SpO2 แบบ Reusable</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${limit1A.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used1A_m.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used1A_y.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(limit1A - used1A_y).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000; padding: 6px; padding-left: 20px;">- สายวัด SpO2 แบบ Cable/Probe</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${limit1B.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used1B_m.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used1B_y.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(limit1B - used1B_y).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                </tr>
+                <tr style="font-weight: bold; background-color: #fafafa;">
+                  <td style="border: 1px solid #000; padding: 6px;">โครงการที่ ๒: สายไฟและต่อพ่วง (บจก. แบงค็อก เมดิคอล โปร)</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(limit2A + limit2B).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(used2A_m + used2B_m).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(used2A_y + used2B_y).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${((limit2A + limit2B) - (used2A_y + used2B_y)).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000; padding: 6px; padding-left: 20px;">- สายต่อพ่วง SpO2 Extension Cable</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${limit2A.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used2A_m.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used2A_y.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(limit2A - used2A_y).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000; padding: 6px; padding-left: 20px;">- สายไฟ AC Gray Medical Grade</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${limit2B.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used2B_m.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${used2B_y.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(limit2B - used2B_y).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                </tr>
+                <tr style="font-weight: bold; background-color: #f2f2f2;">
+                  <td style="border: 1px solid #000; padding: 6px; text-align: center;">ยอดรวมสุทธิทุกโครงการ</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(limit1Total + limit2Total).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(used1A_m + used1B_m + used2A_m + used2B_m).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${(used1A_y + used1B_y + used2A_y + used2B_y).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                  <td style="border: 1px solid #000; padding: 6px; text-align: right;">${((limit1Total + limit2Total) - (used1A_y + used1B_y + used2A_y + used2B_y)).toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+              <div style="font-weight: bold; font-size: 0.95rem; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 8px;">
+                ๒. อะไหล่ที่เบิกสูงสุดในเดือนนี้ (Top Requisitions)
+              </div>
+              <table class="print-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background-color: #fafafa;">
+                    <th style="border: 1px solid #000; padding: 4px; font-size: 8.5pt;">รหัสอะไหล่</th>
+                    <th style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: center;">จำนวนเบิก</th>
+                    <th style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: right;">มูลค่ารวม (บาท)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${topParts.length === 0 ? '<tr><td colspan="3" style="text-align:center; font-size: 8.5pt; padding: 8px;">ไม่มีการทำรายการเบิก</td></tr>' : 
+                    topParts.map(p => `
+                      <tr>
+                        <td style="border: 1px solid #000; padding: 4px; font-size: 8.5pt;"><strong>${p.code}</strong><br><span style="font-size: 7.5pt; color: #555;">${p.name}</span></td>
+                        <td style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: center;">${p.qty} ชิ้น</td>
+                        <td style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: right;">${p.cost.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                      </tr>
+                    `).join('')
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <div>
+              <div style="font-weight: bold; font-size: 0.95rem; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 8px;">
+                ๓. เครื่องมือที่ทำยอดค่าซ่อมสูงสุดในเดือนนี้ (Top Repairs)
+              </div>
+              <table class="print-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background-color: #fafafa;">
+                    <th style="border: 1px solid #000; padding: 4px; font-size: 8.5pt;">เลขครุภัณฑ์ / รุ่น</th>
+                    <th style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: center;">แผนก</th>
+                    <th style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: right;">ค่าอะไหล่ซ่อม (บาท)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${topEq.length === 0 ? '<tr><td colspan="3" style="text-align:center; font-size: 8.5pt; padding: 8px;">ไม่มีประวัติการซ่อมในเดือนนี้</td></tr>' : 
+                    topEq.map(e => `
+                      <tr>
+                        <td style="border: 1px solid #000; padding: 4px; font-size: 8.5pt;"><strong>${e.serial}</strong><br><span style="font-size: 7.5pt; color: #555;">${e.model}</span></td>
+                        <td style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: center;">${e.dept}</td>
+                        <td style="border: 1px solid #000; padding: 4px; font-size: 8.5pt; text-align: right;">${e.cost.toLocaleString("th-TH", {minimumFractionDigits: 2})}</td>
+                      </tr>
+                    `).join('')
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style="margin-top: 50px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; text-align: center; font-size: 0.95rem;">
+            <div>
+              <div style="margin-bottom: 45px;">(ลงชื่อ) ............................................................ ผู้เสนอรายงาน</div>
+              <div>( <strong>${reporterName}</strong> )</div>
+              <div style="font-size: 0.85rem; color: #555; margin-top: 5px;">ตำแหน่ง ${reporterRole}</div>
+              <div style="margin-top: 5px;">วันที่ ........ / ........................ / ................</div>
+            </div>
+            <div>
+              <div style="margin-bottom: 45px;">(ลงชื่อ) ............................................................ ผู้บริหารอนุมัติ</div>
+              <div>( <strong>นายรัฐศาสตร์ มหาเทพ</strong> )</div>
+              <div style="font-size: 0.85rem; color: #555; margin-top: 5px;">ตำแหน่ง หัวหน้าเจ้าหน้าที่งานศูนย์เครื่องมือแพทย์</div>
+              <div style="margin-top: 5px;">วันที่ ........ / ........................ / ................</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      return reportHtml;
     }
 
     // 6. Spare Parts Catalog tab rendering
@@ -5073,6 +6055,29 @@ function sendLineNotify(flexMessage, token, groupId) {
 
       localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
       showToast("บันทึกข้อมูลแล้ว", "อัปเดตระบบการตั้งค่าความปลอดภัยและเครือข่ายเรียบร้อย", "success");
+      persistState();
+    }
+
+    function saveBudgetSettings() {
+      // Check programmer permission
+      if (!currentUser || currentUser.role !== "Programmer") {
+        showToast("ข้อผิดพลาด", "ขออภัย สิทธิ์ของคุณไม่สามารถแก้ไขงบประมาณได้", "danger");
+        return;
+      }
+      
+      const b1a = parseFloat(document.getElementById("settings-budget-proj1-catA").value) || 0;
+      const b1b = parseFloat(document.getElementById("settings-budget-proj1-catB").value) || 0;
+      const b2a = parseFloat(document.getElementById("settings-budget-proj2-catA").value) || 0;
+      const b2b = parseFloat(document.getElementById("settings-budget-proj2-catB").value) || 0;
+
+      settings.budgetProj1CatA = b1a;
+      settings.budgetProj1CatB = b1b;
+      settings.budgetProj2CatA = b2a;
+      settings.budgetProj2CatB = b2b;
+
+      localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
+      showToast("บันทึกงบประมาณแล้ว", "อัปเดตวงเงินงบประมาณรายโครงการและประเภทเรียบร้อย", "success");
+      updateDashboard();
       persistState();
     }
 
