@@ -5075,7 +5075,7 @@ function sendLineNotify(flexMessage, token, groupId) {
           "layout": "horizontal",
           "contents": [
             { "type": "text", "text": "จำนวน:", "size": "sm", "color": "#555555" },
-            { "type": "text", "text": tx.qty + " ชิ้น", "size": "sm", "weight": "bold", "align": "right" }
+            { "type": "text", "text": tx.qty + " ชิ้น", "size": "sm", "weight": "bold", "align": "end" }
           ]
         },
         {
@@ -5083,7 +5083,7 @@ function sendLineNotify(flexMessage, token, groupId) {
           "layout": "horizontal",
           "contents": [
             { "type": "text", "text": "คงคลังล่าสุด:", "size": "sm", "color": "#555555" },
-            { "type": "text", "text": remainingStock + " ชิ้น", "size": "sm", "weight": "bold", "color": remainingStock <= 5 ? "#ef4444" : "#22c55e", "align": "right" }
+            { "type": "text", "text": remainingStock + " ชิ้น", "size": "sm", "weight": "bold", "color": remainingStock <= 5 ? "#ef4444" : "#22c55e", "align": "end" }
           ]
         }
       ];
@@ -5094,7 +5094,7 @@ function sendLineNotify(flexMessage, token, groupId) {
           "layout": "horizontal",
           "contents": [
             { "type": "text", "text": "ซีเรียลเครื่องซ่อม:", "size": "sm", "color": "#555555" },
-            { "type": "text", "text": tx.eqSerial, "size": "sm", "align": "right" }
+            { "type": "text", "text": tx.eqSerial, "size": "sm", "align": "end" }
           ]
         });
       }
@@ -5104,7 +5104,7 @@ function sendLineNotify(flexMessage, token, groupId) {
         "layout": "horizontal",
         "contents": [
           { "type": "text", "text": "ช่างเทคนิค:", "size": "sm", "color": "#555555" },
-          { "type": "text", "text": tx.operator, "size": "sm", "align": "right" }
+          { "type": "text", "text": tx.operator, "size": "sm", "align": "end" }
         ]
       });
 

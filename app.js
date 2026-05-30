@@ -1228,49 +1228,73 @@ function sendLineNotification(tx, remainingStock) {
           "type": "separator",
           "margin": "md"
         },
+      const detailContents = [
         {
           "type": "box",
-          "layout": "vertical",
-          "margin": "md",
-          "spacing": "sm",
+          "layout": "horizontal",
           "contents": [
+            { "type": "text", "text": "จำนวน:", "size": "sm", "color": "#555555" },
+            { "type": "text", "text": tx.qty + " ชิ้น", "size": "sm", "weight": "bold", "align": "end" }
+          ]
+        },
+        {
+          "type": "box",
+          "layout": "horizontal",
+          "contents": [
+            { "type": "text", "text": "คงคลังล่าสุด:", "size": "sm", "color": "#555555" },
+            { "type": "text", "text": remainingStock + " ชิ้น", "size": "sm", "weight": "bold", "color": remainingStock <= 5 ? "#ef4444" : "#22c55e", "align": "end" }
+          ]
+        }
+      ];
+
+      if (tx.eqSerial) {
+        detailContents.push({
+          "type": "box",
+          "layout": "horizontal",
+          "contents": [
+            { "type": "text", "text": "ซีเรียลเครื่องซ่อม:", "size": "sm", "color": "#555555" },
+            { "type": "text", "text": tx.eqSerial, "size": "sm", "align": "end" }
+          ]
+        });
+      }
+
+      detailContents.push({
+        "type": "box",
+        "layout": "horizontal",
+        "contents": [
+          { "type": "text", "text": "ช่างเทคนิค:", "size": "sm", "color": "#555555" },
+          { "type": "text", "text": tx.operator, "size": "sm", "align": "end" }
+        ]
+      });
+
+      const flexMessage = {
+        "type": "bubble",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            { "type": "text", "text": "คลังเครื่องมือแพทย์ รพ.นครพิงค์", "color": "#ffffff", "weight": "bold", "size": "sm" },
+            { "type": "text", "text": typeLabel, "color": "#ffffff", "weight": "bold", "size": "xl", "margin": "sm" }
+          ],
+          "backgroundColor": colorTheme
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            { "type": "text", "text": tx.partName, "weight": "bold", "size": "md", "wrap": true },
+            { "type": "text", "text": "รหัสอะไหล่: " + tx.partCode, "size": "xs", "color": "#888888", "margin": "xs" },
+            { "type": "separator", "margin": "md" },
             {
               "type": "box",
-              "layout": "horizontal",
-              "contents": [
-                { "type": "text", "text": "จำนวน:", "size": "sm", "color": "#555555" },
-                { "type": "text", "text": tx.qty + " ชิ้น", "size": "sm", "weight": "bold", "align": "right" }
-              ]
-            },
-            {
-              "type": "box",
-              "layout": "horizontal",
-              "contents": [
-                { "type": "text", "text": "คงคลังล่าสุด:", "size": "sm", "color": "#555555" },
-                { "type": "text", "text": remainingStock + " ชิ้น", "size": "sm", "weight": "bold", "color": remainingStock <= 5 ? "#ef4444" : "#22c55e", "align": "right" }
-              ]
-            },
-            tx.eqSerial ? {
-              "type": "box",
-              "layout": "horizontal",
-              "contents": [
-                { "type": "text", "text": "ซีเรียลเครื่องซ่อม:", "size": "sm", "color": "#555555" },
-                { "type": "text", "text": tx.eqSerial, "size": "sm", "align": "right" }
-              ]
-            } : { "type": "filler" },
-            {
-              "type": "box",
-              "layout": "horizontal",
-              "contents": [
-                { "type": "text", "text": "ช่างเทคนิค:", "size": "sm", "color": "#555555" },
-                { "type": "text", "text": tx.operator, "size": "sm", "align": "right" }
-              ]
+              "layout": "vertical",
+              "margin": "md",
+              "spacing": "sm",
+              "contents": detailContents
             }
           ]
         }
-      ]
-    }
-  };
+      };
 
   // Dispatch message via Google Apps Script (if configured) or direct to GAS URL
   if (settings.gasUrl) {
