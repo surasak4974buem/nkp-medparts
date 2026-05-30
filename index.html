@@ -3106,7 +3106,7 @@ function sendLineNotify(message, token, toId) {
       const pwdInput = document.getElementById("login-password").value.trim();
       const errorDiv = document.getElementById("login-error");
 
-      const user = userAccounts.find(u => u.password === pwdInput && u.status === "Active");
+      const user = userAccounts.find(u => String(u.password) === pwdInput && u.status === "Active");
 
       if (user) {
         user.loginCount = (user.loginCount || 0) + 1;
@@ -4877,7 +4877,7 @@ function sendLineNotify(message, token, toId) {
           userAccounts = data.users;
           localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
           if (currentUser) {
-            const updatedSelf = userAccounts.find(u => u.password === currentUser.password);
+            const updatedSelf = userAccounts.find(u => String(u.password) === String(currentUser.password));
             if (updatedSelf) {
               currentUser = updatedSelf;
               sessionStorage.setItem("nkp_current_user", JSON.stringify(currentUser));
@@ -4930,7 +4930,7 @@ function sendLineNotify(message, token, toId) {
         const toggleBtnText = u.status === "Active" ? "ปิดสิทธิ์" : "เปิดใช้";
         const toggleBtnColor = u.status === "Active" ? "var(--danger)" : "var(--success)";
 
-        const isSelf = currentUser && currentUser.password === u.password;
+        const isSelf = currentUser && String(currentUser.password) === String(u.password);
         const disableDeactivate = isSelf || (u.role === "Programmer" && userAccounts.filter(usr => usr.role === "Programmer" && usr.status === "Active").length <= 1 && u.status === "Active");
 
         tr.innerHTML = `
@@ -5017,7 +5017,7 @@ function sendLineNotify(message, token, toId) {
       for (let i = 0; i < 4; i++) {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
       }
-      if (userAccounts.some(u => u.password === result)) {
+      if (userAccounts.some(u => String(u.password) === result)) {
         return generateSecurePassword();
       }
       return result;
@@ -5043,13 +5043,13 @@ function sendLineNotify(message, token, toId) {
         return;
       }
 
-      const isDuplicate = userAccounts.some(u => u.password === newPwd && u.password !== currentUser.password);
+      const isDuplicate = userAccounts.some(u => String(u.password) === String(newPwd) && String(u.password) !== String(currentUser.password));
       if (isDuplicate) {
         errorDiv.innerText = "รหัสผ่านนี้ถูกใช้โดยบัญชีอื่นแล้ว กรุณาเลือกรหัสผ่านอื่น";
         return;
       }
 
-      const userIndex = userAccounts.findIndex(u => u.password === currentUser.password);
+      const userIndex = userAccounts.findIndex(u => String(u.password) === String(currentUser.password));
       if (userIndex !== -1) {
         userAccounts[userIndex].password = newPwd;
         localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
