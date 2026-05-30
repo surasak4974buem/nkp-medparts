@@ -1184,13 +1184,19 @@
               <span>แผนบำรุงรักษาเชิงรุก</span>
             </a>
           </li>
-          <li>
+          <li id="menu-procurement">
             <a class="sidebar-link" data-tab="procurement">
               <i data-lucide="shopping-cart"></i>
               <span>ใบขอจัดซื้ออะไหล่</span>
             </a>
           </li>
-          <li>
+          <li class="programmer-only" style="display: none;">
+            <a class="sidebar-link" data-tab="user-management">
+              <i data-lucide="shield-check"></i>
+              <span>ระบบจัดการสิทธิ์ผู้ใช้</span>
+            </a>
+          </li>
+          <li class="programmer-only" style="display: none;">
             <a class="sidebar-link" data-tab="settings">
               <i data-lucide="settings"></i>
               <span>คลาวด์ & LINE Settings</span>
@@ -1211,7 +1217,11 @@
           <div class="avatar">NKP</div>
           <div class="user-info">
             <span class="username" id="display-user">ช่างเทคนิคโรงพยาบาล</span>
-            <button class="logout-btn" id="logout-btn">ออกจากระบบ</button>
+            <div style="display: flex; gap: 8px; margin-top: 4px;">
+              <button class="logout-btn" id="logout-btn">ออกจากระบบ</button>
+              <span style="color: var(--text-muted);">|</span>
+              <button class="logout-btn" id="btn-change-own-pwd" style="color: var(--primary);">เปลี่ยนรหัส</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1226,7 +1236,12 @@
           <h2 id="current-tab-title">แดชบอร์ดภาพรวม</h2>
           <p id="current-tab-desc">วิเคราะห์สถิติคลังสินค้า ความปลอดภัย และอัตราค่าบำรุงรักษา</p>
         </div>
-        <div class="date-display" style="font-weight: 500; font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div id="header-user-badge" style="font-weight: 600; font-size: 0.9rem; color: var(--primary); display: flex; align-items: center; gap: 8px; background: var(--primary-light); padding: 6px 12px; border-radius: 20px;">
+            <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+            <span id="header-user-name">...</span>
+          </div>
+          <div class="date-display" style="font-weight: 500; font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
           <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
           <span id="live-time-display">2026-05-29</span>
         </div>
@@ -1436,6 +1451,16 @@
                 <input type="text" id="tx-ref-doc" placeholder="เช่น PO-xx, CM-xxxx, สัญญาเลขที่">
               </div>
 
+              <div class="form-group" id="tx-repair-group">
+                <label for="tx-repair-no">เลขซ่อม / เลขที่ใบแจ้งซ่อม</label>
+                <input type="text" id="tx-repair-no" placeholder="ระบุเลขที่ใบแจ้งซ่อม (CM-xxxxx)">
+              </div>
+
+              <div class="form-group" id="tx-dept-group">
+                <label for="tx-dept">หน่วยงานที่เบิก / แผนกที่ใช้</label>
+                <input type="text" id="tx-dept" placeholder="ระบุชื่อหน่วยงาน/ตึก (เช่น OPD, ICU)">
+              </div>
+
               <div class="form-group">
                 <label for="tx-operator">ผู้ชำนาญการ/ช่างผู้รับผิดชอบ *</label>
                 <input type="text" id="tx-operator" placeholder="ระบุชื่อช่างผู้ดำเนินการ" required>
@@ -1445,6 +1470,8 @@
                 <label for="tx-details">รายละเอียดเพิ่มเติม / หมายเหตุ</label>
                 <textarea id="tx-details" rows="2" placeholder="เหตุผลการเบิกจ่าย ตำแหน่งการติดตั้ง..."></textarea>
               </div>
+
+              <div id="tx-validation-error" style="color: var(--danger); font-size: 0.85rem; font-weight: 600; display: none; margin-top: 5px; margin-bottom: 10px;"></div>
 
               <button type="submit" class="btn btn-primary" style="margin-top: 10px;">
                 <i data-lucide="check-circle2"></i>
@@ -1988,6 +2015,93 @@
         </div>
       </section>
 
+      <!-- TAB 5.5: USER MANAGEMENT (ระบบจัดการสิทธิ์ผู้ใช้) - Programmer Only -->
+      <section id="tab-user-management" class="tab-content">
+        <div class="grid-layout-split">
+          
+          <!-- Column 1: Generate Password / Add User -->
+          <div class="card" style="height: fit-content;">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="user-plus" style="color: var(--primary);"></i>
+                สร้างบัญชีผู้ใช้งานและสุ่มรหัสผ่าน
+              </span>
+            </div>
+            
+            <div class="form-grid" style="grid-template-columns: 1fr; gap: 18px;">
+              <div class="form-group">
+                <label for="new-user-name">ชื่อ-นามสกุลจริง *</label>
+                <input type="text" id="new-user-name" placeholder="ระบุชื่อจริงของพนักงาน">
+              </div>
+              
+              <div class="form-group">
+                <label for="new-user-role">ระดับสิทธิ์ในการใช้งาน *</label>
+                <select id="new-user-role">
+                  <option value="General User">ผู้ใช้งานทั่วไป (General User - สูงสุด 10 คน)</option>
+                  <option value="Stock Manager">ผู้ดูแลคลัง (Stock Manager - สูงสุด 3 คน)</option>
+                  <option value="Programmer">ผู้สร้างระบบ (Programmer - สูงสุด 3 คน)</option>
+                </select>
+              </div>
+              
+              <button class="btn btn-primary" id="btn-generate-user" style="margin-top: 10px;">
+                <i data-lucide="key-round"></i> สุ่มรหัสผ่านและบันทึกผู้ใช้
+              </button>
+            </div>
+          </div>
+          
+          <!-- Column 2: User Accounts Table and Statistics -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="users" style="color: var(--secondary);"></i>
+                ตารางผู้ใช้งานและจำนวนการเข้าใช้ระบบ
+              </span>
+            </div>
+            
+            <!-- Statistics Widgets -->
+            <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px;">
+              <div class="metric-card primary" style="padding: 12px;">
+                <div class="metric-details">
+                  <span class="metric-val" id="count-users-prog">0 / 3</span>
+                  <span class="metric-label" style="font-size: 0.7rem;">ผู้สร้างระบบ</span>
+                </div>
+              </div>
+              <div class="metric-card warning" style="padding: 12px;">
+                <div class="metric-details">
+                  <span class="metric-val" id="count-users-manager">0 / 3</span>
+                  <span class="metric-label" style="font-size: 0.7rem;">ผู้ดูแลคลัง</span>
+                </div>
+              </div>
+              <div class="metric-card secondary" style="padding: 12px;">
+                <div class="metric-details">
+                  <span class="metric-val" id="count-users-gen">0 / 10</span>
+                  <span class="metric-label" style="font-size: 0.7rem;">ผู้ใช้ทั่วไป</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="table-wrapper">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>ชื่อจริง</th>
+                    <th>ระดับสิทธิ์</th>
+                    <th>รหัสผ่าน</th>
+                    <th>เข้าใช้งาน (ครั้ง)</th>
+                    <th>สถานะ</th>
+                    <th>จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="user-management-table-body">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+        </div>
+      </section>
+
       <!-- TAB 6: SETTINGS & CLOUD CONNECTIONS (คลาวด์ & LINE) -->
       <section id="tab-settings" class="tab-content">
         <div class="grid-layout-half">
@@ -2075,15 +2189,55 @@
                 <div class="code-block-container">
                   <button class="code-copy-btn" id="btn-copy-code">Copy Code</button>
                   <pre id="code-content">
-// Google Apps Script สำหรับเชื่อมคลังเครื่องมือแพทย์
+// Google Apps Script สำหรับระบบฐานข้อมูลคลังและจัดการสิทธิ์ รพ.นครพิงค์
 function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
   var data = JSON.parse(e.postData.contents);
   
   if (data.action === "sync") {
-    // ดึงข้อมูลพาร์ตอะไหล่จากหน้าเว็บมาเซฟหรือส่งออก
-    // และประมวลผลข้อความ LINE จากคลาวด์ชีต
-    return ContentService.createTextOutput(JSON.stringify({status: "success", count: data.parts.length}))
+    // 1. Sync Parts Sheet
+    var partsSheet = ss.getSheetByName("Parts") || ss.insertSheet("Parts");
+    partsSheet.clear();
+    if (data.parts && data.parts.length > 0) {
+      var partsHeaders = Object.keys(data.parts[0]);
+      partsSheet.appendRow(partsHeaders);
+      var partsRows = data.parts.map(function(p) {
+        return partsHeaders.map(function(h) {
+          return typeof p[h] === 'object' ? JSON.stringify(p[h]) : p[h];
+        });
+      });
+      partsSheet.getRange(2, 1, partsRows.length, partsHeaders.length).setValues(partsRows);
+    }
+    
+    // 2. Sync Transactions Sheet
+    var txSheet = ss.getSheetByName("Transactions") || ss.insertSheet("Transactions");
+    txSheet.clear();
+    if (data.transactions && data.transactions.length > 0) {
+      var txHeaders = Object.keys(data.transactions[0]);
+      txSheet.appendRow(txHeaders);
+      var txRows = data.transactions.map(function(t) {
+        return txHeaders.map(function(h) {
+          return typeof t[h] === 'object' ? JSON.stringify(t[h]) : t[h];
+        });
+      });
+      txSheet.getRange(2, 1, txRows.length, txHeaders.length).setValues(txRows);
+    }
+
+    // 3. Sync Users Sheet
+    var usersSheet = ss.getSheetByName("Users") || ss.insertSheet("Users");
+    usersSheet.clear();
+    if (data.users && data.users.length > 0) {
+      var usersHeaders = Object.keys(data.users[0]);
+      usersSheet.appendRow(usersHeaders);
+      var usersRows = data.users.map(function(u) {
+        return usersHeaders.map(function(h) {
+          return u[h];
+        });
+      });
+      usersSheet.getRange(2, 1, usersRows.length, usersHeaders.length).setValues(usersRows);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({status: "success"}))
       .setMimeType(ContentService.MimeType.JSON);
   }
   
@@ -2092,6 +2246,50 @@ function doPost(e) {
     return ContentService.createTextOutput(JSON.stringify({status: "sent"}))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var result = {};
+  
+  var partsSheet = ss.getSheetByName("Parts");
+  if (partsSheet) {
+    result.parts = getSheetDataJson(partsSheet);
+  }
+  
+  var txSheet = ss.getSheetByName("Transactions");
+  if (txSheet) {
+    result.transactions = getSheetDataJson(txSheet);
+  }
+  
+  var usersSheet = ss.getSheetByName("Users");
+  if (usersSheet) {
+    result.users = getSheetDataJson(usersSheet);
+  }
+  
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getSheetDataJson(sheet) {
+  var range = sheet.getDataRange();
+  var values = range.getValues();
+  if (values.length <= 1) return [];
+  var headers = values[0];
+  var data = [];
+  for (var r = 1; r < values.length; r++) {
+    var row = values[r];
+    var obj = {};
+    for (var c = 0; c < headers.length; c++) {
+      var val = row[c];
+      if (typeof val === 'string' && (val.indexOf('[') === 0 || val.indexOf('{') === 0)) {
+        try { val = JSON.parse(val); } catch(e) {}
+      }
+      obj[headers[c]] = val;
+    }
+    data.push(obj);
+  }
+  return data;
 }
 
 function sendLineNotify(message, token, toId) {
@@ -2270,6 +2468,34 @@ function sendLineNotify(message, token, toId) {
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal('modal-add-part')">ยกเลิก</button>
         <button class="btn btn-primary" id="btn-save-part">บันทึกข้อมูลเข้าคลัง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: CHANGE OWN PASSWORD DIALOG (สำหรับทุกสิทธิ์) -->
+  <div id="modal-change-own-password" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3>เปลี่ยนรหัสผ่านผู้เข้าใช้งาน</h3>
+        <button class="close-btn" onclick="closeModal('modal-change-own-password')">&times;</button>
+      </div>
+      <div class="modal-body" style="gap: 15px;">
+        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 5px;">
+          คุณกำลังแก้ไขรหัสผ่านสำหรับบัญชี: <strong id="change-pwd-username">...</strong>
+        </div>
+        <div class="form-group">
+          <label for="change-pwd-new">รหัสผ่านใหม่ *</label>
+          <input type="password" id="change-pwd-new" placeholder="ระบุรหัสผ่านใหม่ที่ต้องการใช้">
+        </div>
+        <div class="form-group">
+          <label for="change-pwd-confirm">ยืนยันรหัสผ่านใหม่ *</label>
+          <input type="password" id="change-pwd-confirm" placeholder="กรอกรหัสผ่านใหม่อีกครั้ง">
+        </div>
+        <div id="change-pwd-error" style="color: var(--danger); font-size: 0.8rem; min-height: 20px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-change-own-password')">ยกเลิก</button>
+        <button class="btn btn-primary" id="btn-save-own-password">บันทึกรหัสใหม่</button>
       </div>
     </div>
   </div>
@@ -2689,6 +2915,8 @@ function sendLineNotify(message, token, toId) {
       lineToken: "",
       lineGroupId: ""
     };
+    let userAccounts = [];
+    let currentUser = null;
 
     // Chart References
     let tscEvChartRef = null;
@@ -2749,7 +2977,24 @@ function sendLineNotify(message, token, toId) {
         localStorage.setItem("nkp_pm_plans", JSON.stringify(pmPlans));
       }
 
+      const storedUsers = localStorage.getItem("nkp_users");
+      if (storedUsers) {
+        userAccounts = JSON.parse(storedUsers);
+      } else {
+        userAccounts = [
+          {
+            realName: "NKP Programmer (Default)",
+            password: "NKP-programmer-2026",
+            role: "Programmer",
+            status: "Active",
+            loginCount: 0
+          }
+        ];
+        localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
+      }
+
       recalculateABC();
+      pullFromCloud();
     }
 
     function persistState() {
@@ -2760,43 +3005,169 @@ function sendLineNotify(message, token, toId) {
       triggerCloudSync();
     }
 
-    // 2. Authentication Password Gate (Default: NKP-medparts-2026)
+    // 2. Authentication Password Gate (Default: NKP-programmer-2026)
     function checkAuth() {
       const loginOverlay = document.getElementById("login-overlay");
       const isAuthenticated = sessionStorage.getItem("nkp_authenticated");
 
       if (isAuthenticated === "true") {
-        loginOverlay.classList.add("hidden");
+        const storedUser = sessionStorage.getItem("nkp_current_user");
+        if (storedUser) {
+          currentUser = JSON.parse(storedUser);
+          loginOverlay.classList.add("hidden");
+          applyPermissions(currentUser.role);
+          updateUserDisplay();
+        } else {
+          sessionStorage.removeItem("nkp_authenticated");
+          loginOverlay.classList.remove("hidden");
+        }
       } else {
         loginOverlay.classList.remove("hidden");
       }
 
-      document.getElementById("login-submit-btn").addEventListener("click", processLogin);
-      document.getElementById("login-password").addEventListener("keypress", (e) => {
+      document.getElementById("login-submit-btn").onclick = processLogin;
+      document.getElementById("login-password").onkeypress = (e) => {
         if (e.key === "Enter") processLogin();
-      });
+      };
 
-      document.getElementById("logout-btn").addEventListener("click", () => {
+      document.getElementById("logout-btn").onclick = () => {
         sessionStorage.removeItem("nkp_authenticated");
+        sessionStorage.removeItem("nkp_current_user");
         location.reload();
-      });
+      };
     }
 
     function processLogin() {
-      const pwdInput = document.getElementById("login-password").value;
+      const pwdInput = document.getElementById("login-password").value.trim();
       const errorDiv = document.getElementById("login-error");
 
-      if (pwdInput === settings.password) {
+      const user = userAccounts.find(u => u.password === pwdInput && u.status === "Active");
+
+      if (user) {
+        user.loginCount = (user.loginCount || 0) + 1;
+        localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
+
+        currentUser = user;
         sessionStorage.setItem("nkp_authenticated", "true");
+        sessionStorage.setItem("nkp_current_user", JSON.stringify(currentUser));
+
         document.getElementById("login-overlay").classList.add("hidden");
-        showToast("เข้าสู่ระบบสำเร็จ", "ยินดีต้อนรับสู่ระบบคลังอะไหล่ รพ.นครพิงค์", "success");
+        updateUserDisplay();
+        applyPermissions(currentUser.role);
+
+        showToast("เข้าสู่ระบบสำเร็จ", `ยินดีต้อนรับคุณ ${currentUser.realName}`, "success");
+        persistState();
+
         setTimeout(() => {
           drawDashboardCharts();
         }, 200);
       } else {
-        errorDiv.innerText = "รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
+        errorDiv.innerText = "รหัสผ่านไม่ถูกต้อง หรือ บัญชีนี้ถูกระงับสิทธิ์การใช้งาน";
         showToast("เข้าสู่ระบบล้มเหลว", "รหัสผ่านที่กรอกไม่ถูกต้อง", "danger");
       }
+    }
+
+    function updateUserDisplay() {
+      if (!currentUser) return;
+
+      const displayUserEl = document.getElementById("display-user");
+      if (displayUserEl) {
+        displayUserEl.innerText = `${currentUser.realName} (${currentUser.role})`;
+      }
+
+      const headerUserEl = document.getElementById("header-user-name");
+      if (headerUserEl) {
+        headerUserEl.innerText = `${currentUser.realName} [${currentUser.role}]`;
+      }
+
+      const operatorInput = document.getElementById("tx-operator");
+      if (operatorInput) {
+        operatorInput.value = currentUser.realName;
+        operatorInput.disabled = true;
+      }
+    }
+
+    function applyPermissions(role) {
+      const programmerOnlyElements = document.querySelectorAll(".programmer-only");
+      programmerOnlyElements.forEach(el => {
+        if (role === "Programmer") {
+          el.style.display = "block";
+        } else {
+          el.style.display = "none";
+        }
+      });
+
+      const menuProcurement = document.getElementById("menu-procurement");
+      if (menuProcurement) {
+        if (role === "General User") {
+          menuProcurement.style.display = "none";
+        } else {
+          menuProcurement.style.display = "block";
+        }
+      }
+
+      const btnAddPart = document.getElementById("btn-add-part");
+      if (btnAddPart) {
+        if (role === "General User") {
+          btnAddPart.style.display = "none";
+        } else {
+          btnAddPart.style.display = "inline-flex";
+        }
+      }
+
+      populateTxTypeOptions();
+
+      const activeLink = document.querySelector(".sidebar-link.active");
+      if (activeLink) {
+        const activeTab = activeLink.getAttribute("data-tab");
+        let redirect = false;
+
+        if (role !== "Programmer" && (activeTab === "settings" || activeTab === "user-management")) {
+          redirect = true;
+        } else if (role === "General User" && activeTab === "procurement") {
+          redirect = true;
+        }
+
+        if (redirect) {
+          const dashLink = document.querySelector('.sidebar-link[data-tab="dashboard"]');
+          if (dashLink) {
+            dashLink.click();
+          }
+        }
+      }
+    }
+
+    function populateTxTypeOptions() {
+      const txTypeSelect = document.getElementById("tx-type");
+      if (!txTypeSelect) return;
+
+      const currentVal = txTypeSelect.value;
+      txTypeSelect.innerHTML = "";
+
+      const options = [
+        { value: "Issue", text: "เบิกจ่ายไปซ่อมบำรุง (Issue)" },
+        { value: "Receive", text: "รับสินค้าเข้าคลัง (Receive)" },
+        { value: "Borrow", text: "ยืมเพื่อทดสอบ (Borrow)" },
+        { value: "Return", text: "คืนของที่ยืม (Return)" },
+        { value: "Audit", text: "ตรวจสอบสต๊อกจริง (Audit)" }
+      ];
+
+      options.forEach(opt => {
+        if (currentUser && currentUser.role === "General User" && (opt.value === "Receive" || opt.value === "Audit")) {
+          return;
+        }
+        const el = document.createElement("option");
+        el.value = opt.value;
+        el.text = opt.text;
+        txTypeSelect.appendChild(el);
+      });
+
+      if ([...txTypeSelect.options].some(o => o.value === currentVal)) {
+        txTypeSelect.value = currentVal;
+      } else {
+        txTypeSelect.selectedIndex = 0;
+      }
+      handleTxTypeChange();
     }
 
     // 3. Tab Navigation & Core Event Listeners
@@ -2925,6 +3296,25 @@ function sendLineNotify(message, token, toId) {
       if (ledgerSearch) ledgerSearch.addEventListener("input", renderTransactionsTable);
       if (ledgerFilterType) ledgerFilterType.addEventListener("change", renderTransactionsTable);
       if (ledgerFilterTime) ledgerFilterTime.addEventListener("change", renderTransactionsTable);
+
+      // User Management
+      const btnGenUser = document.getElementById("btn-generate-user");
+      if (btnGenUser) btnGenUser.addEventListener("click", generateUserAccount);
+
+      const btnSaveOwnPwd = document.getElementById("btn-save-own-password");
+      if (btnSaveOwnPwd) btnSaveOwnPwd.addEventListener("click", saveOwnPassword);
+
+      const btnChangeOwnPwd = document.getElementById("btn-change-own-pwd");
+      if (btnChangeOwnPwd) {
+        btnChangeOwnPwd.addEventListener("click", () => {
+          if (!currentUser) return;
+          document.getElementById("change-pwd-username").innerText = currentUser.realName;
+          document.getElementById("change-pwd-new").value = "";
+          document.getElementById("change-pwd-confirm").value = "";
+          document.getElementById("change-pwd-error").innerText = "";
+          openModal("modal-change-own-password");
+        });
+      }
     }
 
     function updateTabHeader(tabName) {
@@ -2935,6 +3325,7 @@ function sendLineNotify(message, token, toId) {
         ledger: ["ประวัติรายการคลังอะไหล่ (Ledger Logs)", "ตรวจสอบประวัติการเบิกจ่าย รับเข้า ยืมคืน อะไหล่สำรองคลังทั้งหมด"],
         planning: ["แผนบำรุงรักษาเชิงรุก", "ตาราง PM ประจำปี และเครื่องมือคาดการณ์ความต้องการวัสดุอะไหล่ในอนาคต"],
         procurement: ["ใบขอจัดซื้ออะไหล่", "ตรวจสอบชิ้นส่วนที่หมดเกณฑ์สำรอง และสร้างใบขอเสนอซื้อแบบอัตโนมัติ"],
+        "user-management": ["ระบบจัดการสิทธิ์ผู้ใช้", "จัดการผู้ดูแลระบบและกำหนดรหัสผ่านแยกสิทธิ์ในการใช้งาน"],
         settings: ["คลาวด์ & LINE Settings", "ตั้งค่าการเชื่อมต่อฐานข้อมูล Google Sheets และระบบ LINE OA Notifications"]
       };
       
@@ -2956,6 +3347,14 @@ function sendLineNotify(message, token, toId) {
       } else if (tabName === "procurement") {
         renderProcurementMonitor();
         renderMemorandum();
+      } else if (tabName === "user-management") {
+        renderUserManagement();
+      } else if (tabName === "settings") {
+        document.getElementById("settings-password").value = settings.password;
+        document.getElementById("settings-gas-url").value = settings.gasUrl || "";
+        document.getElementById("settings-line-toggle").checked = settings.lineToggle;
+        document.getElementById("settings-line-token").value = settings.lineToken || "";
+        document.getElementById("settings-line-groupid").value = settings.lineGroupId || "";
       }
     }
 
@@ -3271,9 +3670,11 @@ function sendLineNotify(message, token, toId) {
               <button class="btn btn-secondary btn-sm" onclick="showStockCard('${p.code}')" style="padding: 4px 8px; font-size: 0.75rem;">
                 <i data-lucide="eye" style="width: 14px; height: 14px;"></i> การใช้งาน
               </button>
+              ${currentUser && currentUser.role !== "General User" ? `
               <button class="btn btn-secondary btn-sm" onclick="editPartDetails('${p.code}')" style="padding: 4px 8px; font-size: 0.75rem; color: var(--primary);">
                 <i data-lucide="edit" style="width: 14px; height: 14px;"></i> แก้ไข
               </button>
+              ` : ''}
             </div>
           </td>
         `;
@@ -3473,6 +3874,25 @@ function sendLineNotify(message, token, toId) {
       const operator = document.getElementById("tx-operator").value.trim();
       const details = document.getElementById("tx-details").value.trim();
       
+      const repairNoVal = document.getElementById("tx-repair-no").value.trim();
+      const deptVal = document.getElementById("tx-dept").value.trim();
+
+      // Validation check
+      const validationErrorDiv = document.getElementById("tx-validation-error");
+      if (type === "Issue" && refDoc !== "") {
+        if (repairNoVal === "" || deptVal === "") {
+          if (validationErrorDiv) {
+            validationErrorDiv.innerText = "⚠️ บังคับระบุเลขซ่อม และ หน่วยงานที่เบิก เมื่อมีการใส่เอกสารอ้างอิง / รหัสใบงาน";
+            validationErrorDiv.style.display = "block";
+          }
+          showToast("ตรวจสอบข้อมูลล้มเหลว", "กรุณากรอกเลขซ่อมและหน่วยงานที่เบิกให้ครบถ้วน", "danger");
+          return;
+        }
+      }
+      if (validationErrorDiv) {
+        validationErrorDiv.style.display = "none";
+      }
+      
       const partIndex = parts.findIndex(p => p.code === partCode);
       if (partIndex === -1) {
         alert("ไม่พบรหัสชิ้นส่วนดังกล่าว");
@@ -3532,7 +3952,10 @@ function sendLineNotify(message, token, toId) {
         partName: part.name,
         qty: qty,
         refDoc: refDoc || "N/A",
-        operator: operator,
+        repairNo: repairNoVal,
+        dept: deptVal,
+        operator: currentUser ? currentUser.realName : operator,
+        operatorRole: currentUser ? currentUser.role : "Unknown",
         details: details,
         cost: qty * part.unitPrice,
         eqSerial,
@@ -3554,8 +3977,14 @@ function sendLineNotify(message, token, toId) {
       showToast("สำเร็จ", `ทำการบันทึกรายการ ${type} รหัสอะไหล่ ${partCode} สำเร็จ`, "success");
 
       document.getElementById("tx-form").reset();
+      if (currentUser) {
+        document.getElementById("tx-operator").value = currentUser.realName;
+        document.getElementById("tx-operator").disabled = true;
+      }
       document.getElementById("tx-qty").value = "";
       document.getElementById("tx-ref-doc").value = "";
+      document.getElementById("tx-repair-no").value = "";
+      document.getElementById("tx-dept").value = "";
       document.getElementById("tx-details").value = "";
 
       populateTransactionSelects();
@@ -3640,7 +4069,22 @@ function sendLineNotify(message, token, toId) {
           borrowBadge = `<span class="badge badge-safe">คืนเรียบร้อย</span>`;
         }
 
-        const eqText = t.eqSerial ? `${t.eqSerial}<br><span style="font-size: 0.75rem; color: var(--text-muted);">${t.maintenanceType || ''}</span>` : "-";
+        let eqText = "";
+        if (t.eqSerial) {
+          eqText += `เครื่อง: ${t.eqSerial}`;
+          if (t.maintenanceType) {
+            eqText += `<br><span style="font-size: 0.75rem; color: var(--text-muted);">${t.maintenanceType}</span>`;
+          }
+        }
+        if (t.repairNo) {
+          if (eqText) eqText += "<br>";
+          eqText += `เลขซ่อม: ${t.repairNo}`;
+        }
+        if (t.dept) {
+          if (eqText) eqText += "<br>";
+          eqText += `แผนก: ${t.dept}`;
+        }
+        if (!eqText) eqText = "-";
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -3687,9 +4131,9 @@ function sendLineNotify(message, token, toId) {
     function exportTransactionsToCSV() {
       if (transactions.length === 0) return;
       
-      let csvContent = "\ufeffID,Timestamp,Type,PartCode,PartName,Qty,RefDoc,Operator,EqSerial,EqModel,MaintType,Cost\n";
+      let csvContent = "\ufeffID,Timestamp,Type,PartCode,PartName,Qty,RefDoc,RepairNo,Department,Operator,OperatorRole,EqSerial,EqModel,MaintType,Cost\n";
       transactions.forEach(t => {
-        csvContent += `"${t.id}","${t.timestamp}","${t.type}","${t.partCode}","${t.partName}",${t.qty},"${t.refDoc}","${t.operator}","${t.eqSerial || ''}","${t.eqModel || ''}","${t.maintenanceType || ''}",${t.cost}\n`;
+        csvContent += `"${t.id}","${t.timestamp}","${t.type}","${t.partCode}","${t.partName}",${t.qty},"${t.refDoc}","${t.repairNo || ''}","${t.dept || ''}","${t.operator}","${t.operatorRole || ''}","${t.eqSerial || ''}","${t.eqModel || ''}","${t.maintenanceType || ''}",${t.cost}\n`;
       });
 
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -4106,7 +4550,14 @@ function sendLineNotify(message, token, toId) {
       const lineToken = document.getElementById("settings-line-token").value.trim();
       const lineGroupId = document.getElementById("settings-line-groupid").value.trim();
 
-      if (newPwd) settings.password = newPwd;
+      if (newPwd) {
+        settings.password = newPwd;
+        const progDefault = userAccounts.find(u => u.realName === "NKP Programmer (Default)");
+        if (progDefault) {
+          progDefault.password = newPwd;
+          localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
+        }
+      }
       settings.gasUrl = gasUrl;
       settings.lineToggle = lineToggle;
       settings.lineToken = lineToken;
@@ -4114,6 +4565,7 @@ function sendLineNotify(message, token, toId) {
 
       localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
       showToast("บันทึกข้อมูลแล้ว", "อัปเดตระบบการตั้งค่าความปลอดภัยและเครือข่ายเรียบร้อย", "success");
+      persistState();
     }
 
     function sendLineNotification(tx, remainingStock) {
@@ -4236,11 +4688,47 @@ function sendLineNotify(message, token, toId) {
         body: JSON.stringify({
           action: "sync",
           parts: parts,
-          transactions: transactions
+          transactions: transactions,
+          users: userAccounts
         })
       })
       .then(() => console.log("Cloud sync successful."))
       .catch(err => console.error("Cloud database sync failure", err));
+    }
+
+    function pullFromCloud() {
+      if (!settings.gasUrl) return;
+      fetch(settings.gasUrl)
+      .then(response => response.json())
+      .then(data => {
+        if (data.parts && data.parts.length > 0) {
+          parts = data.parts;
+          localStorage.setItem("nkp_parts", JSON.stringify(parts));
+        }
+        if (data.transactions && data.transactions.length > 0) {
+          transactions = data.transactions;
+          localStorage.setItem("nkp_transactions", JSON.stringify(transactions));
+        }
+        if (data.users && data.users.length > 0) {
+          userAccounts = data.users;
+          localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
+          if (currentUser) {
+            const updatedSelf = userAccounts.find(u => u.password === currentUser.password);
+            if (updatedSelf) {
+              currentUser = updatedSelf;
+              sessionStorage.setItem("nkp_current_user", JSON.stringify(currentUser));
+            }
+          }
+        }
+        updateDashboard();
+        renderCatalog();
+        populateTransactionSelects();
+        renderTransactionsTable();
+        renderPMPlans();
+        renderProcurementMonitor();
+        renderUserManagement();
+      })
+      .catch(err => console.error("Cloud pull failed", err));
     }
 
     function copyAppsScriptCode() {
@@ -4248,6 +4736,177 @@ function sendLineNotify(message, token, toId) {
       navigator.clipboard.writeText(preText).then(() => {
         showToast("คัดลอกโค้ดสำเร็จ", "นำโค้ดไปวางใน Google Apps Script ใน Google Sheets ได้ทันที", "success");
       });
+    }
+
+    // 11.5. User Management Controllers
+    function renderUserManagement() {
+      const tbody = document.getElementById("user-management-table-body");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      const countProg = userAccounts.filter(u => u.role === "Programmer").length;
+      const countManager = userAccounts.filter(u => u.role === "Stock Manager").length;
+      const countGen = userAccounts.filter(u => u.role === "General User").length;
+
+      document.getElementById("count-users-prog").innerText = `${countProg} / 3`;
+      document.getElementById("count-users-manager").innerText = `${countManager} / 3`;
+      document.getElementById("count-users-gen").innerText = `${countGen} / 10`;
+
+      userAccounts.forEach((u, index) => {
+        const tr = document.createElement("tr");
+        
+        let statusBadge = u.status === "Active" ? 
+          `<span class="badge badge-safe">เปิดใช้งาน</span>` : 
+          `<span class="badge badge-expired">ปิดสิทธิ์</span>`;
+
+        let roleBadge = "badge-c";
+        if (u.role === "Programmer") roleBadge = "badge-a";
+        else if (u.role === "Stock Manager") roleBadge = "badge-b";
+
+        const toggleBtnText = u.status === "Active" ? "ปิดสิทธิ์" : "เปิดใช้";
+        const toggleBtnColor = u.status === "Active" ? "var(--danger)" : "var(--success)";
+
+        const isSelf = currentUser && currentUser.password === u.password;
+        const disableDeactivate = isSelf || (u.role === "Programmer" && userAccounts.filter(usr => usr.role === "Programmer" && usr.status === "Active").length <= 1 && u.status === "Active");
+
+        tr.innerHTML = `
+          <td><strong>${u.realName}</strong></td>
+          <td><span class="badge ${roleBadge}">${u.role}</span></td>
+          <td><code style="background: var(--bg-tertiary); padding: 4px 8px; border-radius: 4px; font-family: monospace;">${u.password}</code></td>
+          <td><strong>${u.loginCount || 0}</strong></td>
+          <td>${statusBadge}</td>
+          <td>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary btn-sm" onclick="toggleUserStatus(${index})" ${disableDeactivate ? "disabled style='opacity: 0.5;'" : ""} style="padding: 4px 8px; font-size: 0.75rem; color: ${toggleBtnColor};">
+                ${toggleBtnText}
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    window.toggleUserStatus = function(index) {
+      const u = userAccounts[index];
+      if (!u) return;
+
+      u.status = u.status === "Active" ? "Inactive" : "Active";
+      localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
+      renderUserManagement();
+      persistState();
+      showToast("สิทธิ์ผู้ใช้ถูกปรับเปลี่ยน", `เปลี่ยนสถานะของ ${u.realName} เป็น ${u.status === "Active" ? 'เปิดใช้งาน' : 'ปิดสิทธิ์'}`, "success");
+    };
+
+    function generateUserAccount() {
+      const realNameInput = document.getElementById("new-user-name");
+      const roleSelect = document.getElementById("new-user-role");
+
+      const realName = realNameInput.value.trim();
+      const role = roleSelect.value;
+
+      if (!realName) {
+        alert("กรุณากรอกชื่อ-นามสกุลจริง!");
+        return;
+      }
+
+      const countProg = userAccounts.filter(u => u.role === "Programmer").length;
+      const countManager = userAccounts.filter(u => u.role === "Stock Manager").length;
+      const countGen = userAccounts.filter(u => u.role === "General User").length;
+
+      if (role === "Programmer" && countProg >= 3) {
+        alert("ขออภัย! สิทธิ์ Programmer จำกัดสูงสุดไม่เกิน 3 คน");
+        return;
+      }
+      if (role === "Stock Manager" && countManager >= 3) {
+        alert("ขออภัย! สิทธิ์ Stock Manager จำกัดสูงสุดไม่เกิน 3 คน");
+        return;
+      }
+      if (role === "General User" && countGen >= 10) {
+        alert("ขออภัย! สิทธิ์ General User จำกัดสูงสุดไม่เกิน 10 คน");
+        return;
+      }
+
+      const password = generateSecurePassword();
+
+      userAccounts.push({
+        realName: realName,
+        password: password,
+        role: role,
+        status: "Active",
+        loginCount: 0
+      });
+
+      localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
+      realNameInput.value = "";
+      
+      renderUserManagement();
+      persistState();
+      
+      showToast("สร้างบัญชีสำเร็จ", `ผู้ใช้งาน ${realName} รหัสผ่าน: ${password}`, "success");
+      alert(`สร้างผู้ใช้ใหม่เรียบร้อยแล้ว!\n\nชื่อ: ${realName}\nสิทธิ์: ${role}\nรหัสผ่าน: ${password}\n\nกรุณาจดบันทึกรหัสผ่านนี้ส่งต่อให้ผู้ใช้งาน`);
+    }
+
+    function generateSecurePassword() {
+      const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+      let result = "nkp-";
+      for (let i = 0; i < 4; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      if (userAccounts.some(u => u.password === result)) {
+        return generateSecurePassword();
+      }
+      return result;
+    }
+
+    function saveOwnPassword() {
+      const newPwd = document.getElementById("change-pwd-new").value.trim();
+      const confirmPwd = document.getElementById("change-pwd-confirm").value.trim();
+      const errorDiv = document.getElementById("change-pwd-error");
+
+      if (newPwd === "") {
+        errorDiv.innerText = "กรุณากรอกรหัสผ่านใหม่";
+        return;
+      }
+
+      if (newPwd.length < 4) {
+        errorDiv.innerText = "รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร";
+        return;
+      }
+
+      if (newPwd !== confirmPwd) {
+        errorDiv.innerText = "การยืนยันรหัสผ่านไม่ตรงกัน";
+        return;
+      }
+
+      const isDuplicate = userAccounts.some(u => u.password === newPwd && u.password !== currentUser.password);
+      if (isDuplicate) {
+        errorDiv.innerText = "รหัสผ่านนี้ถูกใช้โดยบัญชีอื่นแล้ว กรุณาเลือกรหัสผ่านอื่น";
+        return;
+      }
+
+      const userIndex = userAccounts.findIndex(u => u.password === currentUser.password);
+      if (userIndex !== -1) {
+        userAccounts[userIndex].password = newPwd;
+        localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
+        
+        currentUser.password = newPwd;
+        sessionStorage.setItem("nkp_current_user", JSON.stringify(currentUser));
+        
+        if (currentUser.realName === "NKP Programmer (Default)") {
+          settings.password = newPwd;
+          localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
+        }
+
+        closeModal("modal-change-own-password");
+        persistState();
+        showToast("สำเร็จ", "เปลี่ยนรหัสผ่านของคุณเรียบร้อยแล้ว", "success");
+        if (currentUser.role === "Programmer") {
+          renderUserManagement();
+        }
+      } else {
+        errorDiv.innerText = "เกิดข้อผิดพลาดในการค้นหาผู้ใช้";
+      }
     }
 
     // 12. Modal Utility Triggers
