@@ -3,9 +3,9 @@
  */
 
 const NKPApi = {
-  // Get API Web App URL from LocalStorage
+  // Get API Web App URL from LocalStorage or default
   getApiUrl() {
-    return localStorage.getItem('nkp_api_url') || '';
+    return localStorage.getItem('nkp_api_url') || 'https://script.google.com/macros/s/AKfycbxD-clasIK09ma1x1aJpYvhz-Dl21Z3Cp1tzbOOoWCsQWnyUw87ZlaTiLm01InwgmWGww/exec';
   },
 
   // Save API URL
