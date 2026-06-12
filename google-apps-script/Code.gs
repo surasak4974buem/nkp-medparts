@@ -85,7 +85,18 @@ function doGet(e) {
     initDatabase();
     var action = e.parameter.action;
     
-    if (action === "getInventory") {
+    if (action === "getAllData") {
+      return jsonResponse({
+        success: true,
+        data: {
+          inventory: getSheetData("MasterParts"),
+          receiving: getSheetData("Receiving"),
+          transactions: getSheetData("Transactions"),
+          stockCounts: getSheetData("StockCounts")
+        }
+      });
+    }
+    else if (action === "getInventory") {
       return jsonResponse({ success: true, data: getSheetData("MasterParts") });
     } 
     else if (action === "getReceiving") {

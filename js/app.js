@@ -185,30 +185,26 @@ function initRouter() {
 }
 
 // Load all database entities from Google Sheets
-async function loadAllData() {
+async function loadAllData(showOverlay = true) {
   if (!NKPApi.getApiUrl()) return;
-  showLoader();
+  if (showOverlay) showLoader();
   try {
-    const [inv, rec, txs, scs] = await Promise.all([
-      NKPApi.getInventory(),
-      NKPApi.getReceiving(),
-      NKPApi.getTransactions(),
-      NKPApi.getStockCounts()
-    ]);
+    const res = await NKPApi.getAllData();
     
-    state.inventory = inv;
-    state.receiving = rec;
-    state.transactions = txs;
-    state.stockCounts = scs;
+    state.inventory = res.inventory || [];
+    state.receiving = res.receiving || [];
+    state.transactions = res.transactions || [];
+    state.stockCounts = res.stockCounts || [];
     
     updateStatusIndicator(true);
     renderAll();
+    populatePartsDropdowns(); // Ensure dropdowns are updated after load
   } catch (err) {
     console.error("Load all data failed:", err);
     updateStatusIndicator(false);
     showToast(`ดึงข้อมูลไม่สำเร็จ: ${err.message}`, "danger");
   } finally {
-    hideLoader();
+    if (showOverlay) hideLoader();
   }
 }
 
@@ -799,7 +795,7 @@ elements.formPart.addEventListener('submit', async (e) => {
     
     closeModal(elements.modalPart);
     showToast(result.message || "บันทึกข้อมูลเรียบร้อยแล้ว", "success");
-    loadAllData();
+    loadAllData(false);
   } catch (err) {
     showToast(`เกิดข้อผิดพลาด: ${err.message}`, "danger");
   } finally {
@@ -834,7 +830,7 @@ elements.formReceiving.addEventListener('submit', async (e) => {
     const result = await NKPApi.receivePart(receivingData);
     closeModal(elements.modalReceiving);
     showToast(result.message || "รับเข้าคลังเรียบร้อย", "success");
-    loadAllData();
+    loadAllData(false);
   } catch (err) {
     showToast(`เกิดข้อผิดพลาด: ${err.message}`, "danger");
   } finally {
@@ -879,7 +875,7 @@ elements.formRequisition.addEventListener('submit', async (e) => {
     const result = await NKPApi.requisitionPart(reqData);
     closeModal(elements.modalRequisition);
     showToast(result.message || "จ่ายอะไหล่เรียบร้อย", "success");
-    loadAllData();
+    loadAllData(false);
   } catch (err) {
     showToast(`เกิดข้อผิดพลาด: ${err.message}`, "danger");
   } finally {
@@ -906,7 +902,7 @@ elements.formReturn.addEventListener('submit', async (e) => {
     const result = await NKPApi.returnPart(returnData);
     closeModal(elements.modalReturn);
     showToast(result.message || "บันทึกรับคืนสำเร็จ", "success");
-    loadAllData();
+    loadAllData(false);
   } catch (err) {
     showToast(`เกิดข้อผิดพลาด: ${err.message}`, "danger");
   } finally {
@@ -940,7 +936,7 @@ elements.formStockcount.addEventListener('submit', async (e) => {
     const result = await NKPApi.stockCount(countData);
     closeModal(elements.modalStockcount);
     showToast(result.message || "บันทึกการตรวจนับคลังสำเร็จ", "success");
-    loadAllData();
+    loadAllData(false);
   } catch (err) {
     showToast(`เกิดข้อผิดพลาด: ${err.message}`, "danger");
   } finally {

@@ -83,6 +83,7 @@ const NKPApi = {
   },
 
   // API operations
+  getAllData() { return this.fetchGet("getAllData"); },
   getInventory() { return this.fetchGet("getInventory"); },
   getReceiving() { return this.fetchGet("getReceiving"); },
   getTransactions() { return this.fetchGet("getTransactions"); },
