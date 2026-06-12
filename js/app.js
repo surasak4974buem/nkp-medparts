@@ -1,6 +1,15 @@
 /**
  * NKP-Part: Main Application Logic and Controller
+ * Enterprise Premium UI v2.0
  */
+
+// ======================== THEME MANAGEMENT ========================
+(function initTheme() {
+  const saved = localStorage.getItem('nkp-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  const icon = document.getElementById('theme-icon');
+  if (icon) icon.className = saved === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+})();
 
 // Global State
 const state = {
@@ -149,6 +158,9 @@ function initRouter() {
     if (activeMenu && activeSec) {
       activeMenu.classList.add('active');
       activeSec.classList.add('active');
+      
+      // Sync bottom nav
+      if (typeof syncBottomNav === 'function') syncBottomNav(tabName);
       
       // Update page title
       const titles = {
@@ -1072,7 +1084,84 @@ elements.btnExportLowStock.addEventListener('click', () => {
   showToast("ดาวน์โหลดรายงานความต้องการอะไหล่สำเร็จ", "success");
 });
 
-// App Startup
+// ======================== THEME TOGGLE ========================
+const themeToggleBtn = document.getElementById('theme-toggle');
+const themeIcon = document.getElementById('theme-icon');
+
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('nkp-theme', next);
+    if (themeIcon) {
+      themeIcon.className = next === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    }
+    // Update chart colors if chart exists
+    if (state.abcChart) {
+      state.abcChart.options.plugins.legend.labels.color = next === 'dark' ? '#B8C0D8' : '#253858';
+      state.abcChart.update();
+    }
+  });
+}
+
+// ======================== MOBILE MENU ========================
+const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+function openSidebar() {
+  if (sidebar) sidebar.classList.add('mobile-open');
+  if (sidebarOverlay) sidebarOverlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSidebar() {
+  if (sidebar) sidebar.classList.remove('mobile-open');
+  if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openSidebar);
+if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+
+// Close sidebar on menu item click (mobile)
+document.querySelectorAll('.menu-item').forEach(item => {
+  item.addEventListener('click', () => {
+    if (window.innerWidth <= 991) closeSidebar();
+  });
+});
+
+// ======================== RELOAD BUTTON ========================
+const btnReload = document.getElementById('btn-reload');
+if (btnReload) {
+  btnReload.addEventListener('click', async () => {
+    btnReload.classList.add('fa-spin');
+    btnReload.querySelector('i')?.classList.add('fa-spin');
+    await loadAllData(true);
+    setTimeout(() => {
+      const icon = btnReload.querySelector('i');
+      if (icon) icon.classList.remove('fa-spin');
+    }, 500);
+  });
+}
+
+// ======================== BOTTOM NAV ========================
+document.querySelectorAll('.bottom-nav-item').forEach(item => {
+  item.addEventListener('click', (e) => {
+    document.querySelectorAll('.bottom-nav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+  });
+});
+
+// Sync bottom nav with hash changes
+function syncBottomNav(tabName) {
+  document.querySelectorAll('.bottom-nav-item').forEach(item => {
+    item.classList.toggle('active', item.getAttribute('data-tab') === tabName);
+  });
+}
+
+// ======================== APP STARTUP ========================
 document.addEventListener('DOMContentLoaded', () => {
   // Load configuration if set
   const savedUrl = NKPApi.getApiUrl();
