@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NKP-Part: ระบบบริหารจัดการคลังอะไหล่เครื่องมือแพทย์ โรงพยาบาลนครพิงค์</title>
+  <meta name="description" content="ระบบบริหารคลังอะไหล่เครื่องมือแพทย์ออนไลน์ เชื่อมต่อฐานข้อมูล Google Sheets และวิเคราะห์แดชบอร์ดตามมาตรฐาน WI-MED-007">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <i class="fa-solid fa-square-plus brand-icon"></i>
+        <div class="brand-text">
+          <h1>NKP-PART</h1>
+          <span>คลังอะไหล่เครื่องมือแพทย์</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-menu">
+        <a href="#dashboard" class="menu-item active" data-tab="dashboard">
+          <i class="fa-solid fa-chart-line"></i> <span>แดชบอร์ดสรุป</span>
+        </a>
+        <a href="#registry" class="menu-item" data-tab="registry">
+          <i class="fa-solid fa-box-archive"></i> <span>ทะเบียนอะไหล่</span>
+        </a>
+        <a href="#receiving" class="menu-item" data-tab="receiving">
+          <i class="fa-solid fa-arrow-down-to-bracket"></i> <span>บันทึกรับเข้าคลัง</span>
+        </a>
+        <a href="#transactions" class="menu-item" data-tab="transactions">
+          <i class="fa-solid fa-right-left"></i> <span>ใบเบิกจ่าย-คืนอะไหล่</span>
+        </a>
+        <a href="#stocktake" class="menu-item" data-tab="stocktake">
+          <i class="fa-solid fa-clipboard-check"></i> <span>ใบตรวจนับคลัง</span>
+        </a>
+        <a href="#config" class="menu-item" data-tab="config">
+          <i class="fa-solid fa-gears"></i> <span>ตั้งค่าระบบ API</span>
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <p>โรงพยาบาลนครพิงค์</p>
+        <small>Version 1.0.0 (WI-MED-007)</small>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-bar-title">
+          <h2 id="page-title">แดชบอร์ดสรุปผล</h2>
+        </div>
+        <div class="top-bar-status" id="api-status-indicator">
+          <span class="status-dot dot-gray"></span>
+          <span class="status-text">ไม่ได้เชื่อมต่อ API</span>
+        </div>
+      </header>
+
+      <!-- Content Views -->
+      <div class="view-container">
+        
+        <!-- ================= DASHBOARD VIEW ================= -->
+        <section id="view-dashboard" class="view-section active">
+          <!-- KPI Cards -->
+          <div class="kpi-grid">
+            <div class="kpi-card card-blue">
+              <div class="kpi-icon"><i class="fa-solid fa-cubes"></i></div>
+              <div class="kpi-info">
+                <h3>รายการอะไหล่ทั้งหมด</h3>
+                <span class="kpi-value" id="kpi-total-types">-</span>
+                <span class="kpi-desc">รายการที่ลงทะเบียน</span>
+              </div>
+            </div>
+            <div class="kpi-card card-green">
+              <div class="kpi-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+              <div class="kpi-info">
+                <h3>ยอดคงคลังรวม</h3>
+                <span class="kpi-value" id="kpi-total-qty">-</span>
+                <span class="kpi-desc">ชิ้นพร้อมใช้งาน</span>
+              </div>
+            </div>
+            <div class="kpi-card card-purple">
+              <div class="kpi-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+              <div class="kpi-info">
+                <h3>มูลค่าสินทรัพย์รวม</h3>
+                <span class="kpi-value" id="kpi-total-value">-</span>
+                <span class="kpi-desc">บาท (THB)</span>
+              </div>
+            </div>
+            <div class="kpi-card card-yellow">
+              <div class="kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <div class="kpi-info">
+                <h3>อะไหล่ต่ำกว่า ROP</h3>
+                <span class="kpi-value" id="kpi-low-stock">-</span>
+                <span class="kpi-desc">รายการต้องสั่งซื้อเพิ่ม</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts & Urgent Tasks -->
+          <div class="dashboard-grid">
+            <div class="grid-card chart-container-card">
+              <h3>สัดส่วนมูลค่าอะไหล่ตามกลุ่ม ABC</h3>
+              <div class="chart-wrapper">
+                <canvas id="abcChart"></canvas>
+              </div>
+            </div>
+            <div class="grid-card list-container-card">
+              <div class="card-header-flex">
+                <h3>⚠️ อะไหล่วิกฤต & ต่ำกว่าจุดสั่งซื้อ (ROP)</h3>
+                <button class="btn btn-secondary btn-sm" id="btn-export-low-stock"><i class="fa-solid fa-file-export"></i> ส่งออก Excel</button>
+              </div>
+              <div class="table-responsive compact">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>รหัสอะไหล่</th>
+                      <th>ชื่ออะไหล่ / รุ่น</th>
+                      <th>จุดเก็บ</th>
+                      <th>คงคลัง</th>
+                      <th>ROP / Max</th>
+                      <th>สถานะ</th>
+                    </tr>
+                  </thead>
+                  <tbody id="low-stock-tbody">
+                    <tr>
+                      <td colspan="6" class="text-center">กำลังโหลดข้อมูล...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= REGISTRY VIEW ================= -->
+        <section id="view-registry" class="view-section">
+          <div class="action-bar">
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="registry-search" placeholder="ค้นหารหัสอะไหล่, ชื่ออะไหล่, ยี่ห้อ, หรือรุ่นเครื่องมือ...">
+            </div>
+            <div class="filter-group">
+              <select id="filter-critical">
+                <option value="">-- อะไหล่วิกฤต --</option>
+                <option value="ใช่">วิกฤต (ใช่)</option>
+                <option value="ไม่ใช่">ไม่วิกฤต</option>
+              </select>
+              <select id="filter-abc">
+                <option value="">-- กลุ่ม ABC --</option>
+                <option value="A">กลุ่ม A</option>
+                <option value="B">กลุ่ม B</option>
+                <option value="C">กลุ่ม C</option>
+              </select>
+              <button class="btn btn-primary" id="btn-add-part"><i class="fa-solid fa-plus"></i> ลงทะเบียนอะไหล่ใหม่</button>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>รหัสอะไหล่</th>
+                    <th>ชื่ออะไหล่ / OEM No.</th>
+                    <th>ผู้จัดจำหน่าย / รุ่นที่ใช้ร่วมกัน</th>
+                    <th>จุดเก็บ</th>
+                    <th>จำนวนคงเหลือ</th>
+                    <th>Min/ROP/Max</th>
+                    <th>ราคา/หน่วย</th>
+                    <th>กลุ่ม / ความเสี่ยง</th>
+                    <th>จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="registry-tbody">
+                  <tr>
+                    <td colspan="9" class="text-center">กำลังโหลดข้อมูล...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= RECEIVING VIEW ================= -->
+        <section id="view-receiving" class="view-section">
+          <div class="action-bar">
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="receiving-search" placeholder="ค้นหาเลขเอกสาร, ผู้ขาย, รหัสอะไหล่...">
+            </div>
+            <button class="btn btn-success" id="btn-add-receiving"><i class="fa-solid fa-arrow-down-to-bracket"></i> บันทึกรับอะไหล่เข้าคลัง</button>
+          </div>
+
+          <div class="table-card">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>วันที่รับ</th>
+                    <th>เลขที่เอกสาร / ใบส่งของ</th>
+                    <th>ผู้แทนจำหน่าย</th>
+                    <th>รหัสอะไหล่</th>
+                    <th>ชื่ออะไหล่</th>
+                    <th>จำนวนที่รับ</th>
+                    <th>ราคา/หน่วย</th>
+                    <th>Lot / Serial No.</th>
+                    <th>วันหมดอายุ</th>
+                    <th>ผลการตรวจ</th>
+                    <th>ผู้รับ</th>
+                  </tr>
+                </thead>
+                <tbody id="receiving-tbody">
+                  <tr>
+                    <td colspan="11" class="text-center">กำลังโหลดข้อมูล...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= TRANSACTIONS VIEW ================= -->
+        <section id="view-transactions" class="view-section">
+          <div class="action-bar">
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="tx-search" placeholder="ค้นหาเลขที่ใบเบิก, เลขที่ใบสั่งงาน (Work Order), หมายเลขครุภัณฑ์, ผู้เบิก...">
+            </div>
+            <div class="filter-group">
+              <select id="filter-tx-status">
+                <option value="">-- สถานะรายการ --</option>
+                <option value="เบิกจ่ายสำเร็จ">เบิกจ่ายสำเร็จ</option>
+                <option value="คืนเสร็จสมบูรณ์">คืนเสร็จสมบูรณ์</option>
+              </select>
+              <button class="btn btn-primary" id="btn-add-requisition"><i class="fa-solid fa-arrow-up-from-bracket"></i> ทำใบเบิกจ่ายอะไหล่</button>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>เลขที่ใบเบิก</th>
+                    <th>วันที่เบิก</th>
+                    <th>เลขที่ใบสั่งงาน (Work Order)</th>
+                    <th>ครุภัณฑ์ / ชื่อเครื่องมือ</th>
+                    <th>ผู้เบิก / หน่วยงาน</th>
+                    <th>รหัสอะไหล่ / ชื่อ</th>
+                    <th>เบิก/จ่าย</th>
+                    <th>จำนวนคืน / วันที่คืน</th>
+                    <th>สภาพอะไหล่คืน</th>
+                    <th>สถานะ</th>
+                    <th>การจัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="transactions-tbody">
+                  <tr>
+                    <td colspan="11" class="text-center">กำลังโหลดข้อมูล...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= STOCK TAKE VIEW ================= -->
+        <section id="view-stocktake" class="view-section">
+          <div class="action-bar">
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="stocktake-search" placeholder="ค้นหาวันที่, รหัสอะไหล่, ชื่ออะไหล่...">
+            </div>
+            <div class="kpi-box-inline" id="stocktake-accuracy-card">
+              <span>ความถูกต้องคลัง (KPI):</span>
+              <strong id="kpi-accuracy-val">- %</strong>
+            </div>
+            <button class="btn btn-warning" id="btn-add-stockcount"><i class="fa-solid fa-clipboard-check"></i> บันทึกใบตรวจนับคลัง</button>
+          </div>
+
+          <div class="table-card">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>วันที่ตรวจนับ</th>
+                    <th>รอบการตรวจ</th>
+                    <th>รหัสอะไหล่</th>
+                    <th>ชื่ออะไหล่</th>
+                    <th>จุดเก็บ / หน่วยนับ</th>
+                    <th>ยอดในระบบ</th>
+                    <th>ยอดนับจริง</th>
+                    <th>ผลต่าง (+/-)</th>
+                    <th>ข้อมูลเสื่อมสภาพ/หมดอายุ</th>
+                    <th>สาเหตุการดำเนินการ</th>
+                    <th>ผู้ตรวจนับ</th>
+                  </tr>
+                </thead>
+                <tbody id="stocktake-tbody">
+                  <tr>
+                    <td colspan="11" class="text-center">กำลังโหลดข้อมูล...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= CONFIG VIEW ================= -->
+        <section id="view-config" class="view-section">
+          <div class="config-container">
+            <div class="config-card">
+              <h3><i class="fa-solid fa-link"></i> ตั้งค่าการเชื่อมต่อฐานข้อมูล Google Sheets</h3>
+              <p class="config-intro">
+                ระบบนี้เป็นเว็บบอร์ดกึ่งออฟไลน์ ทำการดึงและเขียนฐานข้อมูลของคุณใน Google Sheets ผ่าน Google Apps Script Web App URL
+              </p>
+              
+              <div class="form-group">
+                <label for="config-web-app-url">Google Apps Script Web App URL <span class="required">*</span></label>
+                <input type="url" id="config-web-app-url" placeholder="https://script.google.com/macros/s/.../exec">
+                <small class="form-help">คุณจะได้ URL นี้หลังจากอัปโหลดไฟล์ Code.gs ขึ้น Apps Script ใน Google Sheet และกด Deploy เป็น Web App</small>
+              </div>
+
+              <div class="config-actions">
+                <button class="btn btn-primary" id="btn-save-config"><i class="fa-solid fa-floppy-disk"></i> บันทึกการเชื่อมต่อ</button>
+                <button class="btn btn-secondary" id="btn-test-connection"><i class="fa-solid fa-rotate"></i> ทดสอบการเชื่อมต่อ API</button>
+              </div>
+            </div>
+
+            <div class="config-card">
+              <h3><i class="fa-solid fa-circle-question"></i> วิธีเริ่มติดตั้งระบบ Google Sheets Database</h3>
+              <ol class="setup-steps">
+                <li>สร้างไฟล์ <strong>Google Sheet</strong> ขึ้นมาใหม่ใน Google Drive</li>
+                <li>ไปที่เมนู <strong>Extensions > Apps Script</strong></li>
+                <li>คัดลอกซอร์สโค้ดจากไฟล์ <code>google-apps-script/Code.gs</code> ในเครื่องของคุณ ไปวางลงใน Script editor ของ Google Apps Script</li>
+                <li>กดปุ่ม <strong>Deploy > New Deployment</strong></li>
+                <li>เลือกประเภท <strong>Web App</strong> ตั้งค่าดังนี้:
+                  <ul>
+                    <li><strong>Execute as:</strong> Me (อีเมลของคุณ)</li>
+                    <li><strong>Who has access:</strong> Anyone (ทุกคน รวมถึงบุคคลภายนอก)</li>
+                  </ul>
+                </li>
+                <li>กด <strong>Deploy</strong> และทำการอนุมัติสิทธิ์ (Authorize Access) ให้กับสคริปต์</li>
+                <li>คัดลอก <strong>Web App URL</strong> ที่ปรากฏหลัง Deploy สำเร็จ นำมาวางในช่องด้านบน แล้วกดบันทึก</li>
+              </ol>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ==================== MODAL DIALOGS ==================== -->
+  
+  <!-- 1. Add/Edit Part Modal -->
+  <div class="modal" id="modal-part">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="modal-part-title">ลงทะเบียนอะไหล่ใหม่</h3>
+        <button class="modal-close" data-close="modal-part">&times;</button>
+      </div>
+      <form id="form-part">
+        <input type="hidden" id="part-mode" value="add">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="part-id">รหัสอะไหล่ (รหัสพัสดุ) <span class="required">*</span></label>
+              <input type="text" id="part-id" required placeholder="เช่น SP-MED-001">
+            </div>
+            <div class="form-group col-6">
+              <label for="part-oem">OEM Part Number</label>
+              <input type="text" id="part-oem" placeholder="เช่น 4535612345">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="part-name">ชื่ออะไหล่ / รายละเอียด / ยี่ห้อ <span class="required">*</span></label>
+            <input type="text" id="part-name" required placeholder="เช่น Battery Lead Acid 12V 7.2Ah (CSB)">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="part-supplier">ผู้ผลิต / ผู้จัดจำหน่าย</label>
+              <input type="text" id="part-supplier" placeholder="เช่น บจก. เมดิคอลซัพพลาย">
+            </div>
+            <div class="form-group col-6">
+              <label for="part-models">รุ่นเครื่องมือแพทย์ที่ใช้ร่วมกันได้ <span class="required">*</span></label>
+              <input type="text" id="part-models" required placeholder="เช่น Philips MX450, Defibrillator XL+">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="part-location">ตำแหน่งจัดเก็บ (ตู้-ชั้น-ช่อง) <span class="required">*</span></label>
+              <input type="text" id="part-location" required placeholder="เช่น A-01-03">
+            </div>
+            <div class="form-group col-6">
+              <label for="part-initial-qty">จำนวนตั้งต้นคลัง</label>
+              <input type="number" id="part-initial-qty" min="0" value="0">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-4">
+              <label for="part-min">จำนวนคงคลังต่ำสุด (Min)</label>
+              <input type="number" id="part-min" min="0" value="1">
+            </div>
+            <div class="form-group col-4">
+              <label for="part-rop">จุดสั่งซื้อ (ROP) <span class="required">*</span></label>
+              <input type="number" id="part-rop" min="0" required value="2">
+            </div>
+            <div class="form-group col-4">
+              <label for="part-max">จำนวนสูงสุด (Max)</label>
+              <input type="number" id="part-max" min="0" value="5">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="part-price">ราคา/หน่วย (บาท) <span class="required">*</span></label>
+              <input type="number" id="part-price" min="0" step="0.01" required value="0">
+            </div>
+            <div class="form-group col-6">
+              <label for="part-purchase-date">วันที่จัดซื้อล่าสุด</label>
+              <input type="date" id="part-purchase-date">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="part-expiry">Shelf Life / วันหมดอายุ (ถ้ามี)</label>
+              <input type="date" id="part-expiry">
+            </div>
+            <div class="form-group col-6">
+              <label for="part-status">สถานะอะไหล่</label>
+              <select id="part-status">
+                <option value="ใหม่">ใหม่</option>
+                <option value="นำกลับมาใช้ใหม่ (Refurbished)">นำกลับมาใช้ใหม่ (Refurbished)</option>
+                <option value="รอจำหน่าย">รอจำหน่าย</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-4">
+              <label for="part-critical">อะไหล่วิกฤตหรือไม่</label>
+              <select id="part-critical">
+                <option value="ไม่ใช่">ไม่ใช่</option>
+                <option value="ใช่">ใช่ (Critical)</option>
+              </select>
+            </div>
+            <div class="form-group col-4">
+              <label for="part-abc">กลุ่มอะไหล่ (ABC)</label>
+              <select id="part-abc">
+                <option value="A">กลุ่ม A (มูลค่าสูง/นับบ่อย)</option>
+                <option value="B">กลุ่ม B (ปานกลาง)</option>
+                <option value="C">กลุ่ม C (มูลค่าต่ำ)</option>
+              </select>
+            </div>
+            <div class="form-group col-4">
+              <label for="part-budget-year">ปีงบประมาณ</label>
+              <input type="text" id="part-budget-year" placeholder="เช่น 2569">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="modal-part">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary" id="btn-part-submit">บันทึกข้อมูล</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Add Receiving Modal -->
+  <div class="modal" id="modal-receiving">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>บันทึกรับอะไหล่เข้าคลัง (FM-MED-007-03)</h3>
+        <button class="modal-close" data-close="modal-receiving">&times;</button>
+      </div>
+      <form id="form-receiving">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="rec-date">วันที่รับเข้าคลัง <span class="required">*</span></label>
+              <input type="date" id="rec-date" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="rec-doc">เลขเอกสารจัดซื้อ / ใบส่งของ <span class="required">*</span></label>
+              <input type="text" id="rec-doc" required placeholder="เช่น PO-690123 / IV-10022">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="rec-supplier">ผู้ขาย / ผู้แทนจำหน่าย <span class="required">*</span></label>
+              <input type="text" id="rec-supplier" required placeholder="ระบุผู้ขาย">
+            </div>
+            <div class="form-group col-6">
+              <label for="rec-part-select">เลือกอะไหล่ <span class="required">*</span></label>
+              <select id="rec-part-select" required>
+                <option value="">-- กรุณาเลือกรายการ --</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="rec-qty">จำนวนที่รับเข้าคลัง <span class="required">*</span></label>
+              <input type="number" id="rec-qty" min="1" required value="1">
+            </div>
+            <div class="form-group col-6">
+              <label for="rec-price">ราคาต่อหน่วย (บาท) <span class="required">*</span></label>
+              <input type="number" id="rec-price" min="0" step="0.01" required value="0">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="rec-lot">Lot / Serial No. <span class="required">*</span></label>
+              <input type="text" id="rec-lot" required placeholder="เช่น LOT2026-06 / S/N 98765">
+            </div>
+            <div class="form-group col-6">
+              <label for="rec-expiry">วันหมดอายุของล็อตนี้ (ถ้ามี)</label>
+              <input type="date" id="rec-expiry">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="rec-location">รหัสตำแหน่งจัดเก็บจริง</label>
+              <input type="text" id="rec-location" placeholder="ดึงข้อมูลเดิมอัตโนมัติ">
+            </div>
+            <div class="form-group col-6">
+              <label for="rec-result">ผลการตรวจสภาพพัสดุ</label>
+              <select id="rec-result">
+                <option value="ผ่าน">ผ่านการตรวจสภาพ (ปกติ)</option>
+                <option value="ไม่ผ่าน">ไม่ผ่านการตรวจสภาพ</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="rec-receiver">เจ้าหน้าที่ผู้รับพัสดุ <span class="required">*</span></label>
+            <input type="text" id="rec-receiver" required placeholder="ระบุชื่อผู้รับในคลัง">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="modal-receiving">ยกเลิก</button>
+          <button type="submit" class="btn btn-success">บันทึกรับเข้าคลัง</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Add Requisition Modal -->
+  <div class="modal" id="modal-requisition">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>ใบเบิก-จ่ายอะไหล่ (FM-MED-007-02)</h3>
+        <button class="modal-close" data-close="modal-requisition">&times;</button>
+      </div>
+      <form id="form-requisition">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="req-no">เลขที่ใบเบิก <span class="required">*</span></label>
+              <input type="text" id="req-no" required placeholder="ระบบจะสุ่มให้อัตโนมัติ">
+            </div>
+            <div class="form-group col-6">
+              <label for="req-date">วันที่ขอเบิก <span class="required">*</span></label>
+              <input type="date" id="req-date" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="req-workorder">เลขที่ใบสั่งงาน (Work Order) <span class="required">*</span></label>
+              <input type="text" id="req-workorder" required placeholder="เช่น WO-69-0012 (จำเป็นตามกฎ SOP)">
+            </div>
+            <div class="form-group col-6">
+              <label for="req-jobtype">ประเภทงาน</label>
+              <select id="req-jobtype">
+                <option value="งานซ่อม">งานซ่อม (Repair)</option>
+                <option value="บำรุงรักษาเชิงป้องกัน (PM)">บำรุงรักษาเชิงป้องกัน (PM)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="req-equip-no">หมายเลขครุภัณฑ์เครื่องมือแพทย์ <span class="required">*</span></label>
+              <input type="text" id="req-equip-no" required placeholder="เช่น คร.4535-001-002">
+            </div>
+            <div class="form-group col-6">
+              <label for="req-equip-name">ชื่อเครื่องมือแพทย์ <span class="required">*</span></label>
+              <input type="text" id="req-equip-name" required placeholder="เช่น Patient Monitor">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="req-dept">หน่วยงานของเครื่องมือแพทย์ <span class="required">*</span></label>
+              <input type="text" id="req-dept" required placeholder="เช่น ห้องคลอด, ER, ICU">
+            </div>
+            <div class="form-group col-6">
+              <label for="req-part-select">เลือกอะไหล่ในคลัง <span class="required">*</span></label>
+              <select id="req-part-select" required>
+                <option value="">-- กรุณาเลือกรายการ --</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="req-qty-req">จำนวนขอเบิก <span class="required">*</span></label>
+              <input type="number" id="req-qty-req" min="1" required value="1">
+            </div>
+            <div class="form-group col-6">
+              <label for="req-qty-app">จำนวนที่จ่ายจริง <span class="required">*</span></label>
+              <input type="number" id="req-qty-app" min="1" required value="1">
+              <small class="form-help" id="req-qty-available">จำนวนคงเหลือในคลัง: - ชิ้น</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="req-requester">ช่างเครื่องมือแพทย์ (ผู้เบิก) <span class="required">*</span></label>
+            <input type="text" id="req-requester" required placeholder="ระบุชื่อช่างผู้ซ่อม">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="modal-requisition">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary">บันทึกจ่ายอะไหล่</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. Return Part Modal -->
+  <div class="modal" id="modal-return">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>บันทึกรับคืนอะไหล่ส่วนเกิน (คืนคลังภายใน 3 วันทำการ)</h3>
+        <button class="modal-close" data-close="modal-return">&times;</button>
+      </div>
+      <form id="form-return">
+        <input type="hidden" id="return-req-no">
+        <input type="hidden" id="return-part-id">
+        <div class="modal-body">
+          <p class="return-info-text">
+            รับคืนอะไหล่ของใบเบิกเลขที่: <strong id="return-display-req-no">-</strong><br>
+            อะไหล่: <strong id="return-display-part">-</strong>
+          </p>
+          
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="ret-qty">จำนวนที่คืนคลัง <span class="required">*</span></label>
+              <input type="number" id="ret-qty" min="1" required value="1">
+              <small class="form-help" id="ret-qty-max">จำนวนเบิกจริงสูงสุดที่สามารถคืนได้: - ชิ้น</small>
+            </div>
+            <div class="form-group col-6">
+              <label for="ret-date">วันที่ส่งคืนคลัง <span class="required">*</span></label>
+              <input type="date" id="ret-date" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="ret-condition">สภาพชิ้นส่วนที่คืน</label>
+              <select id="ret-condition">
+                <option value="ปกติ">ปกติ (พร้อมนำเข้าคลังเพื่อจ่ายต่อ)</option>
+                <option value="ชำรุด">ชำรุด (ไม่คืนคลังหลัก / แยกจัดเก็บจำหน่าย)</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label for="ret-returner">ช่างผู้ส่งคืน <span class="required">*</span></label>
+              <input type="text" id="ret-returner" required placeholder="ระบุชื่อช่างผู้ส่งคืน">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="ret-receiver">เจ้าหน้าที่ผู้รับคืนเข้าคลัง <span class="required">*</span></label>
+            <input type="text" id="ret-receiver" required placeholder="ระบุชื่อเจ้าหน้าที่คลัง">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="modal-return">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary">บันทึกรับคืน</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. Add Stock Count Modal -->
+  <div class="modal" id="modal-stockcount">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>บันทึกการตรวจนับพัสดุ (FM-MED-007-04)</h3>
+        <button class="modal-close" data-close="modal-stockcount">&times;</button>
+      </div>
+      <form id="form-stockcount">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="sc-date">วันที่ตรวจนับ <span class="required">*</span></label>
+              <input type="date" id="sc-date" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="sc-cycle">รอบการตรวจนับคลัง</label>
+              <select id="sc-cycle">
+                <option value="รายเดือน (กลุ่ม A)">รายเดือน (กลุ่ม A - นับถี่สุด)</option>
+                <option value="รายไตรมาส (กลุ่ม B)">รายไตรมาส (กลุ่ม B)</option>
+                <option value="ราย 6 เดือน (กลุ่ม C)">ราย 6 เดือน (กลุ่ม C)</option>
+                <option value="ตรวจสอบพัสดุประจำปี">ตรวจสอบพัสดุประจำปี</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="sc-part-select">เลือกอะไหล่ในคลัง <span class="required">*</span></label>
+              <select id="sc-part-select" required>
+                <option value="">-- กรุณาเลือกรายการ --</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label for="sc-unit">หน่วยนับ</label>
+              <input type="text" id="sc-unit" value="ชิ้น" placeholder="เช่น ชิ้น, ชุด, กล่อง">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="sc-system-qty">ยอดตามบัญชีระบบ</label>
+              <input type="number" id="sc-system-qty" readonly value="0" style="background:#f1f3f4;">
+            </div>
+            <div class="form-group col-6">
+              <label for="sc-actual-qty">ยอดนับได้จริงในคลัง <span class="required">*</span></label>
+              <input type="number" id="sc-actual-qty" min="0" required value="0">
+              <small class="form-help" id="sc-diff-text">ผลต่าง: 0 ชิ้น</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="sc-expired">พบเสื่อมสภาพ / ใกล้หมดอายุหรือไม่</label>
+            <input type="text" id="sc-expired" placeholder="เช่น ไม่พบ / ล็อต S/N 123 เสื่อมสภาพ">
+          </div>
+
+          <div class="form-group">
+            <label for="sc-reason">สาเหตุของผลต่างและการดำเนินการแก้ไข</label>
+            <textarea id="sc-reason" rows="2" placeholder="เช่น ช่างซ่อมฉุกเฉินเบิกด่วนไม่ได้ลงทะเบียน หรือ ข้อมูลพิมพ์ผิด..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-4">
+              <label for="sc-counter1">ผู้ตรวจนับคนที่ 1 <span class="required">*</span></label>
+              <input type="text" id="sc-counter1" required placeholder="ชื่อผู้ตรวจ">
+            </div>
+            <div class="form-group col-4">
+              <label for="sc-counter2">ผู้ตรวจนับคนที่ 2 <span class="required">*</span></label>
+              <input type="text" id="sc-counter2" required placeholder="ชื่อผู้ร่วมตรวจ">
+            </div>
+            <div class="form-group col-4">
+              <label for="sc-supervisor">หัวหน้างานเครื่องมือแพทย์ (ผู้รับรอง) <span class="required">*</span></label>
+              <input type="text" id="sc-supervisor" required placeholder="ชื่อหัวหน้างาน">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="modal-stockcount">ยกเลิก</button>
+          <button type="submit" class="btn btn-warning">บันทึกตรวจนับ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="spinner"></div>
+    <p>กำลังดำเนินการติดต่อฐานข้อมูล Google Sheets...</p>
+  </div>
+
+  <!-- Notification Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Application Script -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
