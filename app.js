@@ -3048,7 +3048,6 @@
       if (settings.gasUrl) {
         return fetch(settings.gasUrl, {
           method: "POST",
-          mode: "no-cors",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "notify",
@@ -3057,9 +3056,13 @@
             message: flexMessage
           })
         })
-        .then(() => {
-          console.log("LINE Alert sent successfully.");
-          return { success: true };
+        .then(r => r.json())
+        .then(data => {
+          if (data.result && data.result.indexOf("sentMessages") !== -1) {
+            console.log("LINE Alert sent successfully.");
+            return { success: true };
+          }
+          return { success: false, error: data.result || "GAS ไม่ตอบกลับ" };
         })
         .catch(err => {
           console.error("LINE Notify failed", err);
