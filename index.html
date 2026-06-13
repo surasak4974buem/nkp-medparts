@@ -2367,7 +2367,7 @@
             <div class="card-header">
               <span class="card-title">
                 <i data-lucide="sliders" style="color: var(--primary);"></i>
-                การตั้งค่าการเชื่อมต่อคลาวด์และแจ้งเตือน
+                การตั้งค่าการเชื่อมต่อคลาวด์และแจ้งเตือน <span style="font-size:0.78rem; color:var(--warning); font-weight:500;">(สิทธิ์ Admin เท่านั้น)</span>
               </span>
             </div>
             
@@ -2400,13 +2400,19 @@
               </div>
 
               <div class="form-group">
-                <label for="settings-line-token">LINE Channel Access Token (หรือ Webhook URL)</label>
-                <input type="password" id="settings-line-token" placeholder="ใส่ LINE Bot API token ของเพจกลุ่มงาน">
+                <label for="settings-line-token">LINE Channel Access Token</label>
+                <input type="password" id="settings-line-token" placeholder="ใส่ LINE Bot Channel Access Token (จาก LINE Developers Console)">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">
+                  *เก็บไว้ในอุปกรณ์นี้เท่านั้น ไม่ถูกอัปโหลดหรือบันทึกลง GitHub ใดๆ
+                </span>
               </div>
 
               <div class="form-group">
-                <label for="settings-line-groupid">LINE Group ID / User ID (สำหรับยิงข้อความโดยตรง)</label>
-                <input type="text" id="settings-line-groupid" placeholder="U123456789... หรือ Group ID">
+                <label for="settings-line-groupid">LINE Group ID / User ID (ผู้รับข้อความแจ้งเตือน)</label>
+                <input type="text" id="settings-line-groupid" placeholder="U25951b... หรือ C (Group ID) — ดูได้จาก Sheet LINE_IDs">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">
+                  *ส่งข้อความทดสอบก่อน แล้วดู ID ที่บันทึกอัตโนมัติในชีต LINE_IDs ของ Google Sheets
+                </span>
               </div>
 
               <div style="display: flex; gap: 10px;">
@@ -6274,6 +6280,10 @@ function sendLineNotify(flexMessage, token, groupId) {
 
     // 11. Cloud & LINE Integration Core
     function saveSettings() {
+      if (!currentUser || currentUser.role !== "Admin") {
+        showToast("ข้อผิดพลาด", "ขออภัย สิทธิ์ของคุณไม่สามารถแก้ไขการตั้งค่าระบบได้", "danger");
+        return;
+      }
       const newPwd = document.getElementById("settings-password").value.trim();
       const gasUrl = document.getElementById("settings-gas-url").value.trim();
       const lineToggle = document.getElementById("settings-line-toggle").checked;
@@ -6325,6 +6335,10 @@ function sendLineNotify(flexMessage, token, groupId) {
       if (!settings.lineToggle) {
         console.log("LINE Notification omitted: Toggle is OFF.", tx);
         return Promise.resolve({ success: true, omitted: true });
+      }
+      if (!settings.lineToken || !settings.lineGroupId) {
+        console.log("LINE Notification omitted: token/groupId not configured.", tx);
+        return Promise.resolve({ success: false, omitted: true, error: "ยังไม่ได้กรอก LINE Token หรือ Group ID — Admin ต้องกรอกในหน้า ตั้งค่า แล้วกด 'บันทึกการตั้งค่า'" });
       }
 
       const typeLabel = tx.type === "Issue" ? "เบิกจ่ายอะไหล่ 📤" : 
@@ -6443,8 +6457,10 @@ function sendLineNotify(flexMessage, token, groupId) {
       
       showToast("กำลังส่งข้อความทดสอบ", "กำลังเชื่อมต่อระบบ LINE เพื่อส่งข้อความทดสอบ...", "warning");
       const result = await sendLineNotification(mockTx, 29);
-      if (result.omitted) {
+      if (result.omitted && !result.error) {
         showToast("LINE ปิดอยู่", "กรุณาเปิด toggle LINE แล้วกด 'บันทึกการตั้งค่า' ก่อนทดสอบ", "warning");
+      } else if (result.omitted && result.error) {
+        showToast("ยังไม่ได้ตั้งค่า LINE", result.error, "warning");
       } else if (result.success) {
         showToast("สำเร็จ", "ส่งข้อความแจ้งเตือน LINE ทดสอบสำเร็จแล้ว", "success");
       } else {
