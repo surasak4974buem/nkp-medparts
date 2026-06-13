@@ -1278,7 +1278,7 @@
         <div id="login-error" class="login-error"></div>
       </div>
       <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 15px;">
-        *รหัสผ่านเริ่มต้นคือ: <code style="background: var(--bg-tertiary); padding: 2px 4px; border-radius: 4px;">NKP-medparts-2026</code>
+        *รหัสผ่านเริ่มต้นคือ: <code style="background: var(--bg-tertiary); padding: 2px 4px; border-radius: 4px;">NKP-admin-2026</code>
       </p>
     </div>
   </div>
@@ -1337,13 +1337,13 @@
               <span>ใบขอจัดซื้ออะไหล่</span>
             </a>
           </li>
-          <li class="programmer-only" style="display: none;">
+          <li class="admin-only" style="display: none;">
             <a class="sidebar-link" data-tab="user-management">
               <i data-lucide="shield-check"></i>
               <span>ระบบจัดการสิทธิ์ผู้ใช้</span>
             </a>
           </li>
-          <li class="programmer-only" style="display: none;">
+          <li class="admin-only" style="display: none;">
             <a class="sidebar-link" data-tab="settings">
               <i data-lucide="settings"></i>
               <span>คลาวด์ & LINE Settings</span>
@@ -1822,6 +1822,9 @@
               <i data-lucide="calendar" style="color: var(--primary);"></i>
               ตารางกำหนดการบำรุงรักษาเชิงป้องกัน (PM Schedule & Parts Plan)
             </span>
+            <button class="btn btn-primary btn-sm admin-only" onclick="openAddPMModal()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;">
+              <i data-lucide="plus-circle" style="width:16px;height:16px;"></i> เพิ่มแผน PM
+            </button>
           </div>
           <div class="table-wrapper">
             <table class="custom-table" id="planning-pm-table">
@@ -1834,6 +1837,7 @@
                   <th>วันที่กำหนดทำ</th>
                   <th>อะไหล่ที่ระบุในแผน (จำนวน)</th>
                   <th>ช่างผู้รับผิดชอบ</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody id="planning-pm-body">
@@ -2257,39 +2261,49 @@
         </div>
       </section>
 
-      <!-- TAB 5.5: USER MANAGEMENT (ระบบจัดการสิทธิ์ผู้ใช้) - Programmer Only -->
-      <section id="tab-user-management" class="tab-content">
+      <!-- TAB 5.5: USER MANAGEMENT (ระบบจัดการสิทธิ์ผู้ใช้) - Admin Only -->
+  <section id="tab-user-management" class="tab-content">
         <div class="grid-layout-split">
           
           <!-- Column 1: Generate Password / Add User -->
           <div class="card" style="height: fit-content;">
-            <div class="card-header">
-              <span class="card-title">
-                <i data-lucide="user-plus" style="color: var(--primary);"></i>
-                สร้างบัญชีผู้ใช้งานและสุ่มรหัสผ่าน
-              </span>
-            </div>
-            
-            <div class="form-grid" style="grid-template-columns: 1fr; gap: 18px;">
-              <div class="form-group">
-                <label for="new-user-name">ชื่อ-นามสกุลจริง *</label>
-                <input type="text" id="new-user-name" placeholder="ระบุชื่อจริงของพนักงาน">
-              </div>
-              
-              <div class="form-group">
-                <label for="new-user-role">ระดับสิทธิ์ในการใช้งาน *</label>
-                <select id="new-user-role">
-                  <option value="General User">ผู้ใช้งานทั่วไป (General User - สูงสุด 10 คน)</option>
-                  <option value="Stock Manager">ผู้ดูแลคลัง (Stock Manager - สูงสุด 3 คน)</option>
-                  <option value="Programmer">ผู้สร้างระบบ (Programmer - สูงสุด 3 คน)</option>
-                </select>
-              </div>
-              
-              <button class="btn btn-primary" id="btn-generate-user" style="margin-top: 10px;">
-                <i data-lucide="key-round"></i> สุ่มรหัสผ่านและบันทึกผู้ใช้
-              </button>
-            </div>
-          </div>
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="user-plus" style="color: var(--primary);"></i>
+        สร้างบัญชีผู้ใช้งานใหม่
+      </span>
+    </div>
+    
+    <div class="form-grid" style="grid-template-columns: 1fr; gap: 18px;">
+      <div class="form-group">
+        <label for="new-user-name">ชื่อ-นามสกุลจริง *</label>
+        <input type="text" id="new-user-name" placeholder="ระบุชื่อจริงของพนักงาน">
+      </div>
+      
+      <div class="form-group">
+        <label for="new-user-role">ระดับสิทธิ์ในการใช้งาน *</label>
+        <select id="new-user-role">
+          <option value="General User">ผู้ใช้งานทั่วไป (General User - สูงสุด 10 คน)</option>
+          <option value="Stock Manager">ผู้ดูแลคลัง (Stock Manager - สูงสุด 3 คน)</option>
+          <option value="Admin">สิทธิ์แอดมิน (Admin - สูงสุด 3 คน)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="new-user-password">รหัสผ่านสำหรับเข้าใช้ระบบ *</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="new-user-password" placeholder="พิมพ์รหัสผ่านเอง หรือกดปุ่มสุ่มรหัสผ่าน" style="flex: 1;">
+          <button class="btn btn-secondary btn-sm" id="btn-new-user-random" style="padding: 0 12px; height: 38px; white-space: nowrap;">
+            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> สุ่มรหัส
+          </button>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary" id="btn-generate-user" style="margin-top: 10px;">
+        <i data-lucide="user-plus"></i> บันทึกข้อมูลผู้ใช้
+      </button>
+    </div>
+  </div>
           
           <!-- Column 2: User Accounts Table and Statistics -->
           <div class="card">
@@ -2305,7 +2319,7 @@
               <div class="metric-card primary" style="padding: 12px;">
                 <div class="metric-details">
                   <span class="metric-val" id="count-users-prog">0 / 3</span>
-                  <span class="metric-label" style="font-size: 0.7rem;">ผู้สร้างระบบ</span>
+                  <span class="metric-label" style="font-size: 0.7rem;">สิทธิ์แอดมิน</span>
                 </div>
               </div>
               <div class="metric-card warning" style="padding: 12px;">
@@ -2412,7 +2426,7 @@
             <div class="card-header">
               <span class="card-title">
                 <i data-lucide="wallet" style="color: var(--primary);"></i>
-                ตั้งค่างบประมาณปีงบประมาณ (สิทธิ์ Programmer เท่านั้น)
+                ตั้งค่างบประมาณปีงบประมาณ (สิทธิ์ Admin เท่านั้น)
               </span>
             </div>
             <div class="form-grid" style="grid-template-columns: 1fr; gap: 15px;">
@@ -2865,7 +2879,7 @@ function sendLineNotify(flexMessage, token, groupId) {
     </div>
   </div>
 
-  <!-- MODAL 5: CHANGE OWN PASSWORD DIALOG (สำหรับทุกสิทธิ์) -->
+    <!-- MODAL 5: CHANGE OWN PASSWORD DIALOG (สำหรับทุกสิทธิ์) -->
   <div id="modal-change-own-password" class="modal">
     <div class="modal-content" style="max-width: 400px;">
       <div class="modal-header">
@@ -2889,6 +2903,57 @@ function sendLineNotify(flexMessage, token, groupId) {
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal('modal-change-own-password')">ยกเลิก</button>
         <button class="btn btn-primary" id="btn-save-own-password">บันทึกรหัสใหม่</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5.5: EDIT USER DIALOG (สำหรับแอดมินแก้ไขผู้ใช้) -->
+  <div id="modal-edit-user" class="modal">
+    <div class="modal-content" style="max-width: 450px;">
+      <div class="modal-header">
+        <h3>แก้ไขข้อมูลบัญชีผู้ใช้งาน</h3>
+        <button class="close-btn" onclick="closeModal('modal-edit-user')">&times;</button>
+      </div>
+      <div class="modal-body" style="gap: 15px;">
+        <input type="hidden" id="edit-user-index">
+        
+        <div class="form-group">
+          <label for="edit-user-name">ชื่อ-นามสกุลจริง *</label>
+          <input type="text" id="edit-user-name" placeholder="ระบุชื่อจริงของพนักงาน">
+        </div>
+
+        <div class="form-group">
+          <label for="edit-user-role">ระดับสิทธิ์ในการใช้งาน *</label>
+          <select id="edit-user-role">
+            <option value="General User">ผู้ใช้งานทั่วไป (General User - สูงสุด 10 คน)</option>
+            <option value="Stock Manager">ผู้ดูแลคลัง (Stock Manager - สูงสุด 3 คน)</option>
+            <option value="Admin">สิทธิ์แอดมิน (Admin - สูงสุด 3 คน)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="edit-user-password">รหัสผ่านสำหรับเข้าใช้ระบบ *</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="edit-user-password" placeholder="ระบุรหัสผ่านเข้าใช้งาน" style="flex: 1;">
+            <button class="btn btn-secondary btn-sm" id="btn-edit-user-random" style="padding: 0 12px; height: 38px; white-space: nowrap;">
+              <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> สุ่มรหัส
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="edit-user-status">สถานะสิทธิ์การใช้งาน *</label>
+          <select id="edit-user-status">
+            <option value="Active">เปิดใช้งาน (Active)</option>
+            <option value="Inactive">ปิดสิทธิ์ชั่วคราว (Inactive)</option>
+          </select>
+        </div>
+
+        <div id="edit-user-error" style="color: var(--danger); font-size: 0.8rem; min-height: 20px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-edit-user')">ยกเลิก</button>
+        <button class="btn btn-primary" id="btn-save-edit-user">บันทึกการแก้ไข</button>
       </div>
     </div>
   </div>
@@ -2930,6 +2995,95 @@ function sendLineNotify(flexMessage, token, groupId) {
 
   <!-- Container for printing (Hidden on screen, visible only on print) -->
   <div id="monthly-report-print-area"></div>
+
+  <!-- MODAL: PM PLAN FORM -->
+  <div id="modal-pm-plan" class="modal">
+    <div class="modal-content" style="max-width: 640px;">
+      <div class="modal-header">
+        <h3 id="pm-modal-title">เพิ่มแผนบำรุงรักษาใหม่</h3>
+        <button class="close-btn" onclick="closeModal('modal-pm-plan')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="pm-form-mode" value="add">
+        <input type="hidden" id="pm-edit-id" value="">
+
+        <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <!-- ชื่องาน (full width) -->
+          <div style="grid-column:1/-1;">
+            <label class="form-label">
+              ชื่องาน / แผนบำรุงรักษา
+              <span style="color:#ff4d4d; text-shadow:0 0 5px rgba(255,77,77,0.8);">*</span>
+            </label>
+            <input type="text" id="pm-name" placeholder="เช่น แผน PM เครื่องตรวจวัด Bedside Monitor Nihon Kohden ประจำปี 2569"
+              style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-secondary); color:var(--text-primary); font-family:var(--font-family); font-size:0.9rem; box-sizing:border-box;">
+          </div>
+
+          <!-- รุ่นเครื่องมือ -->
+          <div>
+            <label class="form-label">
+              รุ่นเครื่องมือที่เกี่ยวข้อง
+              <span style="color:#ff4d4d; text-shadow:0 0 5px rgba(255,77,77,0.8);">*</span>
+            </label>
+            <input type="text" id="pm-eq-model" placeholder="เช่น Nihon Kohden BSM-3500"
+              style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-secondary); color:var(--text-primary); font-family:var(--font-family); font-size:0.9rem; box-sizing:border-box;">
+          </div>
+
+          <!-- ความถี่ -->
+          <div>
+            <label class="form-label">ความถี่กำหนด <span style="color:#ff4d4d; text-shadow:0 0 5px rgba(255,77,77,0.8);">*</span></label>
+            <select id="pm-frequency"
+              style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-secondary); color:var(--text-primary); font-family:var(--font-family); font-size:0.9rem; box-sizing:border-box;">
+              <option value="Annual (ประจำปี)">Annual — ประจำปี (ปีละ 1 ครั้ง)</option>
+              <option value="Semi-Annual (ทุก 6 เดือน)">Semi-Annual — ทุก 6 เดือน</option>
+              <option value="Quarterly (ทุก 3 เดือน)">Quarterly — ทุก 3 เดือน</option>
+              <option value="Monthly (รายเดือน)">Monthly — รายเดือน</option>
+            </select>
+          </div>
+
+          <!-- วันที่กำหนดทำ -->
+          <div>
+            <label class="form-label">
+              วันที่กำหนดทำ
+              <span style="color:#ff4d4d; text-shadow:0 0 5px rgba(255,77,77,0.8);">*</span>
+            </label>
+            <input type="date" id="pm-scheduled-date"
+              style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-secondary); color:var(--text-primary); font-family:var(--font-family); font-size:0.9rem; box-sizing:border-box;">
+          </div>
+
+          <!-- ช่างผู้รับผิดชอบ (full width) -->
+          <div style="grid-column:1/-1;">
+            <label class="form-label">
+              ช่างผู้รับผิดชอบ
+              <span style="color:#ff4d4d; text-shadow:0 0 5px rgba(255,77,77,0.8);">*</span>
+            </label>
+            <input type="text" id="pm-assigned-tech" placeholder="ชื่อ-นามสกุล และตำแหน่งช่างเทคนิค เช่น นายสุรศักดิ์ พึ่งเล่ห์ (ช่างเทคนิค)"
+              style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-secondary); color:var(--text-primary); font-family:var(--font-family); font-size:0.9rem; box-sizing:border-box;">
+          </div>
+
+          <!-- อะไหล่ที่ระบุในแผน (full width) -->
+          <div style="grid-column:1/-1;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <label class="form-label" style="margin:0;">อะไหล่ที่ระบุในแผน (เลือกรหัสและจำนวนที่ต้องใช้)</label>
+              <button type="button" onclick="addPMPartRow()" class="btn btn-secondary btn-sm" style="padding:5px 12px; font-size:0.8rem; display:inline-flex; align-items:center; gap:5px;">
+                <i data-lucide="plus" style="width:13px;height:13px;"></i> เพิ่มอะไหล่
+              </button>
+            </div>
+            <div id="pm-parts-rows" style="display:flex; flex-direction:column; gap:0;"></div>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin:8px 0 0;">
+              <i data-lucide="info" style="width:12px;height:12px; vertical-align:middle;"></i>
+              เลือกอะไหล่และระบุจำนวนที่ต้องเตรียมสำหรับงาน PM นี้ — ระบบจะใช้ข้อมูลนี้คำนวณ Shortage Report
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; padding:16px 24px; border-top:1px solid var(--border-color);">
+        <button class="btn btn-secondary" onclick="closeModal('modal-pm-plan')">ยกเลิก</button>
+        <button class="btn btn-primary" onclick="savePMPlan()" style="display:inline-flex;align-items:center;gap:6px;">
+          <i data-lucide="save" style="width:15px;height:15px;"></i> บันทึกแผน PM
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toast-notification" class="toast-modal-overlay">
@@ -3321,6 +3475,7 @@ function sendLineNotify(flexMessage, token, groupId) {
 
   <!-- Embed Main App Controller logic -->
   <script>
+
     // Mobile Viewport Zoom Auto-Adjustment for Desktop View on Mobile
     function adjustZoom() {
       const targetWidth = 1280;
@@ -3342,6 +3497,45 @@ function sendLineNotify(flexMessage, token, groupId) {
         }
       }
     }
+
+    // Attach event listeners for user CRUD random password buttons
+    document.addEventListener("DOMContentLoaded", () => {
+      const btnNewRandom = document.getElementById("btn-new-user-random");
+      if (btnNewRandom) {
+        btnNewRandom.addEventListener("click", (e) => {
+          e.preventDefault();
+          const pwdInput = document.getElementById("new-user-password");
+          if (pwdInput) {
+            pwdInput.value = generateSecurePassword();
+          }
+        });
+      }
+
+      const btnEditRandom = document.getElementById("btn-edit-user-random");
+      if (btnEditRandom) {
+        btnEditRandom.addEventListener("click", (e) => {
+          e.preventDefault();
+          const pwdInput = document.getElementById("edit-user-password");
+          if (pwdInput) {
+            pwdInput.value = generateSecurePassword();
+          }
+        });
+      }
+
+      const btnSaveEditUser = document.getElementById("btn-save-edit-user");
+      if (btnSaveEditUser) {
+        btnSaveEditUser.addEventListener("click", (e) => {
+          e.preventDefault();
+          saveUserEdit();
+        });
+      }
+      
+      // Auto-populate first password for new user
+      const newPwdInput = document.getElementById("new-user-password");
+      if (newPwdInput && !newPwdInput.value) {
+        newPwdInput.value = generateSecurePassword();
+      }
+    });
 
     // Run zoom adjustment immediately and on window resize / load
     adjustZoom();
@@ -3519,12 +3713,29 @@ function sendLineNotify(flexMessage, token, groupId) {
       const storedUsers = localStorage.getItem("nkp_users");
       if (storedUsers) {
         userAccounts = JSON.parse(storedUsers);
+        let migrated = false;
+        userAccounts.forEach(u => {
+          if (u.role === "Admin") {
+            u.role = "Admin";
+            migrated = true;
+          }
+          if (u.realName === "Admin (Default)") {
+            u.realName = "Admin (Default)";
+            if (u.password === "NKP-admin-2026") {
+              u.password = "NKP-admin-2026";
+            }
+            migrated = true;
+          }
+        });
+        if (migrated) {
+          localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
+        }
       } else {
         userAccounts = [
           {
-            realName: "NKP Programmer (Default)",
-            password: "NKP-programmer-2026",
-            role: "Programmer",
+            realName: "Admin (Default)",
+            password: "NKP-admin-2026",
+            role: "Admin",
             status: "Active",
             loginCount: 0
           }
@@ -3544,7 +3755,7 @@ function sendLineNotify(flexMessage, token, groupId) {
       triggerCloudSync();
     }
 
-    // 2. Authentication Password Gate (Default: NKP-programmer-2026)
+    // 2. Authentication Password Gate (Default: NKP-admin-2026)
     function checkAuth() {
       const loginOverlay = document.getElementById("login-overlay");
       const isAuthenticated = sessionStorage.getItem("nkp_authenticated");
@@ -3553,6 +3764,21 @@ function sendLineNotify(flexMessage, token, groupId) {
         const storedUser = sessionStorage.getItem("nkp_current_user");
         if (storedUser) {
           currentUser = JSON.parse(storedUser);
+          let sessionChanged = false;
+          if (currentUser.role === "Admin") {
+            currentUser.role = "Admin";
+            sessionChanged = true;
+          }
+          if (currentUser.realName === "Admin (Default)") {
+            currentUser.realName = "Admin (Default)";
+            if (currentUser.password === "NKP-admin-2026") {
+              currentUser.password = "NKP-admin-2026";
+            }
+            sessionChanged = true;
+          }
+          if (sessionChanged) {
+            sessionStorage.setItem("nkp_current_user", JSON.stringify(currentUser));
+          }
           loginOverlay.classList.add("hidden");
           applyPermissions(currentUser.role);
           updateUserDisplay();
@@ -3627,9 +3853,9 @@ function sendLineNotify(flexMessage, token, groupId) {
     }
 
     function applyPermissions(role) {
-      const programmerOnlyElements = document.querySelectorAll(".programmer-only");
-      programmerOnlyElements.forEach(el => {
-        if (role === "Programmer") {
+      const adminOnlyElements = document.querySelectorAll(".admin-only");
+      adminOnlyElements.forEach(el => {
+        if (role === "Admin") {
           el.style.display = "block";
         } else {
           el.style.display = "none";
@@ -3715,7 +3941,7 @@ function sendLineNotify(flexMessage, token, groupId) {
         const activeTab = activeLink.getAttribute("data-tab");
         let redirect = false;
 
-        if (role !== "Programmer" && (activeTab === "settings" || activeTab === "user-management")) {
+        if (role !== "Admin" && (activeTab === "settings" || activeTab === "user-management")) {
           redirect = true;
         } else if (role === "General User" && (activeTab === "procurement" || activeTab === "catalog" || activeTab === "planning")) {
           redirect = true;
@@ -4594,7 +4820,7 @@ function sendLineNotify(flexMessage, token, groupId) {
     }
 
     function saveBudgetSettings() {
-      if (!currentUser || currentUser.role !== "Programmer") {
+      if (!currentUser || currentUser.role !== "Admin") {
         showToast("ข้อผิดพลาด", "ขออภัย สิทธิ์ของคุณไม่สามารถแก้ไขงบประมาณได้", "danger");
         return;
       }
@@ -4718,7 +4944,7 @@ function sendLineNotify(flexMessage, token, groupId) {
         .slice(0, 3);
 
       const reporterName = currentUser ? currentUser.realName : "นายสุรศักดิ์ พึ่งเล่ห์";
-      const reporterRole = currentUser ? (currentUser.role === "Programmer" ? "ช่างเทคนิคอาวุโส" : currentUser.role) : "ช่างเทคนิคประจำศูนย์เครื่องมือแพทย์";
+      const reporterRole = currentUser ? (currentUser.role === "Admin" ? "ช่างเทคนิคอาวุโส" : currentUser.role) : "ช่างเทคนิคประจำศูนย์เครื่องมือแพทย์";
 
       const reportHtml = `
         <div style="font-family: 'Sarabun', Arial, sans-serif; line-height: 1.5; color: #000000; padding: 10px;">
@@ -6042,7 +6268,7 @@ function sendLineNotify(flexMessage, token, groupId) {
 
       if (newPwd) {
         settings.password = newPwd;
-        const progDefault = userAccounts.find(u => u.realName === "NKP Programmer (Default)");
+        const progDefault = userAccounts.find(u => u.realName === "Admin (Default)");
         if (progDefault) {
           progDefault.password = newPwd;
           localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
@@ -6059,8 +6285,8 @@ function sendLineNotify(flexMessage, token, groupId) {
     }
 
     function saveBudgetSettings() {
-      // Check programmer permission
-      if (!currentUser || currentUser.role !== "Programmer") {
+      // Check admin permission
+      if (!currentUser || currentUser.role !== "Admin") {
         showToast("ข้อผิดพลาด", "ขออภัย สิทธิ์ของคุณไม่สามารถแก้ไขงบประมาณได้", "danger");
         return;
       }
@@ -6276,11 +6502,11 @@ function sendLineNotify(flexMessage, token, groupId) {
       if (!tbody) return;
       tbody.innerHTML = "";
 
-      const countProg = userAccounts.filter(u => u.role === "Programmer").length;
+      const countAdmin = userAccounts.filter(u => u.role === "Admin").length;
       const countManager = userAccounts.filter(u => u.role === "Stock Manager").length;
       const countGen = userAccounts.filter(u => u.role === "General User").length;
 
-      document.getElementById("count-users-prog").innerText = `${countProg} / 3`;
+      document.getElementById("count-users-prog").innerText = `${countAdmin} / 3`;
       document.getElementById("count-users-manager").innerText = `${countManager} / 3`;
       document.getElementById("count-users-gen").innerText = `${countGen} / 10`;
 
@@ -6292,14 +6518,11 @@ function sendLineNotify(flexMessage, token, groupId) {
           `<span class="badge badge-expired">ปิดสิทธิ์</span>`;
 
         let roleBadge = "badge-c";
-        if (u.role === "Programmer") roleBadge = "badge-a";
+        if (u.role === "Admin") roleBadge = "badge-a";
         else if (u.role === "Stock Manager") roleBadge = "badge-b";
 
-        const toggleBtnText = u.status === "Active" ? "ปิดสิทธิ์" : "เปิดใช้";
-        const toggleBtnColor = u.status === "Active" ? "var(--danger)" : "var(--success)";
-
         const isSelf = currentUser && String(currentUser.password) === String(u.password);
-        const disableDeactivate = isSelf || (u.role === "Programmer" && userAccounts.filter(usr => usr.role === "Programmer" && usr.status === "Active").length <= 1 && u.status === "Active");
+        const disableDelete = isSelf || (u.role === "Admin" && userAccounts.filter(usr => usr.role === "Admin" && usr.status === "Active").length <= 1);
 
         tr.innerHTML = `
           <td><strong>${u.realName}</strong></td>
@@ -6308,46 +6531,202 @@ function sendLineNotify(flexMessage, token, groupId) {
           <td><strong>${u.loginCount || 0}</strong></td>
           <td>${statusBadge}</td>
           <td>
-            <div style="display: flex; gap: 8px;">
-              <button class="btn btn-secondary btn-sm" onclick="toggleUserStatus(${index})" ${disableDeactivate ? "disabled style='opacity: 0.5;'" : ""} style="padding: 4px 8px; font-size: 0.75rem; color: ${toggleBtnColor};">
-                ${toggleBtnText}
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-secondary btn-sm" onclick="openEditUserModal(${index})" style="padding: 4px 8px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 2px;">
+                <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i> แก้ไข
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="deleteUser(dots)" ${disableDelete ? "disabled style='opacity: 0.5; pointer-events: none;'" : ""} style="padding: 4px 8px; font-size: 0.75rem; color: var(--danger); display: inline-flex; align-items: center; gap: 2px;">
+                <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i> ลบ
               </button>
             </div>
           </td>
         `;
         tbody.appendChild(tr);
       });
+
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
     }
 
-    window.toggleUserStatus = function(index) {
+    window.openEditUserModal = function(index) {
       const u = userAccounts[index];
       if (!u) return;
 
-      u.status = u.status === "Active" ? "Inactive" : "Active";
+      document.getElementById("edit-user-index").value = index;
+      document.getElementById("edit-user-name").value = u.realName;
+      document.getElementById("edit-user-role").value = u.role;
+      document.getElementById("edit-user-password").value = u.password;
+      document.getElementById("edit-user-status").value = u.status;
+      document.getElementById("edit-user-error").innerText = "";
+
+      openModal("modal-edit-user");
+    };
+
+    window.saveUserEdit = function() {
+      const index = parseInt(document.getElementById("edit-user-index").value);
+      const name = document.getElementById("edit-user-name").value.trim();
+      const role = document.getElementById("edit-user-role").value;
+      const password = document.getElementById("edit-user-password").value.trim();
+      const status = document.getElementById("edit-user-status").value;
+      const errorDiv = document.getElementById("edit-user-error");
+
+      if (!name) {
+        errorDiv.innerText = "กรุณากรอกชื่อ-นามสกุลจริง!";
+        return;
+      }
+
+      if (!password) {
+        errorDiv.innerText = "กรุณากรอกรหัสผ่าน!";
+        return;
+      }
+
+      if (password.length < 4) {
+        errorDiv.innerText = "รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร!";
+        return;
+      }
+
+      const isDuplicate = userAccounts.some((u, i) => i !== index && String(u.password) === String(password));
+      if (isDuplicate) {
+        errorDiv.innerText = "รหัสผ่านนี้ถูกใช้งานแล้วโดยบัญชีอื่น กรุณาใช้รหัสผ่านอื่น";
+        return;
+      }
+
+      const u = userAccounts[index];
+      if (!u) return;
+
+      const isSelf = currentUser && String(currentUser.password) === String(u.password);
+
+      if (isSelf && status === "Inactive") {
+        errorDiv.innerText = "คุณไม่สามารถปิดสิทธิ์บัญชีที่คุณกำลังใช้งานอยู่ในขณะนี้ได้";
+        return;
+      }
+
+      if (isSelf && u.role === "Admin" && role !== "Admin") {
+        errorDiv.innerText = "คุณไม่สามารถเปลี่ยนระดับสิทธิ์ของตัวเองให้ต่ำลงได้";
+        return;
+      }
+
+      if (u.role === "Admin" && (role !== "Admin" || status !== "Active")) {
+        const activeAdmins = userAccounts.filter((usr, i) => i !== index && usr.role === "Admin" && usr.status === "Active");
+        if (activeAdmins.length === 0) {
+          errorDiv.innerText = "ต้องมีบัญชีระดับ Admin ที่มีสถานะเปิดใช้งาน (Active) อย่างน้อย 1 บัญชีเสมอ";
+          return;
+        }
+      }
+
+      if (role !== u.role) {
+        const countAdmin = userAccounts.filter(usr => usr.role === "Admin").length;
+        const countManager = userAccounts.filter(usr => usr.role === "Stock Manager").length;
+        const countGen = userAccounts.filter(usr => usr.role === "General User").length;
+
+        if (role === "Admin" && countAdmin >= 3) {
+          errorDiv.innerText = "ขออภัย! สิทธิ์ Admin จำกัดสูงสุดไม่เกิน 3 คน";
+          return;
+        }
+        if (role === "Stock Manager" && countManager >= 3) {
+          errorDiv.innerText = "ขออภัย! สิทธิ์ Stock Manager จำกัดสูงสุดไม่เกิน 3 คน";
+          return;
+        }
+        if (role === "General User" && countGen >= 10) {
+          errorDiv.innerText = "ขออภัย! สิทธิ์ General User จำกัดสูงสุดไม่เกิน 10 คน";
+          return;
+        }
+      }
+
+      u.realName = name;
+      u.role = role;
+      u.password = password;
+      u.status = status;
+
       localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
+      
+      if (isSelf) {
+        currentUser = { ...currentUser, realName: name, role: role, password: password, status: status };
+        sessionStorage.setItem("nkp_current_user", JSON.stringify(currentUser));
+        updateUserDisplay();
+        applyPermissions(currentUser.role);
+        
+        if (currentUser.realName === "Admin (Default)") {
+          settings.password = password;
+          localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
+        }
+      } else {
+        if (u.realName === "Admin (Default)") {
+          settings.password = password;
+          localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
+        }
+      }
+
+      closeModal("modal-edit-user");
       renderUserManagement();
       persistState();
-      showToast("สิทธิ์ผู้ใช้ถูกปรับเปลี่ยน", `เปลี่ยนสถานะของ ${u.realName} เป็น ${u.status === "Active" ? 'เปิดใช้งาน' : 'ปิดสิทธิ์'}`, "success");
+      showToast("แก้ไขบัญชีสำเร็จ", `อัปเดตข้อมูลของ ${name} เรียบร้อยแล้ว`, "success");
+    };
+
+    window.deleteUser = function(index) {
+      const u = userAccounts[index];
+      if (!u) return;
+
+      const isSelf = currentUser && String(currentUser.password) === String(u.password);
+      if (isSelf) {
+        alert("คุณไม่สามารถลบบัญชีที่คุณกำลังใช้งานอยู่ในขณะนี้ได้");
+        return;
+      }
+
+      if (u.role === "Admin") {
+        const activeAdmins = userAccounts.filter((usr, i) => i !== index && usr.role === "Admin" && usr.status === "Active");
+        if (activeAdmins.length === 0) {
+          alert("ต้องมีบัญชีระดับ Admin ที่มีสถานะเปิดใช้งาน (Active) อย่างน้อย 1 บัญชีเสมอ ไม่สามารถลบได้");
+          return;
+        }
+      }
+
+      if (confirm(`คุณแน่ใจหรือไม่ที่จะลบผู้ใช้ "${u.realName}" ออกจากระบบถาวร?`)) {
+        userAccounts.splice(index, 1);
+        localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
+        
+        renderUserManagement();
+        persistState();
+        showToast("ลบผู้ใช้สำเร็จ", `ลบบัญชีผู้ใช้ ${u.realName} ออกแล้ว`, "success");
+      }
     };
 
     function generateUserAccount() {
       const realNameInput = document.getElementById("new-user-name");
       const roleSelect = document.getElementById("new-user-role");
+      const passwordInput = document.getElementById("new-user-password");
 
       const realName = realNameInput.value.trim();
       const role = roleSelect.value;
+      const password = passwordInput.value.trim();
 
       if (!realName) {
         alert("กรุณากรอกชื่อ-นามสกุลจริง!");
         return;
       }
 
-      const countProg = userAccounts.filter(u => u.role === "Programmer").length;
+      if (!password) {
+        alert("กรุณากรอกรหัสผ่าน หรือกดปุ่มสุ่มรหัสผ่าน!");
+        return;
+      }
+
+      if (password.length < 4) {
+        alert("รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร!");
+        return;
+      }
+
+      if (userAccounts.some(u => String(u.password) === String(password))) {
+        alert("ขออภัย! รหัสผ่านนี้ถูกใช้งานแล้วโดยบัญชีอื่น กรุณาใช้รหัสผ่านอื่น");
+        return;
+      }
+
+      const countAdmin = userAccounts.filter(u => u.role === "Admin").length;
       const countManager = userAccounts.filter(u => u.role === "Stock Manager").length;
       const countGen = userAccounts.filter(u => u.role === "General User").length;
 
-      if (role === "Programmer" && countProg >= 3) {
-        alert("ขออภัย! สิทธิ์ Programmer จำกัดสูงสุดไม่เกิน 3 คน");
+      if (role === "Admin" && countAdmin >= 3) {
+        alert("ขออภัย! สิทธิ์ Admin จำกัดสูงสุดไม่เกิน 3 คน");
         return;
       }
       if (role === "Stock Manager" && countManager >= 3) {
@@ -6359,8 +6738,6 @@ function sendLineNotify(flexMessage, token, groupId) {
         return;
       }
 
-      const password = generateSecurePassword();
-
       userAccounts.push({
         realName: realName,
         password: password,
@@ -6371,6 +6748,7 @@ function sendLineNotify(flexMessage, token, groupId) {
 
       localStorage.setItem("nkp_users", JSON.stringify(userAccounts));
       realNameInput.value = "";
+      passwordInput.value = generateSecurePassword();
       
       renderUserManagement();
       persistState();
@@ -6425,7 +6803,7 @@ function sendLineNotify(flexMessage, token, groupId) {
         currentUser.password = newPwd;
         sessionStorage.setItem("nkp_current_user", JSON.stringify(currentUser));
         
-        if (currentUser.realName === "NKP Programmer (Default)") {
+        if (currentUser.realName === "Admin (Default)") {
           settings.password = newPwd;
           localStorage.setItem("nkp_parts_settings", JSON.stringify(settings));
         }
@@ -6433,14 +6811,14 @@ function sendLineNotify(flexMessage, token, groupId) {
         closeModal("modal-change-own-password");
         persistState();
         showToast("สำเร็จ", "เปลี่ยนรหัสผ่านของคุณเรียบร้อยแล้ว", "success");
-        if (currentUser.role === "Programmer") {
+        if (currentUser.role === "Admin") {
           renderUserManagement();
         }
       } else {
         errorDiv.innerText = "เกิดข้อผิดพลาดในการค้นหาผู้ใช้";
       }
     }
-
+    
     // 12. Modal Utility Triggers
     window.openModal = function(modalId) {
       document.getElementById(modalId).classList.add("active");
@@ -6477,6 +6855,7 @@ function sendLineNotify(flexMessage, token, groupId) {
       const toast = document.getElementById("toast-notification");
       toast.classList.remove("show");
     }
-  </script>
+  
+</script>
 </body>
 </html>

@@ -1,5 +1,6 @@
 // Database of Medical Spare Parts & Equipment - Nakhonping Hospital
     // Complies with SMM 07-1:2024 and CMMS Specifications
+    // V3: inStock reset to 0 — กรอกยอดจริงผ่านระบบรับเข้า
 
     const INITIAL_PARTS = [
       {
@@ -8,7 +9,7 @@
         description: "Masimo SpO2 sensor for patient monitors with LNCS connector.",
         manufacturer: "Masimo",
         equipmentModels: ["Masimo Radical-7", "Philips IntelliVue MX450"],
-        inStock: 30,
+        inStock: 0,
         unitPrice: 8200.00,
         minStock: 5,
         maxStock: 50,
@@ -19,8 +20,8 @@
         supplierContact: "081-589-4409",
         purchaseDate: "2024-12-04",
         expiryDate: "2027-12-04",
-        leadTime: 14, // days
-        repairFreq: 4, // average repairs/year
+        leadTime: 14,
+        repairFreq: 4,
       },
       {
         code: "SR-SPO2-002",
@@ -28,7 +29,7 @@
         description: "TruSignal technology integrated SpO2 soft reusable sensor.",
         manufacturer: "Datex-Ohmeda/GE Healthcare",
         equipmentModels: ["GE Carescape B650", "GE Carescape B450"],
-        inStock: 10,
+        inStock: 0,
         unitPrice: 8000.00,
         minStock: 2,
         maxStock: 20,
@@ -48,7 +49,7 @@
         description: "Nellcor OxiMax reusable SpO2 finger sensor, clip style.",
         manufacturer: "Covidien Nellcor",
         equipmentModels: ["Nellcor PM10N", "Mindray BeneVision N12", "GE Carescape B450"],
-        inStock: 80,
+        inStock: 0,
         unitPrice: 5100.00,
         minStock: 15,
         maxStock: 120,
@@ -68,7 +69,7 @@
         description: "Nihon Kohden BLUPRO Series reusable finger probe.",
         manufacturer: "BluPro / Nihon Kohden",
         equipmentModels: ["Nihon Kohden BSM-3500", "Nihon Kohden BSM-6500"],
-        inStock: 10,
+        inStock: 0,
         unitPrice: 12400.00,
         minStock: 2,
         maxStock: 25,
@@ -78,7 +79,7 @@
         supplierName: "SR Science & Service Co., Ltd. (ร้านเอสอาร์.ชายน์แอนด์เซอร์วิส)",
         supplierContact: "081-589-4409",
         purchaseDate: "2024-12-04",
-        expiryDate: "2027-06-04", // Near Expiry example
+        expiryDate: "2027-06-04",
         leadTime: 21,
         repairFreq: 3,
       },
@@ -88,7 +89,7 @@
         description: "Philips reusable silicon soft SpO2 sensor.",
         manufacturer: "Philips",
         equipmentModels: ["Philips IntelliVue MX450", "Philips Goldway G40"],
-        inStock: 15,
+        inStock: 0,
         unitPrice: 10000.00,
         minStock: 3,
         maxStock: 30,
@@ -108,7 +109,7 @@
         description: "Philips reusable finger clip SpO2 sensor.",
         manufacturer: "Philips",
         equipmentModels: ["Philips IntelliVue MX450", "Philips Goldway G40"],
-        inStock: 10,
+        inStock: 0,
         unitPrice: 7800.00,
         minStock: 2,
         maxStock: 20,
@@ -128,7 +129,7 @@
         description: "Mindray compatible SpO2 sensor with BD9 pin configuration.",
         manufacturer: "Mindray",
         equipmentModels: ["Mindray BeneVision N12", "Mindray BeneView T8"],
-        inStock: 70,
+        inStock: 0,
         unitPrice: 4750.00,
         minStock: 10,
         maxStock: 100,
@@ -148,7 +149,7 @@
         description: "Extension cable connecting Mindray monitors to Nellcor Oximax sensors.",
         manufacturer: "Bangkok Medical Pro Co., Ltd. (บริษัท แบงค็อก เมดิคอล โปร จำกัด)",
         equipmentModels: ["Mindray BeneVision N12", "Nellcor PM10N"],
-        inStock: 5,
+        inStock: 0,
         unitPrice: 3000.00,
         minStock: 1,
         maxStock: 10,
@@ -168,7 +169,7 @@
         description: "7-pin SpO2 extension cable for Mindray monitors.",
         manufacturer: "Bangkok Medical Pro Co., Ltd. (บริษัท แบงค็อก เมดิคอล โปร จำกัด)",
         equipmentModels: ["Mindray BeneVision N12", "Mindray BeneView T8"],
-        inStock: 1,
+        inStock: 0,
         unitPrice: 3000.00,
         minStock: 2,
         maxStock: 20,
@@ -188,7 +189,7 @@
         description: "Extension cable compatible with Nihon Kohden bedside monitors.",
         manufacturer: "Bangkok Medical Pro Co., Ltd. (บริษัท แบงค็อก เมดิคอล โปร จำกัด)",
         equipmentModels: ["Nihon Kohden BSM-3500", "Nihon Kohden BSM-6500"],
-        inStock: 10,
+        inStock: 0,
         unitPrice: 3000.00,
         minStock: 2,
         maxStock: 20,
@@ -198,7 +199,7 @@
         supplierName: "Bangkok Medical Pro Co., Ltd.",
         supplierContact: "02-511-xxxx",
         purchaseDate: "2025-10-06",
-        expiryDate: "2026-05-01", // Simulated Expired item
+        expiryDate: "2028-10-06",
         leadTime: 7,
         repairFreq: 3,
       },
@@ -208,7 +209,7 @@
         description: "GE interface extension cable to Masimo encrypted SpO2 sensors.",
         manufacturer: "Bangkok Medical Pro Co., Ltd. (บริษัท แบงค็อก เมดิคอล โปร จำกัด)",
         equipmentModels: ["GE Carescape B650", "Masimo Radical-7"],
-        inStock: 10,
+        inStock: 0,
         unitPrice: 3000.00,
         minStock: 2,
         maxStock: 20,
@@ -237,123 +238,6 @@
       { serial: "NKP-RAD7-401", model: "Masimo Radical-7", dept: "NICU", value: 250000.00 }
     ];
 
-    const INITIAL_TRANSACTIONS = [
-      {
-        id: "TX-10001",
-        timestamp: "2026-05-15T09:30:00",
-        type: "Receive",
-        partCode: "SR-SPO2-001",
-        partName: "Adult Finger SpO2 sensor Original Masimo LNCS DC-I (#1863)",
-        qty: 30,
-        refDoc: "Contract 133/2568",
-        operator: "นายสมชาย ใจดี (หัวหน้าช่าง)",
-        details: "รับเข้าอะไหล่จากสัญญาจัดซื้อประจำปี ร้าน SR Science",
-        cost: 246000.00
-      },
-      {
-        id: "TX-10002",
-        timestamp: "2026-05-16T11:00:00",
-        type: "Receive",
-        partCode: "001CM02002",
-        partName: "Compatible Mindray Extension cable to Nellcor Oximax (SA-148-101)",
-        qty: 5,
-        refDoc: "PO-65-0352",
-        operator: "นายสุรศักดิ์ พึ่งเล่ห์ (ช่างเทคนิค)",
-        details: "รับเข้าอะไหล่จากบริษัท แบงค็อก เมดิคอล โปร",
-        cost: 150000.00
-      },
-      {
-        id: "TX-10003",
-        timestamp: "2026-05-20T14:15:00",
-        type: "Issue",
-        partCode: "SR-SPO2-003",
-        partName: "Adult Finger SpO2 Sensor Original Covidien Nellcor (#DS100A)",
-        qty: 2,
-        refDoc: "CM-2026-0589",
-        operator: "นายยุทธนา หยุดปัญญา (ช่างเทคนิค)",
-        details: "เปลี่ยนอะไหล่เนื่องจากสายเก่าชำรุดหักงอ",
-        eqSerial: "NKP-N12-201",
-        eqModel: "Mindray BeneVision N12",
-        maintenanceType: "Corrective Maintenance (CM)",
-        cost: 10200.00
-      },
-      {
-        id: "TX-10004",
-        timestamp: "2026-05-22T10:00:00",
-        type: "Borrow",
-        partCode: "SR-SPO2-005",
-        partName: "Adult Soft SpO2 Sensor Original Philips (#M1191 B/BL)",
-        qty: 1,
-        refDoc: "Troubleshooting Test",
-        operator: "นายสุรศักดิ์ พึ่งเล่ห์ (ช่างเทคนิค)",
-        details: "ยืมไปสลับทดสอบปัญหาของเครื่องบกพร่องที่ตึก CCU",
-        eqSerial: "NKP-MX450-103",
-        eqModel: "Philips IntelliVue MX450",
-        borrowStatus: "Borrowed",
-        borrowDueDate: "2026-05-29"
-      },
-      {
-        id: "TX-10005",
-        timestamp: "2026-05-24T16:30:00",
-        type: "Return",
-        partCode: "SR-SPO2-005",
-        partName: "Adult Soft SpO2 Sensor Original Philips (#M1191 B/BL)",
-        qty: 1,
-        refDoc: "TX-10004 Return",
-        operator: "นายสุรศักดิ์ พึ่งเล่ห์ (ช่างเทคนิค)",
-        details: "นำกลับมาคืนคลัง สภาพปกติหลังตรวจสอบบอร์ดแล้ว",
-        eqSerial: "NKP-MX450-103",
-        eqModel: "Philips IntelliVue MX450",
-        borrowStatus: "Returned"
-      },
-      {
-        id: "TX-10006",
-        timestamp: "2026-05-28T09:00:00",
-        type: "Audit",
-        partCode: "SR-SPO2-007",
-        partName: "Adult Finger SpO2 Sensor for Mindray BD9 Standard (#512F)",
-        qty: -1,
-        refDoc: "Stock Take Q2",
-        operator: "นายสมชาย ใจดี (หัวหน้าช่าง)",
-        details: "ปรับยอดคงคลัง: นับจริงได้ 70 ชิ้น (ยอดเดิมในบัญชี 71 ชิ้น)",
-        cost: -4750.00
-      }
-    ];
+    const INITIAL_TRANSACTIONS = [];
 
-    const INITIAL_PM_PLANS = [
-      {
-        id: "PM-PLN-001",
-        name: "แผนบำรุงรักษาประจำปีเครื่องตรวจวัด Bedside Monitor Nihon Kohden",
-        eqModel: "Nihon Kohden BSM-3500",
-        frequency: "Semi-Annual (ทุก 6 เดือน)",
-        scheduledDate: "2026-06-15",
-        assignedTech: "นายสุรศักดิ์ พึ่งเล่ห์ (ช่างเทคนิค)",
-        linkedParts: [
-          { code: "SR-SPO2-004", qty: 1 },
-          { code: "001CM02008", qty: 1 }
-        ]
-      },
-      {
-        id: "PM-PLN-002",
-        name: "แผนตรวจเช็คสภาพเครื่องเฝ้าไข้ Philips IntelliVue",
-        eqModel: "Philips IntelliVue MX450",
-        frequency: "Annual (ประจำปี)",
-        scheduledDate: "2026-07-02",
-        assignedTech: "นายยุทธนา หยุดปัญญา (ช่างเทคนิค)",
-        linkedParts: [
-          { code: "SR-SPO2-005", qty: 1 }
-        ]
-      },
-      {
-        id: "PM-PLN-003",
-        name: "แผนทดสอบประสิทธิภาพเครื่องวัดออกซิเจนปลายนิ้ว Mindray",
-        eqModel: "Mindray BeneVision N12",
-        frequency: "Annual (ประจำปี)",
-        scheduledDate: "2026-06-25",
-        assignedTech: "นายสมชาย ใจดี (หัวหน้าช่าง)",
-        linkedParts: [
-          { code: "SR-SPO2-007", qty: 1 },
-          { code: "001CM02003", qty: 1 }
-        ]
-      }
-    ];
+    const INITIAL_PM_PLANS = [];

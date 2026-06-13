@@ -1,0 +1,19 @@
+# ===== SECRETS — ห้ามขึ้น public repo =====
+code.gs
+ขอแก้ไข.txt
+NKP-medparts-2026.txt
+
+# ===== ไฟล์ชั่วคราว =====
+nkp_sync_tmp.json
+~$*
+
+# ===== สื่อ/เอกสารตัวอย่างที่ไม่ต้อง deploy =====
+1.png
+Screenshot*.png
+ระบบบริหาร*.pdf
+
+# ===== OS / editor =====
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
