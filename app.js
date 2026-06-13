@@ -3099,7 +3099,8 @@
           action: "sync",
           parts: parts,
           transactions: transactions,
-          users: userAccounts
+          users: userAccounts,
+          pmPlans: pmPlans
         })
       })
       .then(() => console.log("Cloud sync successful."))
@@ -3129,6 +3130,10 @@
               sessionStorage.setItem("nkp_current_user", JSON.stringify(currentUser));
             }
           }
+        }
+        if (data.pmPlans && data.pmPlans.length > 0) {
+          pmPlans = data.pmPlans;
+          localStorage.setItem("nkp_pm_plans", JSON.stringify(pmPlans));
         }
         updateDashboard();
         renderCatalog();
