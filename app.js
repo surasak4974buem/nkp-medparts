@@ -3099,7 +3099,9 @@
       
       showToast("กำลังส่งข้อความทดสอบ", "กำลังเชื่อมต่อระบบ LINE เพื่อส่งข้อความทดสอบ...", "warning");
       const result = await sendLineNotification(mockTx, 29);
-      if (result.success) {
+      if (result.omitted) {
+        showToast("LINE ปิดอยู่", "กรุณาเปิด toggle LINE แล้วกด 'บันทึกการตั้งค่า' ก่อนทดสอบ", "warning");
+      } else if (result.success) {
         showToast("สำเร็จ", "ส่งข้อความแจ้งเตือน LINE ทดสอบสำเร็จแล้ว", "success");
       } else {
         showToast("ส่งข้อความล้มเหลว", `ไม่สามารถส่งแจ้งเตือน LINE ได้: ${result.error}`, "danger");
