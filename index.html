@@ -6421,7 +6421,7 @@ function sendLineNotify(flexMessage, token, groupId) {
       if (settings.gasUrl) {
         return fetch(settings.gasUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "text/plain" },
           body: JSON.stringify({
             action: "notify",
             token: settings.lineToken,
@@ -6472,7 +6472,7 @@ function sendLineNotify(flexMessage, token, groupId) {
       if (!settings.gasUrl) return;
       fetch(settings.gasUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "text/plain" },
         body: JSON.stringify({
           action: "sync",
           parts: parts,
